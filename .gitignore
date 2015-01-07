@@ -1,3 +1,7 @@
+# Ignore project specific symlinks
+cuda.mk
+cudalt.py
+
 # Compiled Object files
 *.slo
 *.lo
