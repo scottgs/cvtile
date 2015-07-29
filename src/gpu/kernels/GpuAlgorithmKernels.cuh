@@ -237,102 +237,98 @@ void launch_window_histogram_statistics (const dim3 dimGrid, const dim3 dimBlock
 template< typename InputPixelType, typename OutputPixelType>
 __global__ static
 void erode(OutputPixelType * const  outputData, const unsigned int height, 
-	    const unsigned int width, const int2 * linearStructuringElement, 
+	    const unsigned int width, const int2 * relativeOffsets, 
 	    const unsigned int numElements)
 {
 	const unsigned int xIndex = blockIdx.x * blockDim.x + threadIdx.x;
-	const unsigned int yIndex = blockIdx.y * blockDim.y + threadIdx.y;	
-	const unsigned int pixel_one_d = xIndex + yIndex * width; 
-	const unsigned int area = height * width;
-	int cur_pixel_one_d = pixel_one_d;
-	unsigned int cur_y_index = yIndex;
-	unsigned int cur_x_index = xIndex;
-
-	InputPixelType current_min = tex2D(sdsk_ushortTwoD, xIndex, yIndex);
+	const unsigned int yIndex = blockIdx.y * blockDim.y + threadIdx.y;
 	
-	extern __shared__ int2 offSets[]; 
-			
-	for(int i = threadIdx.y * width + threadIdx.x; i  < numElements; i += blockDim.x * blockDim.y)
-		offSets[i] = linearStructuringElement[i]; 
-
-	__syncthreads();
-
-	for(int i = 0; i < numElements; ++i){
-		cur_x_index = xIndex + offSets[i].x;
-		cur_y_index = yIndex + offSets[i].y;
-		cur_pixel_one_d = pixel_one_d + (offSets[i].x) + offSets[i].y * width;   	
-		if( cur_pixel_one_d < area && cur_pixel_one_d >= 0 && 
-		   current_min > tex2D(sdsk_ushortTwoD, cur_x_index, cur_y_index)){
-			current_min = tex2D(sdsk_ushortTwoD, cur_x_index, cur_y_index);
-		}
-	}
- 
-
 	if(yIndex < height && xIndex < width){
-		outputData[pixel_one_d] = current_min;
+
+		const unsigned int pixel_one_d = xIndex + yIndex * width; 
+		int cur_y_index;
+		int cur_x_index;
+
+		InputPixelType min = tex2D(sdsk_ushortTwoD, xIndex, yIndex);
+	
+		//extern __shared__ int2 offSets[]; 
+		OutputPixelType values[1024];
+
+		for(unsigned int i = 0; i < numElements; ++i)
+		{
+			cur_x_index = xIndex + relativeOffsets[i].x;
+			cur_y_index = yIndex + relativeOffsets[i].y;	
+		
+			if( cur_y_index < height && cur_y_index >= 0 && cur_x_index < width && cur_x_index >= 0 ){
+				values[i] = tex2D(sdsk_ushortTwoD, cur_x_index, cur_y_index);
+				if (values[i] < min) {
+					min = values[i];
+				}
+
+			}
+		}
+		outputData[pixel_one_d] = min;
+	
 	}
 
 }
 
 
 template< typename InputPixelType, typename OutputPixelType>
-void launch_erode(const dim3& dimGrid, const dim3& dimBlock, const unsigned int shmemSize, 
+void launch_erode(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, 
 		   const cudaStream_t stream,  OutputPixelType * const outputData, 
-		   const unsigned int width,  const unsigned int height, int2 * const linearStructuringElement, 
+		   const unsigned int width,  const unsigned int height, int2 * const relativeOffsets, 
 		   const unsigned int numElements)
 {
-	erode<InputPixelType,OutputPixelType><<<dimGrid, dimBlock, shmemSize, stream>>>(outputData, height, width, linearStructuringElement, numElements);
+	erode<InputPixelType,OutputPixelType><<<dimGrid, dimBlock, shmemSize, stream>>>(outputData, height, width, relativeOffsets, numElements);
 }
 
 template< typename InputPixelType, typename OutputPixelType>
 __global__ static
 void dilate(OutputPixelType * const  outputData, const unsigned int height, 
-	    const unsigned int width, const int2 * linearStructuringElement, 
+	    const unsigned int width, const int2 * relativeOffsets, 
 	    const unsigned int numElements)
 {
-
 	const unsigned int xIndex = blockIdx.x * blockDim.x + threadIdx.x;
-	const unsigned int yIndex = blockIdx.y * blockDim.y + threadIdx.y;	
-	const unsigned int pixel_one_d = xIndex + yIndex * width; 
-	const unsigned int area = height * width;
-	int cur_pixel_one_d = pixel_one_d;
-	unsigned int cur_y_index = yIndex;
-	unsigned int cur_x_index = xIndex;
-
-	InputPixelType current_max = tex2D(sdsk_ushortTwoD, xIndex, yIndex);
+	const unsigned int yIndex = blockIdx.y * blockDim.y + threadIdx.y;
 	
-	extern __shared__ int2 offSets[]; 
-			
-	for(int i = threadIdx.y * width + threadIdx.x; i  < numElements; i += blockDim.x * blockDim.y)
-		offSets[i] = linearStructuringElement[i]; 
-
-	__syncthreads();
-
-	for(int i = 0; i < numElements; ++i){
-		cur_x_index = xIndex + offSets[i].x;
-		cur_y_index = yIndex + offSets[i].y;
-		cur_pixel_one_d = pixel_one_d + (offSets[i].x) + offSets[i].y * width;   	
-		if( cur_pixel_one_d < area && cur_pixel_one_d >= 0 &&
-		   current_max < tex2D(sdsk_ushortTwoD, cur_x_index, cur_y_index)){
-			current_max = tex2D(sdsk_ushortTwoD, cur_x_index, cur_y_index);
-		}
-	}
- 
-
 	if(yIndex < height && xIndex < width){
-		outputData[pixel_one_d] = current_max;
-	}
 
+		const unsigned int pixel_one_d = xIndex + yIndex * width; 
+		int cur_y_index;
+		int cur_x_index;
+
+		InputPixelType max = tex2D(sdsk_ushortTwoD, xIndex, yIndex);
+	
+		//extern __shared__ int2 offSets[]; 
+		OutputPixelType values[1024];
+
+		for(unsigned int i = 0; i < numElements; ++i)
+		{
+			cur_x_index = xIndex + relativeOffsets[i].x;
+			cur_y_index = yIndex + relativeOffsets[i].y;	
+		
+			if( cur_y_index < height && cur_y_index >= 0 && cur_x_index < width && cur_x_index >= 0 ){
+				values[i] = tex2D(sdsk_ushortTwoD, cur_x_index, cur_y_index);
+				if (values[i] > max) {
+					max = values[i];
+				}
+
+			}
+		}
+		outputData[pixel_one_d] = max;
+	
+	}
 
 }
 
 template< typename InputPixelType, typename OutputPixelType>
 void launch_dilate(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
-		   const cudaStream_t stream,  short * const outputData, 
-		   const unsigned int width,  const unsigned int height, int2 * const linearStructuringElement, 
+		   const cudaStream_t stream,  OutputPixelType * const outputData, 
+		   const unsigned int width,  const unsigned int height, int2 * const relativeOffsets, 
 		   const unsigned int numElements)
 {
-	dilate<InputPixelType,OutputPixelType><<<dimGrid, dimBlock, shmemSize, stream>>>(outputData, height, width, linearStructuringElement, numElements);
+	dilate<InputPixelType,OutputPixelType><<<dimGrid, dimBlock, shmemSize, stream>>>(outputData, height, width, relativeOffsets, numElements);
 }
 
 

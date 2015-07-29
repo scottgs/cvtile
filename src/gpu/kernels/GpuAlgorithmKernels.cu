@@ -196,12 +196,12 @@ template void launch_window_histogram_statistics<short, float>(const dim3 dimGri
 
 template void launch_dilate<short,short>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, 
 		   const cudaStream_t stream,  short * const outputData, 
-		   const unsigned int width,  const unsigned int height, int2 * const linearStructuringElement, 
+		   const unsigned int width,  const unsigned int height, int2 * const relativeOffsets, 
 		   const unsigned int numElements);
 
-template void launch_erode<short,short>(const dim3& dimGrid, const dim3& dimBlock, const unsigned int shmemSize, 
+template void launch_erode<short,short>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, 
 		   const cudaStream_t stream,  short * const outputData, 
-		   const unsigned int width,  const unsigned int height, int2 * const linearStructuringElement, 
+		   const unsigned int width,  const unsigned int height, int2 * const relativeOffsets, 
 		   const unsigned int numElements);
 
 

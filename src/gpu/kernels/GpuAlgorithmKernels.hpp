@@ -46,13 +46,13 @@ void launch_window_histogram_statistics(const dim3 dimGrid, const dim3 dimBlock,
 template <typename InputPixelType, typename OutputPixelType>
 void launch_dilate(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, 
 		   const cudaStream_t stream,  OutputPixelType * const outputData, 
-		   const unsigned int width,  const unsigned int height, int2 * const linearStructuringElement, 
+		   const unsigned int width,  const unsigned int height, int2 * const relativeOffsets, 
 		   const unsigned int numElements);
 
 template <typename InputPixelType, typename OutputPixelType>
-void launch_erode(const dim3& dimGrid, const dim3& dimBlock, const unsigned int shmemSize, 
+void launch_erode(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, 
 		   const cudaStream_t stream,  OutputPixelType * const outputData, 
-		   const unsigned int width,  const unsigned int height, int2 * const linearStructuringElement, 
+		   const unsigned int width,  const unsigned int height, int2 * const relativeOffsets, 
 		   const unsigned int numElements);
 
 }
