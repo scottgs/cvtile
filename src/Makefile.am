@@ -17,7 +17,8 @@ libcvtile_la_LIBADD = base/libcvtile_base.la \
  
 
 cvtiledir = $(includedir)/cvtile
-cvtile_HEADERS = cvtile.hpp
+cvtile_HEADERS = cvtile.hpp \
+				Cuda4or5.h
 
 basedir = ${includedir}/cvtile/base
 base_HEADERS = base/cvTile.hpp \
@@ -35,7 +36,13 @@ gpu_HEADERS = gpu/gpu.hpp
 				
 				
 gpudriversdir = ${includedir}/cvtile/gpu/drivers
-gpudrivers_HEADERS = 
+gpudrivers_HEADERS = gpu/drivers/GPUProperties.hpp \
+			gpu/drivers/GpuAlgorithm.hpp \
+			gpu/drivers/GpuWindowFilterAlgorithm.hpp \
+			gpu/drivers/GpuWHS.hpp \
+			gpu/drivers/GpuErode.hpp \
+			gpu/drivers/GpuDilate.hpp 
 
-
+gpukernelsdir = ${includedir}/cvtile/gpu/kernels
+gpukernels_HEADERS = gpu/kernels/GpuAlgorithmKernels.hpp
  

@@ -1,12 +1,14 @@
 #the name that the program will called once compiled
 check_PROGRAMS	=	runner
 
-AM_CPPFLAGS	=	-HAVE_CGI $(OPENCV_CFLAGS)
+AM_CPPFLAGS	=	-HAVE_CGI $(OPENCV_CFLAGS) -std=c++0x
 
 #the source files used to build the runner target
 runner_SOURCES	=	runner.cpp \
 				CvTileTestSuite.cpp \
-				TilerTestSuite.cpp
+				TilerTestSuite.cpp \
+				gpuTestSuite.cpp \
+				gpuWHSTestSuite.cpp
 
 #libraries that will be linked
 runner_LDADD	=	-lcgi_core $(OPENCV_LIBS) $(top_builddir)/src/libcvtile.la
@@ -24,7 +26,8 @@ check: $(check_PROGRAMS)
 
 # compile all of the generated source code files
 .cpp.o:
-	g++ -g -Wall -I/usr/local/cxxtest/include/ -I../src/ -c -o $@ $<
+	g++ -g -std=c++0x -Wall $(CUDA_CFLAGS) \ 
+	-I/usr/local/cxxtest/include/ -I../src/ -c -o $@ $<
 
 # How to generate the test runner (this is the scaffolding that makes things go)
 runner.cpp: 

@@ -6,7 +6,7 @@ LINK = $(LIBTOOL) --mode=link $(CC) -o  $@ $(CUDA_LDFLAGS) -use-fast-math $(CUDA
 
 noinst_LTLIBRARIES = libcvtile_gpu_kernels.la
 
-libcvtile_gpu_kernels_la_SOURCES = testing.cu
+libcvtile_gpu_kernels_la_SOURCES = testing.cu GpuAlgorithmKernels.cu
 libcvtile_gpu_kernels_la_CPPFLAGS = $(CUDA_CFLAGS) -DNDEBUG @AM_CPPFLAGS@	
 
 
