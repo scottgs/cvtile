@@ -37,6 +37,15 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef CVTILE_GPU_H
 #define CVTILE_GPU_H
 
+#include "drivers/GPUProperties.hpp"
 
+#include "drivers/GpuAlgorithm.hpp"
+#include "drivers/GpuWindowFilterAlgorithm.hpp"
+
+#include "drivers/GpuDilate.hpp"
+#include "drivers/GpuErode.hpp"
+#include "drivers/GpuWHS.hpp"
+
+#include "kernels/GpuAlgorithmKernels.hpp"
 
 #endif /* CVTILE_GPU_H */
