@@ -272,6 +272,21 @@ class Tiler
 		 */
 		ErrorType getProjectionReference(std::string& projRef) const;
 
+		
+		/** @brief Copies (limited) metadata from the reference image.
+                 *
+                 *  @param referenceMosaic  Reference image from which to copy
+                 *         metadata.
+                 */
+                ErrorType copyMetadata(Tiler& referenceTiler);
+
+                /** @brief Copies the dataset mask from the reference image.
+                 *
+                 *  @param referenceMosaic  Reference image from which to copy
+                 *         the dataset mask.
+                 */
+                ErrorType copyMask(const Tiler& referenceTiler);
+
 
 		/** @brief Attempts to set the band no-data value.
 		 *    Not all GDAL drivers support this.
@@ -543,6 +558,11 @@ class Tiler
 		void setGeneralCvTileMetadata(int ul_x_pixel, int ul_y_pixel, int cvTileBufferWidth, cvTile<T>& tile) const;
 
 		int getLocalCvTileIndex(int globalTileIndex_x, int globalTileIndex_y) const;
+
+		// Metadata Management Helpers
+		ErrorType deepCopyMask(GDALRasterBand* source, GDALRasterBand* target);
+		ErrorType bandCopySanityCheck(const Tiler& referenceTiler, const int band) const;
+		ErrorType setUpDatasetMask();
 };
 
 template <typename T>
