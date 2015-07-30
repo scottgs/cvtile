@@ -3,7 +3,7 @@
 
 #include "../../Cuda4or5.h"
 #include "../kernels/GpuAlgorithmKernels.hpp"
-#include "GpuBinaryAlgorithm.hpp"
+#include "GpuBinaryImageAlgorithm.hpp"
 #include <vector>
 
 namespace cvt {
@@ -31,7 +31,7 @@ template< typename InputPixelType, int InputBandCount, typename OutputPixelType,
 GpuAbsoluteDifference<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::GpuAbsoluteDifference(
 	unsigned int cudaDeviceId, size_t unbufferedDataWidth, 
 	size_t unbufferedDataHeight) : 
-	cvt::gpu::GpuBinaryAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>(
+	cvt::gpu::GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>(
 	cudaDeviceId, unbufferedDataWidth,unbufferedDataHeight)
 {
 	;

@@ -1,5 +1,5 @@
-#ifndef GPU_BINARY_ALGORITHM_
-#define GPU_BINARY_ALGORITHM_
+#ifndef GPU_BINARY_IMAGE_ALGORITHM_
+#define GPU_BINARY_IMAGE_ALGORITHM_
 
 #include "../../Cuda4or5.h"
 #include "GpuAlgorithm.hpp"
@@ -13,15 +13,15 @@ namespace gpu {
 
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
-class GpuBinaryAlgorithm : public GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>
+class GpuBinaryImageAlgorithm : public GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>
 {
 
 	public:
 	
-	 explicit GpuBinaryAlgorithm(unsigned int cudaDeviceId, size_t unbufferedDataWidth,
+	 explicit GpuBinaryImageAlgorithm(unsigned int cudaDeviceId, size_t unbufferedDataWidth,
 							 size_t unbufferedDataHeight);
 
-	 virtual ~GpuBinaryAlgorithm();
+	 virtual ~GpuBinaryImageAlgorithm();
 	 ErrorCode initializeDevice();
 
 	virtual ErrorCode operator()(const cvt::cvTile<InputPixelType>& tile,
@@ -39,10 +39,10 @@ class GpuBinaryAlgorithm : public GpuAlgorithm<InputPixelType, InputBandCount, O
 	 * */
 	cudaArray * gpuInputDataArrayTwo_;
 
-}; // END of GpuBinaryAlgorithm
+}; // END of GpuBinaryImageAlgorithm
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
-GpuBinaryAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::GpuBinaryAlgorithm(
+GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::GpuBinaryImageAlgorithm(
 	unsigned int cudaDeviceId, size_t unbufferedDataWidth, 
 	size_t unbufferedDataHeight) 	
 	: cvt::gpu::GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>(
@@ -52,7 +52,7 @@ GpuBinaryAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCo
 }
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
-GpuBinaryAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::~GpuBinaryAlgorithm() {
+GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::~GpuBinaryImageAlgorithm() {
 	////////////////////////////////////////
 	// FREE CUDA ARRAYS USED FOR GPU INPUT //
 	////////////////////////////////////////
@@ -69,7 +69,7 @@ GpuBinaryAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCo
 }
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
-ErrorCode GpuBinaryAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::operator()(const cvt::cvTile<InputPixelType>& tile,
+ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::operator()(const cvt::cvTile<InputPixelType>& tile,
 					const cvt::cvTile<OutputPixelType> ** outTile) {
 					
 	return Ok;					
@@ -78,7 +78,7 @@ ErrorCode GpuBinaryAlgorithm<InputPixelType, InputBandCount, OutputPixelType, Ou
 
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
-ErrorCode GpuBinaryAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::operator()(const cvt::cvTile<InputPixelType>& tile,
+ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::operator()(const cvt::cvTile<InputPixelType>& tile,
 					const cvt::cvTile<InputPixelType> &tile2,const cvt::cvTile<OutputPixelType> ** outTile)
 {
 		//TO-DO Error Check Template Params for Type/Bounds
@@ -135,7 +135,7 @@ ErrorCode GpuBinaryAlgorithm<InputPixelType, InputBandCount, OutputPixelType, Ou
 }	
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
-ErrorCode GpuBinaryAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::initializeDevice()
+ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::initializeDevice()
 {
 	/*
 	 * Attempts to check the GPU and begin warm up
@@ -257,7 +257,7 @@ ErrorCode GpuBinaryAlgorithm<InputPixelType, InputBandCount, OutputPixelType, Ou
 }
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
-ErrorCode GpuBinaryAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(unsigned bw, unsigned bh) {
+ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(unsigned bw, unsigned bh) {
 	return Ok; // NEED TO ADD DEFAULT KERNEL FOR FILTER
 }
 
