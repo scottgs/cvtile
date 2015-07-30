@@ -331,6 +331,32 @@ void launch_dilate(const dim3 dimGrid, const dim3 dimBlock, const unsigned int s
 	dilate<InputPixelType,OutputPixelType><<<dimGrid, dimBlock, shmemSize, stream>>>(outputData, height, width, relativeOffsets, numElements);
 }
 
+template< typename InputPixelType, typename OutputPixelType>
+__global__ static
+void absDiffernce_kernel( OutputPixelType * const outputData, const unsigned int width, const unsigned int height)
+{
+	// calculate position
+	int xIndex = blockIdx.x * blockDim.x + threadIdx.x;
+	int yIndex = blockIdx.y * blockDim.y + threadIdx.y;
+
+	// vals for current abs 
+	OutputPixelType t_one, t_two;
+
+	if(xIndex < width && yIndex < height){
+		t_one = tex2D(sdsk_shortTileOne, xIndex, yIndex);
+		t_two = tex2D(sdsk_shortTileTwo, xIndex, yIndex);
+		*(outputData + xIndex * width + yIndex) = __usad(t_one, t_two, 0);
+	}
+	
+}
+
+template< typename InputPixelType, typename OutputPixelType>
+void launch_absDifference(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, const cudaStream_t stream,
+						  OutputPixelType * const outputData, const unsigned int width,
+						  const unsigned int height)
+{
+	absDiffernce_kernel<InputPixelType,OutputPixelType><<<dimGrid, dimBlock, shmemSize, stream>>>(outputData, width, height);
+}
 
 
 }; //end gpu namespace

@@ -41,7 +41,9 @@ gpudrivers_HEADERS = gpu/drivers/GPUProperties.hpp \
 			gpu/drivers/GpuWindowFilterAlgorithm.hpp \
 			gpu/drivers/GpuWHS.hpp \
 			gpu/drivers/GpuErode.hpp \
-			gpu/drivers/GpuDilate.hpp 
+			gpu/drivers/GpuDilate.hpp \
+			gpu/drivers/GpuBinaryAlgorithm.hpp \
+			gpu/drivers/GpuAbsoluteDifference.hpp 
 
 gpukernelsdir = ${includedir}/cvtile/gpu/kernels
 gpukernels_HEADERS = gpu/kernels/GpuAlgorithmKernels.hpp

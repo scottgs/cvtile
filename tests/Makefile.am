@@ -9,6 +9,9 @@ runner_SOURCES	=	runner.cpp \
 				TilerTestSuite.cpp \
 				gpuTestSuite.cpp \
 				gpuWHSTestSuite.cpp
+				gpuErodeTestSuite.cpp \
+				gpuDilateTestSuite.cpp \
+				gpuAbsoluteDifferenceTestSuite.cpp 
 
 #libraries that will be linked
 runner_LDADD	=	-lcgi_core $(OPENCV_LIBS) $(top_builddir)/src/libcvtile.la

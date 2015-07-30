@@ -55,7 +55,12 @@ void launch_erode(const dim3 dimGrid, const dim3 dimBlock, const unsigned int sh
 		   const unsigned int width,  const unsigned int height, int2 * const relativeOffsets, 
 		   const unsigned int numElements);
 
-}
-}
+template <typename InputPixelType, typename OutputPixelType>
+void launch_absDifference(const dim3 dimGrid, const dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream,
+						  OutputPixelType * outputData, const unsigned int width,
+						  const unsigned int height);
+
+} // end of gpu namespace
+} // end of cvt namespace
 
 #endif

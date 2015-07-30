@@ -204,6 +204,9 @@ template void launch_erode<short,short>(const dim3 dimGrid, const dim3 dimBlock,
 		   const unsigned int width,  const unsigned int height, int2 * const relativeOffsets, 
 		   const unsigned int numElements);
 
+template void launch_absDifference<short,short>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, 
+							const cudaStream_t stream, short * const outputData, const unsigned int width,
+						  const unsigned int height);
 
 }; //end gpu namespace
 }; //end cvt namespace
