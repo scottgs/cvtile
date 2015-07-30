@@ -560,6 +560,7 @@ class Tiler
 		int getLocalCvTileIndex(int globalTileIndex_x, int globalTileIndex_y) const;
 
 		// Metadata Management Helpers
+		GDALRasterBand* getMaskGDALRasterBand(int index = 1);
 		ErrorType deepCopyMask(GDALRasterBand* source, GDALRasterBand* target);
 		ErrorType bandCopySanityCheck(const Tiler& referenceTiler, const int band) const;
 		ErrorType setUpDatasetMask();

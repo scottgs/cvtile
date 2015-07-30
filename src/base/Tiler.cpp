@@ -474,6 +474,11 @@ ErrorType Tiler::bandCopySanityCheck(const Tiler& referenceTiler, const int band
 	return NoError;
 }
 
+GDALRasterBand* Tiler::getMaskGDALRasterBand(int index)
+{
+	return dataset->GetRasterBand(index)->GDALRasterBand::GetMaskBand(); 
+}
+
 ErrorType Tiler::setUpDatasetMask()
 {
 	if(boost::lexical_cast<int>(GDALVersionInfo("VERSION_NUM")) >= 1800 && dataset->GetDriver() == GDALGetDriverByName("VRT"))
