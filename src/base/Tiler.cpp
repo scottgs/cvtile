@@ -287,7 +287,7 @@ ErrorType Tiler::setBandName(int bandIndex, const std::string& bandName)
 
 	// If we have don't have update access to the dataset, we can't
 	// set the new band name on the dataset itself, but it will persist
-	// for the lifetime of the Mosaic object.
+	// for the lifetime of the Tiler object.
 
 	if (dataset->GetAccess() != GA_Update)
 		return WriteError;
@@ -471,7 +471,7 @@ ErrorType Tiler::bandCopySanityCheck(const Tiler& referenceTiler, const int band
 	if (reference_dataset->GetRasterCount() <= band)
 		return BoundsError;
 
-	return cgi::NoError;
+	return NoError;
 }
 
 ErrorType Tiler::setUpDatasetMask()
@@ -512,11 +512,11 @@ ErrorType Tiler::copyMask(const Tiler& referenceTiler)
 {
 	{
 		ErrorType err = bandCopySanityCheck(referenceTiler, 0);
-		if(cgi::NoError != err)
+		if(NoError != err)
 			return err;
 		
 		err = setUpDatasetMask();
-		if(cgi::NoError != err)
+		if(NoError != err)
 			return err;
 	}
 	// If the reference dataset has per-band masks rather than a per-dataset mask, give up.
@@ -585,9 +585,8 @@ ErrorType Tiler::create(const std::string& filename, const char* driverName,
 
 	previousFilename = filename;
 
-	// if the caller segfaults or throws an exception, and thereby Mosaic's
-	// destructor is never called, the created file may be left in an inconsisten
-	// state. so here, we call GDALDataset::FlushCache() just to make certain
+	// if the caller segfaults or throws an exception, 
+	// we call GDALDataset::FlushCache() just to make certain
 	// that at least the complete, empty file is written to disk before we return
 	// control to the caller.
 	dataset->FlushCache();
@@ -795,4 +794,4 @@ int Tiler::getLocalCvTileIndex(int x_index, int y_index) const
 	return local_1d_idx;
 }
 
-} // namespace cgi
+} // namespace cvt
