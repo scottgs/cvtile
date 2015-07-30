@@ -22,10 +22,10 @@ autoreconf-2.68: automake failed with exit status: 1
 ----------------------------------------------------------------------
 
 For example, on a Kepler 
-ln -s cuda.20.mk cuda.mk
+ln -s cuda.30.mk cuda.mk
 
 For Fermi, use 
-ln -s cuda.30.mk cuda.mk
+ln -s cuda.20.mk cuda.mk
 
 : AUTOTOOLS BUILD & INSTALL
 autoreconf -ivf && ./configure && make

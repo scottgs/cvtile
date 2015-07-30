@@ -287,7 +287,7 @@ ErrorType Tiler::setBandName(int bandIndex, const std::string& bandName)
 
 	// If we have don't have update access to the dataset, we can't
 	// set the new band name on the dataset itself, but it will persist
-	// for the lifetime of the Mosaic object.
+	// for the lifetime of the Tiler object.
 
 	if (dataset->GetAccess() != GA_Update)
 		return WriteError;
@@ -420,6 +420,118 @@ ErrorType Tiler::getProjectionReference(std::string& projRef) const
 	return NoError;
 }
 
+ErrorType Tiler::copyMetadata(Tiler& referenceTiler)
+{
+	if (dataset == NULL) return NullPointer;
+
+	double geoTransform[6];
+	std::string projRef;
+	ErrorType err = NoError;
+
+	if (referenceTiler.getProjectionReference(projRef) != NoError) return ReadError;
+
+	// non-fatal error
+	if (dataset->SetProjection(projRef.c_str()) == CE_Failure) err = WriteError;
+
+	if (referenceTiler.getGeoTransform(geoTransform) != NoError) return ReadError;
+
+	// non-fatal error
+	if (dataset->SetGeoTransform(geoTransform) == CE_Failure) err = WriteError;
+
+	return err;
+}
+
+ErrorType Tiler::deepCopyMask(GDALRasterBand* source, GDALRasterBand* target)
+{
+	if (target->GetAccess() == GA_ReadOnly)
+		return WriteError;
+
+	if (GDALRasterBandCopyWholeRaster(source, target, NULL, NULL, NULL) != CE_None)
+		return WriteError;
+
+	return NoError;
+}
+
+ErrorType Tiler::bandCopySanityCheck(const Tiler& referenceTiler, const int band) const
+{
+	if (dataset == NULL)
+		return NullPointer;
+
+	if (dataset->GetRasterCount() == 0)
+		return BoundsError;
+
+	if (dataset->GetAccess() != GA_Update)
+		return WriteError;
+
+	GDALDataset* reference_dataset = referenceTiler.dataset;
+
+	if (reference_dataset == NULL)
+		return NullPointer;
+
+	if (reference_dataset->GetRasterCount() <= band)
+		return BoundsError;
+
+	return NoError;
+}
+
+GDALRasterBand* Tiler::getMaskGDALRasterBand(int index)
+{
+	return dataset->GetRasterBand(index)->GDALRasterBand::GetMaskBand(); 
+}
+
+ErrorType Tiler::setUpDatasetMask()
+{
+	if(boost::lexical_cast<int>(GDALVersionInfo("VERSION_NUM")) >= 1800 && dataset->GetDriver() == GDALGetDriverByName("VRT"))
+	{
+		//
+		// If this is a VRT dataset, we can do something special -- namely, use
+		// the default implementations of CreateMaskBand and GetMaskBand to create
+		// and retrieve the mask band, and then use the virtual CreateMaskBand
+		// function in VRTDataset to add the MaskBand node to the VRT.
+		//
+
+		if(dataset->GDALDataset::CreateMaskBand(GMF_PER_DATASET) != CE_None)
+			return CreateError;
+
+		// Since the mask band is GMF_PER_DATASET, all the bands share the same mask
+		GDALRasterBand* dataset_mask = getMaskGDALRasterBand(1);
+		if(dataset_mask == NULL)
+			return NullPointer;
+
+		if(dataset->CreateMaskBand(GMF_PER_DATASET) != CE_None)
+			return CreateError;
+
+		VRTSourcedRasterBand* vrt_mask = static_cast<VRTSourcedRasterBand*>(dataset->GetRasterBand(1)->GetMaskBand());
+		if(vrt_mask->AddSimpleSource(dataset_mask) != CE_None)
+			return WriteError;
+	}
+	else if(dataset->CreateMaskBand(GMF_PER_DATASET) != CE_None)
+	{
+		return CreateError;
+	}
+
+	return NoError;
+}
+
+ErrorType Tiler::copyMask(const Tiler& referenceTiler)
+{
+	{
+		ErrorType err = bandCopySanityCheck(referenceTiler, 0);
+		if(NoError != err)
+			return err;
+		
+		err = setUpDatasetMask();
+		if(NoError != err)
+			return err;
+	}
+	// If the reference dataset has per-band masks rather than a per-dataset mask, give up.
+	GDALRasterBand* reference_band = referenceTiler.dataset->GetRasterBand(1);
+	if (!(reference_band->GetMaskFlags() & GMF_PER_DATASET))
+		return FileMissing;
+
+	return deepCopyMask(reference_band->GetMaskBand(), getMaskGDALRasterBand());
+}
+
 const cv::Size2i Tiler::getCvTileSize() const
 {
 	return cvTileSize;
@@ -478,9 +590,8 @@ ErrorType Tiler::create(const std::string& filename, const char* driverName,
 
 	previousFilename = filename;
 
-	// if the caller segfaults or throws an exception, and thereby Mosaic's
-	// destructor is never called, the created file may be left in an inconsisten
-	// state. so here, we call GDALDataset::FlushCache() just to make certain
+	// if the caller segfaults or throws an exception, 
+	// we call GDALDataset::FlushCache() just to make certain
 	// that at least the complete, empty file is written to disk before we return
 	// control to the caller.
 	dataset->FlushCache();
@@ -688,4 +799,4 @@ int Tiler::getLocalCvTileIndex(int x_index, int y_index) const
 	return local_1d_idx;
 }
 
-} // namespace cgi
+} // namespace cvt

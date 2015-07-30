@@ -36,6 +36,9 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef CVTILE_ALGORITHMS_H
 #define CVTILE_ALGORITHMS_H
 
+// NOTE: Algorithms are base, non-GPU algorithm implementations
+//	 The equivalent GPU acclerated algorithms will be in src/gpu/drivers/
+
 #include "dmp.hpp"
 
 #endif /* CVTILE_ALGORITHMS_H */
