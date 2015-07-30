@@ -5,6 +5,7 @@
 #include "GpuAlgorithm.hpp"
 #include "../kernels/GpuAlgorithmKernels.hpp"
 #include <vector>
+#include <sstream>
 
 namespace cvt {
 
@@ -89,7 +90,9 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 	
 	if (tileSize != this->dataSize)
 	{
-		throw std::runtime_error("Invalid dims");
+		std::stringstream ss;
+		ss << tileSize << " expected of " << this->dataSize << std::endl; 
+		throw std::runtime_error(ss.str());
 	}
 
 	/*

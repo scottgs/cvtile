@@ -55,7 +55,7 @@ ErrorCode GpuDilate<InputPixelType, InputBandCount, OutputPixelType, OutputBandC
 	dim3 dimGrid(gridWidth, gridHeight);
 
 	// Bind the texture to the array and setup the access parameters
-	cvt::gpu2::bindTexture_sdsk_ushortTwoD(this->gpuInputDataArray);
+	cvt::gpu::bindTexture_sdsk_ushortTwoD(this->gpuInputDataArray);
 	cudaError cuer = cudaGetLastError();
 	if (cudaSuccess != cuer)
 	{
