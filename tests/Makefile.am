@@ -8,7 +8,7 @@ runner_SOURCES	=	runner.cpp \
 				CvTileTestSuite.cpp \
 				TilerTestSuite.cpp \
 				gpuTestSuite.cpp \
-				gpuWHSTestSuite.cpp
+				gpuWHSTestSuite.cpp \
 				gpuErodeTestSuite.cpp \
 				gpuDilateTestSuite.cpp \
 				gpuAbsoluteDifferenceTestSuite.cpp 
