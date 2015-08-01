@@ -11,7 +11,7 @@ namespace cvt {
 namespace gpu {
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
-class GpuAbsoluteDifference  : public GpuBinaryAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>
+class GpuAbsoluteDifference  : public GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>
 {
 
 public:
