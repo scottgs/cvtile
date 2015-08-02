@@ -456,7 +456,7 @@ public:
 	/// \returns Maximum Y dimension of 2D texture if texture gather operations have to be performed
 	inline int getMaxTexture2DLinear_Pitch() const
 	{
-		return _props.maxTexture2DLinear[3];
+		return _props.maxTexture2DLinear[2];
 	}
 
 	/// \returns Maximum 3D texture dimensions

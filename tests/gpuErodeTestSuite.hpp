@@ -43,11 +43,11 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <cmath>
 #include <iostream>
 #include <chrono>
+#include <numeric>
 
 
 #ifdef HAVE_CGI
 	#include "../src/base/cvTileConversion.hpp"
-	#include <ext/numeric>
 #endif
 
 #include "../src/base/cvTile.hpp"
