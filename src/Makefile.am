@@ -3,7 +3,7 @@ include $(top_srcdir)/cuda.mk
 
 LINK = $(LIBTOOL) --mode=link $(CC) -o  $@ $(CUDA_LDFLAGS) -use-fast-math $(CUDA_LIBS) $(OPENCV_LIBS)
  
-AM_CPPFLAGS = -I..
+AM_CPPFLAGS = -I.. -std=c++0x
 
 LIBRARY_VERSION=0:0:0
 

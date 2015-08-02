@@ -7,6 +7,6 @@ noinst_LTLIBRARIES = libcvtile_algorithms.la
 AM_CPPFLAGS = -I..
 
 libcvtile_algorithms_la_LDFLAGS = -version-info $(EXAMPLE_LIBRARY_VERSION) @LTLIBOBJS@ 
-libcvtile_algorithms_la_SOURCES = 
+libcvtile_algorithms_la_SOURCES = buildDummy.cpp 
 libcvtile_algorithms_la_LIBADD = 
 				

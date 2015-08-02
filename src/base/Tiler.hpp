@@ -45,11 +45,11 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <boost/thread/mutex.hpp>
 #include <gdal_priv.h>
 #include <vrtdataset.h>
-#include <gdalext/traits/gdal_traits.hpp>
 #include <ogr_spatialref.h>
 //#include <cgi/core/exceptions/exceptions.hpp>
 
 #include "cvTile.hpp"
+#include "cvTileGdalExtensions.hpp"
 
 namespace cvt
 {

@@ -3,7 +3,7 @@
 
 #include <cxxtest/TestSuite.h>
 #include <algorithm>
-#include <ext/numeric>
+#include <numeric>
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/filesystem.hpp>
 

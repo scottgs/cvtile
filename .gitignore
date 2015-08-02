@@ -2,6 +2,11 @@
 cuda.mk
 cudalt.py
 
+#vim + tools
+*.swp
+*.swo
+tags
+
 # Compiled Object files
 *.slo
 *.lo
@@ -30,3 +35,25 @@ cudalt.py
 *.exe
 *.out
 *.app
+
+# CXX test
+test/runner*
+tdata.mosaic-test-5x5.ntf
+tests/*.cpp
+
+# Autotools
+autom4te.cache/
+config/
+.deps/
+.libs/
+depcomp
+install-sh
+missing
+stamp-h1.dylib
+aclocal.m4
+config.log
+configure
+config.status
+Makefile
+libtool
+Makefile.in
