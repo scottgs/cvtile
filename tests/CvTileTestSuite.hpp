@@ -1026,7 +1026,7 @@ class CvTileTestSuite : public CxxTest::TestSuite
 		void testROIValidMaskByIndex()
 		{
 			vector<int> buffer(36);
-			for(int i = 0; i < 36; ++i) buffer[i] = i;
+			iota(buffer.begin(), buffer.end(), 0);
 			cvTile<int> t(&buffer[0], cv::Size2i(4, 3), 3);
 
 			TS_ASSERT(true == t.setNoDataValue(1));
@@ -1039,11 +1039,8 @@ class CvTileTestSuite : public CxxTest::TestSuite
 
 			for (int i = 0; i < validMask.rows; ++ i)
 				for (int j = 0; j < validMask.cols; ++ j)
-					if ( (i != 0) || (j != 1)){
-						std::cout << buffer[i * 4 + j] << std::endl;
+					if ( (i != 0) || (j != 1))
 						TS_ASSERT(true == validMask.at<bool>(i, j));
-						std::cout << validMask.at<bool>(i,j) << std::endl;
-					}					
 
 			TS_ASSERT_THROWS_ANYTHING(t.getValidMask(9));
 			TS_ASSERT_THROWS_ANYTHING(t.getValidMask( -1));
