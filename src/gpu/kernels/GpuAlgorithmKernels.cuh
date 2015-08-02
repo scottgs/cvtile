@@ -73,18 +73,26 @@ void launch_simpleDataCopy(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, 
 
 template< typename InputPixelType, typename OutputPixelType>
 __global__ static
-void window_histogram_statistics(OutputPixelType * const  outputData, const unsigned int height,
-	    const unsigned int width, const int2 * relativeOffsets,
-	    const unsigned int numElements)
+void window_histogram_statistics(OutputPixelType * const  outputData, const unsigned int roiHeight,
+	    const unsigned int roiWidth, const int2 * relativeOffsets,
+	    const unsigned int numElements, const unsigned int buffer)
 {
 
-	const unsigned int xIndex = blockIdx.x * blockDim.x + threadIdx.x;
-	const unsigned int yIndex = blockIdx.y * blockDim.y + threadIdx.y;
+   // Data index now buffered
+   const int width = roiWidth + buffer + buffer;
+   const int height = roiHeight + buffer + buffer;
 
-	if(yIndex < height && xIndex < width){
+   // Block indexing is within the ROI, add the left and top buffer size to get data index position
+   const unsigned int xIndex = blockIdx.x * blockDim.x + threadIdx.x + buffer;
+   const unsigned int yIndex = blockIdx.y * blockDim.y + threadIdx.y + buffer;
 
-	const unsigned int pixel_one_d = xIndex + yIndex * width;
-	const unsigned int area = height * width;
+	
+   if(yIndex < height && xIndex < width)
+   {
+
+	// Output size is the ROI size
+	const unsigned int pixel_one_d = xIndex + yIndex * roiWidth;
+	const unsigned int area = roiHeight * roiWidth;
 	const unsigned int outputBandSize = area;
 
 	int cur_y_index;
@@ -250,7 +258,7 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 		//band 4 = kurtosis
 	outputData[pixel_one_d + (outputBandSize * 4)] = (OutputPixelType) kurtosis;
 	
-	} // END OF A VALID PIXEL POSITION
+    } // END OF A VALID PIXEL POSITION
 
 }
 
