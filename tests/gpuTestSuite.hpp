@@ -101,14 +101,14 @@ template < typename InputPixelType, int InputBandCount, typename OutputPixelType
 			const cvt::cvTile<OutputPixelType> ** outTile)
 		{
 	
-			this->lastError = copyTileToDevice(tile);
+			this->lastError = this->copyTileToDevice(tile);
 			if(this->lastError != cvt::Ok){
 				return this->lastError;
 			}
 			
 			launchKernel(this->dataSize.width, this->dataSize.height);
 			
-			this->lastError = copyTileFromDevice(outTile);
+			this->lastError = this->copyTileFromDevice(outTile);
 		
 			return Ok;
 		}

@@ -85,13 +85,11 @@ AC_CHECK_HEADER([boost/numeric/ublas/matrix.hpp], [], AC_MSG_ERROR([boost/numeri
 AC_CHECK_HEADER([cxxtest/TestSuite.h], [], AC_MSG_ERROR([cxxtest/TestSuite.h not found]))
 AC_CHECK_HEADER([gdal_priv.h], [], AC_MSG_ERROR([gdal_priv.h not found]))
 AC_CHECK_HEADER([ogr_spatialref.h], [], AC_MSG_ERROR([ogr_spatialref.h not found]))
-AC_CHECK_HEADER([gdalext/traits/gdal_traits.hpp], [], AC_MSG_ERROR([gdalext/traits/gdal_traits.hpp not found]))
 
 AC_CHECK_LIB([boost_filesystem-mt], [main], [], AC_MSG_ERROR([libboost_filesystem-mt not found]))
 AC_CHECK_LIB([boost_thread-mt], [main], [], AC_MSG_ERROR([libboost_thread-mt not found]))
 
 AC_CHECK_LIB([gdal], [main], [], AC_MSG_ERROR([libgdal not found]))
-AC_CHECK_LIB([gdalext], [main], [], AC_MSG_ERROR([libgdalext not found]))
 
 AC_SUBST([AM_CXXFLAGS])
 

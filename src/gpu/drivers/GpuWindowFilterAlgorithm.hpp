@@ -133,7 +133,7 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 	/*
 	 *  Copy data down for tile using the parents implementation
 	 */
-	this->lastError = copyTileToDevice(tile);
+	this->lastError = this->copyTileToDevice(tile);
 	if (this->lastError != cvt::Ok)
 	{
 		throw std::runtime_error("Failed to copy tile to device");
@@ -145,7 +145,7 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 
 	launchKernel(bW, bH);
 
-	this->lastError = copyTileFromDevice(outTile);
+	this->lastError = this->copyTileFromDevice(outTile);
 	if(this->lastError != cvt::Ok) {
 		std::runtime_error("Failed copy off tile from device");
 	}
