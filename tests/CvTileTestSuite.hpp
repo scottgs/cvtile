@@ -39,7 +39,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <cxxtest/TestSuite.h>
 #include <algorithm>
-#include <ext/numeric>
+#include <numeric>
 
 #ifdef HAVE_CGI
 	#include "../src/base/cvTileConversion.hpp"

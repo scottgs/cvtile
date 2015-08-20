@@ -1,7 +1,7 @@
 #the name that the program will called once compiled
 check_PROGRAMS	=	runner
 
-AM_CPPFLAGS	=	-HAVE_CGI $(OPENCV_CFLAGS) -std=c++0x
+AM_CPPFLAGS	=	$(OPENCV_CFLAGS) -std=c++0x
 
 #the source files used to build the runner target
 runner_SOURCES	=	runner.cpp \
@@ -14,7 +14,8 @@ runner_SOURCES	=	runner.cpp \
 				gpuAbsoluteDifferenceTestSuite.cpp 
 
 #libraries that will be linked
-runner_LDADD	=	-lcgi_core $(OPENCV_LIBS) $(top_builddir)/src/libcvtile.la
+runner_LDADD	=	$(OPENCV_LIBS) $(top_builddir)/src/libcvtile.la \
+					-lboost_regex-mt -lboost_filesystem-mt -lboost_system-mt
 
 #
 # Nothing below this line should need customization on a per-project basis.

@@ -12,9 +12,9 @@
 
 #ifdef HAVE_CGI
 	#include "../src/base/cvTileConversion.hpp"
-	#include <ext/numeric>
 #endif
 
+#include <numeric>
 #include "../src/base/cvTile.hpp"
 #include "../src/base/Tiler.hpp"
 #include <boost/filesystem.hpp>

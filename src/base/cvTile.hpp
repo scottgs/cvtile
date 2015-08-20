@@ -41,9 +41,9 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <map>
 #include <string>
 #include <set>
+#include <functional>
 #include <algorithm>
 #include <boost/bimap.hpp>
-#include <boost/bind.hpp>
 #include <cmath>
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -515,7 +515,7 @@ public:
 	/// precedence:
 	///   * If the tile has a nodata value, the validity matrix will be constructed based on
 	///     nodata values encountered in the requested band.
-	///   * If the tile has a mask, the validity matrix we be derived from the tile mask.
+	///   * If the tile has a mask, the validity matrix will be derived from the tile mask.
 	///   * Otherwise, an all-true matrix will be returned.
 	/// \return A matrix of boolean values indicating the validity of each location in the band.
 	/// The values will all be true if no nodata value is set.
@@ -527,7 +527,7 @@ public:
 	/// precedence:
 	///   * If the tile has a nodata value, the validity matrix will be constructed based on
 	///     nodata values encountered in the requested band.
-	///   * If the tile has a mask, the validity matrix we be derived from the tile mask.
+	///   * If the tile has a mask, the validity matrix will be derived from the tile mask.
 	///   * Otherwise, an all-true matrix will be returned.
 	/// \return A matrix of boolean values indicating the validity of each location in the band.
 	/// The values will all be true if no nodata value is set.
@@ -695,7 +695,7 @@ void cvTile<T>::set(T value, const cv::Mat& mask) {
 		for (int i = 0; i < _data[b].rows; i++) {
 			for (int j = 0; j < _data[b].cols; j++) {
 				if (mask.at<bool>(i, j))
-					_data[b].at < T > (i, j) = value;
+					_data[b].template at < T > (i, j) = value;
 			}
 		}
 	}
@@ -806,7 +806,7 @@ void cvTile<T>::cropToROI() {
 		newData.push_back(tmp);
 		for (int y = 0; y < height; ++y) {
 			for (int x = 0; x < width; ++x) {
-				newData[b].at<T>(y, x) = _data[b].at<T>(y + _roi.y, x + _roi.x);
+				newData[b].template at<T>(y, x) = _data[b].template at<T>(y + _roi.y, x + _roi.x);
 			}
 		}
 	}
@@ -1075,7 +1075,7 @@ const cv::Mat cvTile<T>::getValidMask(valid_mask::Type validity_type) const
 	{
 		std::transform(this->begin(), this->end(),
 					   mask.begin<bool>(),
-		               boost::bind(&cvTile<T>::isValidVector, this, _1, validity_type));
+		               std::bind(&cvTile<T>::isValidVector, this, std::placeholders::_1, validity_type));
 	}
 	else
 	{
@@ -1093,7 +1093,7 @@ const cv::Mat cvTile<T>::getValidMask(int band) const
 	if (_has_nodata_value)
 	{
 		const typename cv::Mat band_data = _data.at(band);
-		std::transform(band_data.begin<bool>(), band_data.end<bool>(),
+		std::transform(band_data.begin<T>(), band_data.end<T>(),
 		               mask.begin<bool>(),
 		               std::bind2nd(std::not_equal_to<T>(), _nodata_value));
 	}
