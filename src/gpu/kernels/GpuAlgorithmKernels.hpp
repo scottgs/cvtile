@@ -45,32 +45,11 @@ namespace cvt {
 
 namespace gpu {
 
+template <typename TextureType, int Texture>
+cudaError_t bind_texture(cudaArray* gpuInputData);
 
-cudaError bindTexture_sdsk_floatHueSaturation(cudaArray * gpu_input_data);
-
-cudaError bindTexture_sdsk_shortTwoDNormalized(cudaArray * gpu_input_data);
-
-cudaError unbindTexture_sdsk_shortTwoDNormalized();
-
-cudaError bindTexture_sdsk_shortTwoD(cudaArray * gpu_input_data);
-
-cudaError unbindTexture_sdsk_shortTwoD();
-
-cudaError bindTexture_sdsk_ushortTwoD(cudaArray * gpu_input_data);
-
-cudaError unbindTexture_sdsk_ushortTwoD();
-
-cudaError bindTexture_sdsk_floatTileOne(cudaArray * gpu_input_data);
-
-cudaError unbindTexture_sdsk_floatTileOne();
-
-cudaError bindTexture_sdsk_floatTileTWo(cudaArray * gpu_input_data);
-
-cudaError unbindTexture_sdsk_floatTileTwo();
-
-cudaError bindTexture_sdsk_shortTileOne(cudaArray * gpu_input_data);
-
-cudaError bindTexture_sdsk_shortTileTwo(cudaArray * gpu_input_data);
+template <typename TextureType, int Texture>
+cudaError_t unbind_texture(cudaArray* gpuInputData);
 
 template <typename InputPixelType, typename OutputPixelType>
 void launch_window_histogram_statistics(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,

@@ -37,7 +37,7 @@ tags
 *.app
 
 # CXX test
-test/runner*
+tests/runner
 tdata.mosaic-test-5x5.ntf
 tests/*.cpp
 
