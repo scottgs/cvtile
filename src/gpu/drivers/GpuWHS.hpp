@@ -90,27 +90,20 @@ ErrorCode GpuWHS<InputPixelType, InputBandCount, OutputPixelType, OutputBandCoun
 	dim3 dimGrid(gridWidth, gridHeight);
 
 	// Bind the texture to the array and setup the access parameters
-	cvt::gpu::bindTexture_sdsk_ushortTwoD(this->gpuInputDataArray);
-	cudaError cuer = cudaGetLastError();
+	cudaError cuer = cvt::gpu::bind_texture<InputPixelType,0>(this->gpuInputDataArray);
 	if (cudaSuccess != cuer)
 	{
 		return CudaError; // needs to be changed
 	}
 
-	// ====================================================
-	// Really launch, after one last error check!
-	// ====================================================
-	cuer = cudaGetLastError();
-	if (cudaSuccess != cuer)
-	{
-		return CudaError; // needs to be changed
-	}
-	//TODO: Use this line when updating to use shared memory
+	 //TODO: Use this line when updating to use shared memory
 	 //const unsigned int shmem_bytes = neighbor_coordinates_.size() * sizeof(double) * blockWidth * blockHeight;
-	 cvt::gpu::launch_window_histogram_statistics<InputPixelType, OutputPixelType>(dimGrid, dimBlock, 0,
+	cvt::gpu::launch_window_histogram_statistics<InputPixelType, OutputPixelType>(dimGrid, dimBlock, 0,
 	   this->stream, (OutputPixelType *)this->gpuOutputData,
 	   this->dataSize.width, this->dataSize.height, this->relativeOffsetsGpu_,
 	   this->relativeOffsets_.size());
+	
+	// check for kernel launch success	
 	cuer = cudaGetLastError();
 	if (cuer != cudaSuccess) {
 		std::cout << "CUDA ERROR = " << cuer << std::endl;
