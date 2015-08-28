@@ -54,9 +54,8 @@ ErrorCode GpuAbsoluteDifference<InputPixelType, InputBandCount, OutputPixelType,
 	dim3 dimGrid(gridWidth, gridHeight);
 
 	// Bind the texture to the array and setup the access parameters
-	cvt::gpu::unbindTexture_sdsk_ushortTwoD();
-	bindTexture_sdsk_shortTileOne(this->gpuInputDataArray);
-	bindTexture_sdsk_shortTileTwo(this->gpuInputDataArrayTwo_);
+	bind_texture<InputPixelType, 0>(this->gpuInputDataArray);
+	bind_texture<InputPixelType, 1>(this->gpuInputDataArrayTwo_);
 
  	cvt::gpu::launch_absDifference<short,short>(dimGrid, dimBlock, 0,
 	   this->stream, (OutputPixelType *)this->gpuOutputData,

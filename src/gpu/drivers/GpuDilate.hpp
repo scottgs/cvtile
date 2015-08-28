@@ -90,7 +90,7 @@ ErrorCode GpuDilate<InputPixelType, InputBandCount, OutputPixelType, OutputBandC
 	dim3 dimGrid(gridWidth, gridHeight);
 
 	// Bind the texture to the array and setup the access parameters
-	cvt::gpu::bindTexture_sdsk_ushortTwoD(this->gpuInputDataArray);
+	cvt::gpu::bind_texture<InputPixelType,0>(this->gpuInputDataArray);
 	cudaError cuer = cudaGetLastError();
 	if (cudaSuccess != cuer)
 	{

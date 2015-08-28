@@ -345,7 +345,6 @@ class gpuWHSTestSuite : public CxxTest::TestSuite
 			cv::Size2i tSize(256,256);
 			read_tiler.setCvTileSize(tSize);
 			write_tiler.setCvTileSize(tSize);
-			unsigned long numPixels = tSize.area();
 
 			std::string outFile = "testingWindowHistogramStatisticsOutFile.tif";
 
@@ -369,7 +368,6 @@ class gpuWHSTestSuite : public CxxTest::TestSuite
 				cv::Size2i tSize = tileSizes[i];
 				read_tiler.setCvTileSize(tSize);
 				write_tiler.setCvTileSize(tSize);
-				unsigned long numPixels = tSize.area();
 #if TIMIN_ON
 				std::chrono::high_resolution_clock::time_point startI = std::chrono::high_resolution_clock::now();
 #endif
