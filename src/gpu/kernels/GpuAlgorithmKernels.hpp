@@ -45,11 +45,21 @@ namespace cvt {
 
 namespace gpu {
 
-template <typename TextureType, int Texture>
+template <typename TextureType, int TextureIndex>
 cudaError_t bind_texture(cudaArray* gpuInputData);
 
-template <typename TextureType, int Texture>
-cudaError_t unbind_texture(cudaArray* gpuInputData);
+template <typename TextureType, int TextureIndex>
+cudaError_t unbind_texture();
+
+template< typename InputPixelType, typename OutputPixelType >
+void launch_simpleDataCopy(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream, InputPixelType * in_data, 
+						OutputPixelType * gpu_output_data, unsigned int outputWidth,  unsigned int outputHeight, unsigned int bandCount,
+						bool usingTexture);
+
+template <typename InputPixelType, typename OutputPixelType>
+void launch_absDifference(const dim3 dimGrid, const dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream,
+						  OutputPixelType * outputData, const unsigned int width,
+						  const unsigned int height);
 
 template <typename InputPixelType, typename OutputPixelType>
 void launch_window_histogram_statistics(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
@@ -69,10 +79,6 @@ void launch_erode(const dim3 dimGrid, const dim3 dimBlock, const unsigned int sh
 		   const unsigned int width,  const unsigned int height, int2 * const relativeOffsets, 
 		   const unsigned int numElements);
 
-template <typename InputPixelType, typename OutputPixelType>
-void launch_absDifference(const dim3 dimGrid, const dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream,
-						  OutputPixelType * outputData, const unsigned int width,
-						  const unsigned int height);
 
 } // end of gpu namespace
 } // end of cvt namespace
