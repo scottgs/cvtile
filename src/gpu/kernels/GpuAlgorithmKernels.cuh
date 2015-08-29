@@ -36,15 +36,6 @@ POSSIBILITY OF SUCH DAMAGE.
 namespace cvt { 
 namespace gpu {
 
-//@legacy
-//cudaReadModeNormalizedFloat - Preferred, but can't do linear
-// NOTE: cudaReadModeNormalizedFloat is required to get the hardware interpolation later
-const float normalizedFloatToShort_scaling_factor = 32767.f;
-texture<short, cudaTextureType2D, cudaReadModeNormalizedFloat> sdsk_shortTwoDNormalized;
-texture<short, cudaTextureType2D, cudaReadModeElementType> sdsk_shortTwoD;
-texture<unsigned short, cudaTextureType2D, cudaReadModeElementType> sdsk_ushortTwoD;
-texture<float2, cudaTextureType2D, cudaReadModeElementType> sdsk_floatHueSaturation;
-
 /* 
  * Texture cache: 
  * Due to limitations with CUDA arch < 3.0, the textures must be declared at compile
@@ -406,39 +397,72 @@ __device__ __forceinline__ float fetchTexture<float, 1>(int x, int y)
 	return tex2D(sdsk_floatTileTwo, x, y);
 }
 
-/*
-template <>
-__device__ __forceinline__ double fetchTexture<double, 0>(int x, int y)
-{
-	return tex2D(sdsk_doubleTileOne, x, y);
-}
-
-template <>
-__device__ __forceinline__ double fetchTexture<double, 1>(int x, int y)
-{
-	return tex2D(sdsk_doubleTileTwo, x, y);
-}
-*/
+//////////////////////////////////
+// Kernels and Launch Functions //
+/////////////////////////////////
 
 template< typename InputPixelType, typename OutputPixelType> 
-__global__ static void simpleDataCopy( InputPixelType* inputData, OutputPixelType *outputData, unsigned int width, unsigned int height, unsigned int bandCount)
+__global__ static void simpleDataCopyGlobal(InputPixelType* inputData, OutputPixelType* outputData, unsigned int width, unsigned int height, unsigned int bandCount)
 {
 	width *= bandCount; height *= bandCount;
 	int xIndex = blockIdx.x * blockDim.x + threadIdx.x;
 	int yIndex = blockIdx.y * blockDim.y + threadIdx.y;
-
-	//index into our image
 	int pixel_one_d = xIndex + yIndex * width;
 
 	if (xIndex < width && yIndex < height)
 		outputData[pixel_one_d] = inputData[pixel_one_d];
 }
 
-template< typename InputPixelType, typename OutputPixelType >
-void launch_simpleDataCopy(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream, InputPixelType * in_data, 
-						OutputPixelType * gpu_output_data, unsigned int outputWidth,  unsigned int outputHeight, unsigned int bandCount)
+template< typename InputPixelType, typename OutputPixelType> 
+__global__ static void simpleDataCopyTexture(OutputPixelType* outputData, unsigned int width, unsigned int height, unsigned int bandCount)
 {
-	simpleDataCopy<InputPixelType, OutputPixelType><<<dimGrid, dimBlock, shmemSize, stream>>>(in_data, gpu_output_data, outputWidth,  outputHeight, bandCount);
+	width *= bandCount; height *= bandCount;
+	int xIndex = blockIdx.x * blockDim.x + threadIdx.x;
+	int yIndex = blockIdx.y * blockDim.y + threadIdx.y;
+	int pixel_one_d = xIndex + yIndex * width;
+
+	if (xIndex < width && yIndex < height)
+		outputData[pixel_one_d] = fetchTexture<InputPixelType, 0>(xIndex, yIndex);
+}
+
+template< typename InputPixelType, typename OutputPixelType >
+void launch_simpleDataCopy(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream, InputPixelType* inputData, 
+						OutputPixelType * gpuOutputData, unsigned int outputWidth,  unsigned int outputHeight, unsigned int bandCount,
+						bool usingTexture)
+{
+	if (!usingTexture)
+		simpleDataCopyGlobal<InputPixelType, OutputPixelType><<<dimGrid, dimBlock, shmemSize, stream>>>(inputData, gpuOutputData, outputWidth,  outputHeight, bandCount);
+	else
+	{
+		simpleDataCopyTexture<InputPixelType, OutputPixelType><<<dimGrid, dimBlock, shmemSize, stream>>>(gpuOutputData, outputWidth,  outputHeight, bandCount);
+	}
+}
+
+template< typename InputPixelType, typename OutputPixelType>
+__global__ static
+void absDiffernceTexture(OutputPixelType * const outputData, const unsigned int width, const unsigned int height)
+{
+	// calculate position
+	int xIndex = blockIdx.x * blockDim.x + threadIdx.x;
+	int yIndex = blockIdx.y * blockDim.y + threadIdx.y;
+
+	// vals for current abs 
+	OutputPixelType t_one, t_two;
+
+	if(xIndex < width && yIndex < height){
+		t_one = fetchTexture<InputPixelType, 0>(xIndex, yIndex);
+		t_two = fetchTexture<InputPixelType, 1>(xIndex, yIndex);
+		*(outputData + xIndex * width + yIndex) = __usad(t_one, t_two, 0);
+	}
+	
+}
+
+template< typename InputPixelType, typename OutputPixelType>
+void launch_absDifference(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, const cudaStream_t stream,
+						  OutputPixelType * const outputData, const unsigned int width,
+						  const unsigned int height)
+{
+	absDiffernceTexture<InputPixelType,OutputPixelType><<<dimGrid, dimBlock, shmemSize, stream>>>(outputData, width, height);
 }
 
 template< typename InputPixelType, typename OutputPixelType>
@@ -630,7 +654,7 @@ void launch_window_histogram_statistics (const dim3 dimGrid, const dim3 dimBlock
 /* Assumes 2-D Grid, 2-D Block Config, 1 to 1 Mapping */
 template< typename InputPixelType, typename OutputPixelType>
 __global__ static
-void erode(OutputPixelType * const  outputData, const unsigned int height, 
+void erode(OutputPixelType* const  outputData, const unsigned int height, 
 	    const unsigned int width, const int2 * relativeOffsets, 
 	    const unsigned int numElements)
 {
@@ -703,7 +727,6 @@ void dilate(OutputPixelType* const  outputData, const unsigned int height,
 				if (values[i] > max) {
 					max = values[i];
 				}
-
 			}
 		}
 		outputData[pixel_one_d] = max;
@@ -719,32 +742,6 @@ void launch_dilate(const dim3 dimGrid, const dim3 dimBlock, const unsigned int s
 	dilate<InputPixelType,OutputPixelType><<<dimGrid, dimBlock, shmemSize, stream>>>(outputData, height, width, relativeOffsets, numElements);
 }
 
-template< typename InputPixelType, typename OutputPixelType>
-__global__ static
-void absDiffernce_kernel(OutputPixelType * const outputData, const unsigned int width, const unsigned int height)
-{
-	// calculate position
-	int xIndex = blockIdx.x * blockDim.x + threadIdx.x;
-	int yIndex = blockIdx.y * blockDim.y + threadIdx.y;
-
-	// vals for current abs 
-	OutputPixelType t_one, t_two;
-
-	if(xIndex < width && yIndex < height){
-		t_one = fetchTexture<InputPixelType, 0>(xIndex, yIndex);
-		t_two = fetchTexture<InputPixelType, 1>(xIndex, yIndex);
-		*(outputData + xIndex * width + yIndex) = __usad(t_one, t_two, 0);
-	}
-	
-}
-
-template< typename InputPixelType, typename OutputPixelType>
-void launch_absDifference(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, const cudaStream_t stream,
-						  OutputPixelType * const outputData, const unsigned int width,
-						  const unsigned int height)
-{
-	absDiffernce_kernel<InputPixelType,OutputPixelType><<<dimGrid, dimBlock, shmemSize, stream>>>(outputData, width, height);
-}
 
 
 }; //end gpu namespace
