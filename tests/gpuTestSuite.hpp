@@ -37,6 +37,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #define  gpu_Test_Suite_h
 
 #include <cxxtest/TestSuite.h> 
+#include "gpuTestHelpers.hpp"
 #include "../src/base/cvTile.hpp"
 #include "../src/base/Tiler.hpp"
 
@@ -296,28 +297,27 @@ class gpuTestSuite : public CxxTest::TestSuite{
 			
 			gpuAlgoImpl<int, 5, int, 5> gpuAlgo(0,100,100);
 			TS_ASSERT_EQUALS(cvt::Ok, gpuAlgo.initializeDevice());
-
 			TS_ASSERT_EQUALS(gpuAlgo.getOutputDataSize(), 100 * 100 * sizeof(int) * 5);
-
 		}
 
-		void test1BandCopyToDevice(){
-
+		template<typename T>
+		void OneBandCopyToDevice()
+		{
 			cv::Size2i dSize(3,3);
-			gpuAlgoImpl<int, 1, int, 1> gpuAlgo(0, dSize.width, dSize.height);
+			gpuAlgoImpl<T, 1, T, 1> gpuAlgo(0, dSize.width, dSize.height);
 			TS_ASSERT_EQUALS(cvt::Ok, gpuAlgo.initializeDevice());
 
-			vector<int> data;
+			vector<T> data;
 			data.resize(dSize.area());
 
 			for (unsigned int i = 0; i < 9; ++i) {
 				data[i] = i;
 			}
 
-			cvt::cvTile<int> inTile(data.data(), dSize, 1);	
-			cvt::cvTile<int>* outTile;
-		
-			gpuAlgo(inTile, (const cvt::cvTile<int> **)(&outTile));
+			cvt::cvTile<T> inTile(data.data(), dSize, 1);	
+			cvt::cvTile<T>* outTile;
+
+			gpuAlgo(inTile, (const cvt::cvTile<T> **)(&outTile));
 			TS_ASSERT_EQUALS(0, (outTile == NULL));
 			
 			for(int i = 0; i < 3; ++i)
@@ -326,15 +326,17 @@ class gpuTestSuite : public CxxTest::TestSuite{
 				cv::Mat& b = (*outTile)[0];
 				for(int j = 0; j < 3; ++j)
 				{
-					std::cout << "a: " <<  a.at<int>(i,j) << std::endl;	
-					std::cout << "b: " <<  b.at<int>(i,j) << std::endl;	
-					TS_ASSERT_EQUALS(a.at<int>(i,j), b.at<int>(i,j));
+					TS_ASSERT_EQUALS(a.at<T>(i,j), b.at<T>(i,j));
 				}
 			}
 		}
 
-		/* The default operator of the test class performs a simple data copy */
+		void test1BandCopyToDevice()
+		{
+			TEST_ALL_TYPES(OneBandCopyToDevice);
+		}
 
+		/* The default operator of the test class performs a simple data copy */
 		void test3BandCopyToDevice(){
 
 			cv::Size2i dSize(3,3);

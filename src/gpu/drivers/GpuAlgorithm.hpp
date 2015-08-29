@@ -390,7 +390,6 @@ ErrorCode GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBa
 						);
 		gpuInput = gpuInputDataArray;
 		usingTexture = true;
-		std::cout << "here in using texture" << std::endl;
 	}
 	else if(InputBandCount >= 2){
 		cudaMalloc((void **)&gpuInputDataGlobal, bytesToTransfer);
