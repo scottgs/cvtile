@@ -394,12 +394,9 @@ ErrorCode GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBa
 		std::cout << "here in using texture" << std::endl;
 	}
 	else if(InputBandCount >= 2){
-		std::cout << "bytes To T in here: " << bytesToTransfer << std::endl;
 		cudaMalloc((void **)&gpuInputDataGlobal, bytesToTransfer);
 		gpuInput = gpuInputDataGlobal;
-		std::cout << "here in not using texture" << std::endl;
 	}
-	else{ std::cout << "wtf" << std::endl; }
 
 	if (cuer == cudaErrorMemoryAllocation){
 		lastError = InitFailcuInputArrayMemErrorcudaErrorMemoryAllocation;
@@ -464,48 +461,26 @@ ErrorCode GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBa
 {
 
 	const unsigned int tileArea = tile.getSize().area();
-	//const unsigned int tHeight = tile.getSize().height;
-	unsigned char * tileDataPtr = NULL;
-		int offsetY = 0;
+	unsigned char* tileDataPtr = NULL;
+	int offsetY = 0;
 
 	cudaError cuer = cudaGetLastError();	
 
-	// 	//TO-DO Verify that the tile is properly formatted
 	if(usingTexture){
-		/* CUDA support 1,2,4 channels - must add a 0 valued 4th channel - up to programmer to differentiate between this and a real 4-Band Image  */
-		/* Needs pixel cutter support  - currently only supports one band images
-		std::vector<< std::vector<InputPixelType> > pix = pc.flattenTileInto2D(tile);
-		std::string inTypeIdentifier(typeid(tempForTypeTesting).name());
-		if(InputBandCount != 3){
-									
-		}
-		else{
-			std::vector<InputPixelType> vec;
-			std::fill(vec.begin(), vec.end(); 0);
-			pix.push_back(std::move(vec));	
-		}
-		*/
 		tileDataPtr = tile[0].data;
 		cudaMemcpyToArrayAsync(gpuInputDataArray,0, 0,  					
 			tileDataPtr,							
 			sizeof(InputPixelType) * tileArea,		
 			cudaMemcpyHostToDevice,					
 			stream
-		);		
+		);
+		cuer = cudaGetLastError();		
 	}	
 	else
 	{
-		std::cout <<"bytes to T:  " << bytesToTransfer << std::endl;
-		std::cout <<"bytes to T + gpu:  "   << gpuInputDataGlobal + bytesToTransfer << std::endl;
-		std::cout << "here" << std::endl;
-		//int offsetY = 0;
-		int * buf = new int[10000]; 
 		for(int currentBand = 0; currentBand < InputBandCount; ++currentBand)
 		{
 			tileDataPtr = tile[currentBand].data;
-			cout << tileArea * sizeof(InputPixelType) << "  is t Area " << endl;
-			cout << buf << "  is buf" << endl;
-			cout << gpuInputDataGlobal + offsetY << "  is buf" << endl;
 			cudaMemcpyAsync(
 				(void *)(((unsigned char*)gpuInputDataGlobal) + offsetY), 
 				(void*) tileDataPtr,
@@ -513,22 +488,18 @@ ErrorCode GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBa
 				cudaMemcpyHostToDevice
 			);
 			offsetY += tileArea * sizeof(InputPixelType);
-			std::cout << "offsetY: " << offsetY << std::endl;
-	cuer = cudaGetLastError();
-	if(cuer == cudaErrorInvalidValue)
-		lastError = TileToDevicecudaErrorInvalidValue;	
-	else if(cuer == cudaErrorInvalidDevicePointer)
-		lastError = TileToDevicecudaErrorInvalidDevicePointer;
-	else if(cuer == cudaErrorInvalidMemcpyDirection)
-		lastError = TileToDevicecudaErrorInvalidMemcpyDirection;
-	else if(cuer != cudaSuccess)
-		lastError = CudaError;
-		std::cout << "le:  " << lastError << std::endl;
+			cuer = cudaGetLastError();
+			if(cuer == cudaErrorInvalidValue)
+				lastError = TileToDevicecudaErrorInvalidValue;	
+			else if(cuer == cudaErrorInvalidDevicePointer)
+				lastError = TileToDevicecudaErrorInvalidDevicePointer;
+			else if(cuer == cudaErrorInvalidMemcpyDirection)
+				lastError = TileToDevicecudaErrorInvalidMemcpyDirection;
+			else if(cuer != cudaSuccess)
+				lastError = CudaError;
 		}
 	}
 
-	//cout << gpuInputDataGlobal + offsetY << "  is buf" << endl;
-	//std::cout << TileToDevicecudaErrorInvalidValue << std::endl;
 	cuer = cudaGetLastError();
 	if(cuer == cudaErrorInvalidValue)
 		lastError = TileToDevicecudaErrorInvalidValue;	
