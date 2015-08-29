@@ -155,128 +155,12 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
 ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::initializeDevice(enum windowRadiusType type)
 {
-	/*
-	 * Attempts to check the GPU and begin warm up
-	 *
-	 */
-
+	/* Initialize additional argument then allow parent to init card */
 	this->type = type;
+	GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::initializeDevice();
 
-	this->lastError = this->setGpuDevice();
-	if(this->lastError)
-		return this->lastError;
-	
-	if (this->properties.getMajorCompute() < 1)
-	{
-		this->lastError = InitFailNoCUDA;
-		return this->lastError;
-	}
-	/*
-	 * Verfies the properities of GPU
-	 *
-	 */
-	cudaStreamCreate(&this->stream);
-	cudaError cuer = cudaGetLastError();
-	if(cuer != cudaSuccess){
-		this->lastError = InitFailcuStreamCreateErrorcudaErrorInvalidValue;
-		return this->lastError;
-	}
-
-	//Set descriptor of input data before allocation
-	// Sets is at single channel, 16-bit unsigned integer
-	std::string inTypeIdentifier(typeid(this->tempForTypeTesting).name());
-	size_t bitDepth = 0;
-	cudaChannelFormatDesc inputDescriptor;
-
-	if(inTypeIdentifier == "a" || 
-	   inTypeIdentifier == "s" || 
-	   inTypeIdentifier == "i" ||
-	   inTypeIdentifier == "l")
-	{
-		this->channelType = cudaChannelFormatKindSigned;
-	}
-	else if(inTypeIdentifier == "h" || 
-			inTypeIdentifier == "t" || 
-			inTypeIdentifier == "j" || 
-			inTypeIdentifier == "m")
-	{
-		this->channelType = cudaChannelFormatKindUnsigned;
-	}
-	else if(inTypeIdentifier == "f" || 
-			inTypeIdentifier == "d") 
-	{
-		this->channelType = cudaChannelFormatKindFloat;
-	}
-	else
-	{
-		this->lastError = InitFailUnsupportedInputType;
-		return this->lastError;
-	}
-
-	bitDepth = sizeof(this->tempForTypeTesting) * 8;
-
-	inputDescriptor = cudaCreateChannelDesc(bitDepth, 0, 0, 0, this->channelType);
-	cuer = cudaGetLastError();
-	
-	if (cuer != cudaSuccess) {
-		this->lastError = CudaError;
-		std::cout << "CUDA ERR = " << cuer << std::endl;
-		throw std::runtime_error("GPU WHS INIT FAILED TO CREATE CHANNEL");
-	}	
-
-
-	if(cuer != cudaSuccess){
-		this->lastError = CudaError;
-		return this->lastError;
-	}	
-	
-	//////////////////////////////////////////////////////////
-	// ALLOCATE MEMORY FOR GPU INPUT AND OUTPUT DATA (TILE) //
-	/////////////////////////////////////////////////////////
-	
-	cuer = cudaGetLastError();
-	/*Gpu Input Data*/
-	cudaMallocArray(
-					(cudaArray**)&this->gpuInputDataArray,   
-					 &inputDescriptor, 
-					 this->dataSize.width,  
-					 this->dataSize.height
-					);
-	this->gpuInput = this->gpuInputDataArray;
-	this->usingTexture = true;	
-	cuer = cudaGetLastError();
-	if (cuer != cudaSuccess) {
-		std::cout << "CUDA ERR = " << cuer << std::endl;
-		throw std::runtime_error("GPU WHS INIT FAILED TO ALLOCATE MEMORY");
-	}
-
-	//Gpu Output Data 
-	const size_t bytes = this->dataSize.width * this->dataSize.height * OutputBandCount * sizeof(OutputPixelType);
-	this->outputDataSize = bytes;
-	cudaMalloc((void**) &this->gpuOutputData, bytes);
-	cuer = cudaGetLastError();
-
-	if (cuer != cudaSuccess) {
-		throw new std::runtime_error("GPU WHS INIT FAILED TO ALLOCATE OUTPUT MEMORY");
-	}
-	if (cuer == cudaErrorMemoryAllocation)
-	{
-		this->lastError = InitFailcuOutArrayMemErrorcudaErrorMemoryAllocation;
-		return this->lastError;
-	}
-	//////////////////////////////////////////////////////////////////////////////////////
-	// CALL FUNCTION TO ALLOCATE ADDITIONAL GPU STORAGE - DOES NOTHING IF NOT OVERRIDEN //
-	/////////////////////////////////////////////////////////////////////////////////////
-	/* Initialize the neighborhood coordinates */
-	/*uses two ints to store width and height coords by the windowRadius_*/	
-	computeRelativeOffsets();
-	/*
-	 * Allocates the memory needed for the results coming back from the GPU
-	 *
-	 */
-	this->lastError = allocateAdditionalGpuMemory();
+	/* Transfer offsets to card */
 	transferRelativeOffsetsToDevice();	
-
 
 	return this->lastError;
 }
@@ -286,11 +170,10 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 	return Ok; // NEED TO ADD DEFAULT KERNEL FOR FILTER
 }
 
-
-
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
 ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::allocateAdditionalGpuMemory()
 {
+	computeRelativeOffsets();
 	cudaMalloc((void**)&relativeOffsetsGpu_, sizeof(int2) * relativeOffsets_.size());
 	cudaError cuer = cudaGetLastError(); 
 	if (cuer != cudaSuccess) {
@@ -329,12 +212,12 @@ void GpuWindowFilterAlgorithm<InputPixelType,InputBandCount, OutputPixelType, Ou
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
 ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::transferRelativeOffsetsToDevice() 
 {
-	cudaMemcpyAsync (
-	relativeOffsetsGpu_,
-	relativeOffsets_.data(),
-	relativeOffsets_.size() * sizeof(int2),
-	cudaMemcpyHostToDevice,
-	this->stream
+	cudaMemcpyAsync(
+		relativeOffsetsGpu_,
+		relativeOffsets_.data(),
+		relativeOffsets_.size() * sizeof(int2),
+		cudaMemcpyHostToDevice,
+		this->stream
 	);
 	cudaError cuer = cudaGetLastError();
 	if (cuer != cudaSuccess) {
