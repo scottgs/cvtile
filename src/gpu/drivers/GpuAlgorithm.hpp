@@ -309,8 +309,8 @@ ErrorCode GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBa
 	// VERIFY THAT GPU HAS SUFFICIENT MEMORY //
    	///////////////////////////////////////////
 
-	cout << "here:  " << properties.getTotalGlobalMemoryBytes() << " : " << bytesToTransfer << endl;
-	if(properties.getTotalGlobalMemoryBytes() < bytesToTransfer){
+	if(properties.getTotalGlobalMemoryBytes() < bytesToTransfer)
+	{
 		lastError = InitFailInsufficientMemoryForInputData;
 		return lastError;
 	}
@@ -324,7 +324,6 @@ ErrorCode GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBa
 		return lastError;
 	}
 
-	std::cout << "here" << std::endl;	
 	/* Texture memory supports only 4 Bands - Use generic global memory if more bands present */
 	std::string inTypeIdentifier(typeid(tempForTypeTesting).name());
 	size_t bitDepth = 0;
@@ -422,7 +421,7 @@ ErrorCode GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBa
 	// CALL FUNCTION TO ALLOCATE ADDITIONAL GPU STORAGE - DOES NOTHING IF NOT OVERRIDEN //
 	/////////////////////////////////////////////////////////////////////////////////////
 	lastError = allocateAdditionalGpuMemory();
-	
+
 	return lastError;
 						
 }
