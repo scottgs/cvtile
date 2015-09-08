@@ -40,6 +40,7 @@ tags
 tests/runner
 tdata.mosaic-test-5x5.ntf
 tests/*.cpp
+tests/test_images/testingWindowHistogramStatisticsOutFile.tif
 
 # Autotools
 autom4te.cache/

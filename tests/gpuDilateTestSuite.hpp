@@ -146,4 +146,5 @@ class gpuDilateTestSuite : public CxxTest::TestSuite
 
 };
 
+
 #endif

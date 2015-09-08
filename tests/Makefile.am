@@ -11,7 +11,8 @@ runner_SOURCES	=	runner.cpp \
 				gpuWHSTestSuite.cpp \
 				gpuErodeTestSuite.cpp \
 				gpuDilateTestSuite.cpp \
-				gpuAbsoluteDifferenceTestSuite.cpp 
+				gpuAbsoluteDifferenceTestSuite.cpp \
+				gpuConvolutionTest.cpp
 
 #libraries that will be linked
 runner_LDADD	=	$(OPENCV_LIBS) $(top_builddir)/src/libcvtile.la \

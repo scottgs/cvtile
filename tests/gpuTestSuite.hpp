@@ -286,9 +286,7 @@ class gpuTestSuite : public CxxTest::TestSuite{
 		}
 
 		void testGlobalUsedForFivePlusBands(){
-			
 			gpuAlgoImpl<int, 5, int, 5> gpuAlgo(0,100,100);
-			
 			TS_ASSERT_EQUALS(cvt::Ok, gpuAlgo.initializeDevice());
 			TS_ASSERT_EQUALS(false, gpuAlgo.getUsingTexture());
 		}
