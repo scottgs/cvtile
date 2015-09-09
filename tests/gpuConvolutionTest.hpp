@@ -53,10 +53,44 @@ class gpuConvolutionTestSuite : public CxxTest::TestSuite
 		void tearDown()
 		{;}
 
-		void testCovolutionFullPixel() {
-			std::vector<short> weights;
-			cvt::gpu::GpuConvolution<short,1,short,1,short> conv(0,0,0,0,weights);
+		//TO-DO test for all types once instantiated
+		void testCovolutionFullPixelOneBand() {
+
+			cv::Size2i dSize(5,5);	
+			vector<short> data;
+			data.resize(dSize.area());
+
+			for(unsigned int i = 0; i < dSize.area(); ++i) {
+				data[i] = i;
+			}
+			cvt::cvTile<short> inTile(data.data(), dSize, 1);
+			cvt::cvTile<short>* outTile;
+
+			ssize_t filterRadius = 1;
+			cv::Mat weightsMat = cv::Mat::zeros(3,3,CV_16UC1);
+			for(int i = 0; i < 3; ++i) {
+				for(int j = 0; j < 3; ++j) {
+					weightsMat.at<short>(i,j) = 2;
+				}
+			}
+			cvt::gpu::GpuConvolution<short,1,short,1,short> conv(0,dSize.width, dSize.height,
+																   filterRadius, weightsMat);
+
+			TS_ASSERT_EQUALS(cvt::Ok, conv.initializeDevice(cvt::gpu::SQUARE));
+			
+			conv(inTile, (const cvt::cvTile<short>**)&outTile);
+			TS_ASSERT_EQUALS(0, (outTile == NULL));
+
+			cv::Mat& a = inTile[0];
+			cv::Mat& b = (*outTile)[0];
+
+			for(int i = 0; i < dSize.width; ++i) {
+				for(int j = 0; j < dSize.height; ++j) {
+					std::cout << "b[" << i << "," << j << "] = " << b.at<short>(i,j) << std::endl;
+				}
+			}
 		}
+		
 };
 
 #endif

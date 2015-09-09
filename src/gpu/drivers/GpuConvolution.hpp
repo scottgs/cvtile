@@ -48,7 +48,7 @@ template<typename InputPixelType, int InputBandCount, typename OutputPixelType, 
 class GpuConvolution : public GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>
 {
 	public:
-		explicit GpuConvolution(unsigned int cudaDeviceId, size_t unbufferedDataWidth, size_t unbufferedDataHeight, ssize_t filterRadius, std::vector<ConvolutionType>& weights);
+		explicit GpuConvolution(unsigned int cudaDeviceId, size_t unbufferedDataWidth, size_t unbufferedDataHeight, ssize_t filterRadius, cv::Mat weights);
 		~GpuConvolution();
 		typename std::vector<ConvolutionType>::size_type getOffsetsSize();
 
@@ -57,7 +57,7 @@ class GpuConvolution : public GpuWindowFilterAlgorithm<InputPixelType, InputBand
 		virtual ErrorCode allocateAdditionalGpuMemory();
 
 		/* Protected Attributes */
-		std::vector<ConvolutionType> weights;
+		cv::Mat weights;
 		ConvolutionType* weightsGpu_;
 
 	private:
@@ -67,7 +67,7 @@ class GpuConvolution : public GpuWindowFilterAlgorithm<InputPixelType, InputBand
 template<typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount, typename ConvolutionType>
 GpuConvolution<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount, ConvolutionType>::GpuConvolution(
 		unsigned int cudaDeviceId, size_t unbufferedDataWidth, size_t unbufferedDataHeight, ssize_t filterRadius, 
-		std::vector<ConvolutionType>& weight) :
+		cv::Mat weight) :
 		cvt::gpu::GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>
 		(cudaDeviceId, unbufferedDataWidth, unbufferedDataHeight, filterRadius),
 		weights(weight)
@@ -107,10 +107,12 @@ ErrorCode GpuConvolution<InputPixelType, InputBandCount, OutputPixelType, Output
 template<typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount, typename ConvolutionType>
 ErrorCode GpuConvolution<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount, ConvolutionType>::transferWeights()
 {
+	std::vector<ConvolutionType> weightsVector;
+	weightsVector.assign((ConvolutionType*)this->weights.datastart, (ConvolutionType*)this->weights.dataend);
 	cudaMemcpyAsync(
 		this->weightsGpu_,
-		this->weights.data(),
-		weights.size() * sizeof(ConvolutionType),
+		weightsVector.data(),
+		weightsVector.size() * sizeof(ConvolutionType),
 		cudaMemcpyHostToDevice,
 		this->stream
 	);
