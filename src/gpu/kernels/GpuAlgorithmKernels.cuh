@@ -582,7 +582,6 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 			values[i] = values[i] - mean;
 		}
 
-
 		/*
 		 * Find the variance
 		 */
@@ -609,8 +608,8 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 			outputData[pixel_one_d + (outputBandSize * 2)] = 0;
 				
 			//band 3 = skewness
-			outputData[pixel_one_d + (outputBandSize * 3)] = 0;
-		
+			outputData[pixel_one_d + (outputBandSize * 3)] = 0;	
+
 			//band 4 = kurtosis
 			outputData[pixel_one_d + (outputBandSize * 4)] = 0;
 			return;
