@@ -169,7 +169,7 @@ class GpuAlgorithm{
 
 		virtual ErrorCode allocateAdditionalGpuMemory();
 
-		virtual ErrorCode launchKernel(unsigned bw, unsigned bh) = 0;
+		virtual ErrorCode launchKernel(unsigned bw, unsigned bh, unsigned buffer) = 0;
 
 		ErrorCode copyTileToDevice(const cvt::cvTile<InputPixelType> &tile);
 

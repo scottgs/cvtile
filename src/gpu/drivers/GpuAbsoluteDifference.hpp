@@ -46,14 +46,13 @@ GpuAbsoluteDifference<inputpixeltype, inputbandcount, outputpixeltype, outputban
 }
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
-ErrorCode GpuAbsoluteDifference<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(unsigned blockWidth, unsigned blockHeight)
+ErrorCode GpuAbsoluteDifference<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(unsigned blockWidth, unsigned blockHeight,unsigned buffer)
 {
 	dim3 dimBlock(blockWidth,blockHeight);
 	size_t gridWidth = this->dataSize.width / dimBlock.x + (((this->dataSize.width % dimBlock.x)==0) ? 0 :1 );
 	size_t gridHeight = this->dataSize.height / dimBlock.y + (((this->dataSize.height % dimBlock.y)==0) ? 0 :1 );
 	dim3 dimGrid(gridWidth, gridHeight);
 
-	const unsigned int buffer = 0;
 	// Bind the texture to the array and setup the access parameters
 	bind_texture<InputPixelType, 0>(this->gpuInputDataArray);
 	bind_texture<InputPixelType, 1>(this->gpuInputDataArrayTwo_);

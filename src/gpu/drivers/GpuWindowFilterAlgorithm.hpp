@@ -142,8 +142,8 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 	// Invoke kernel with empirically chosen block size
 	unsigned short bW = 16;
 	unsigned short bH = 16;
-
-	launchKernel(bW, bH);
+	unsigned buffer = 0;	
+	launchKernel(bW, bH,buffer);
 
 	this->lastError = this->copyTileFromDevice(outTile);
 	if(this->lastError != cvt::Ok) {
@@ -166,7 +166,7 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 }
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
-ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(unsigned bw, unsigned bh) {
+ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(unsigned bw, unsigned bh, unsigned buffer) {
 	return Ok; // NEED TO ADD DEFAULT KERNEL FOR FILTER
 }
 

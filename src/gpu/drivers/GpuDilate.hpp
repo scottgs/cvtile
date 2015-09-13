@@ -58,7 +58,7 @@ public:
 	~GpuDilate();
 
 protected:
-	ErrorCode launchKernel(unsigned blockWidth, unsigned blockHeight);
+	ErrorCode launchKernel(unsigned blockWidth, unsigned blockHeight, unsigned buffer);
 
 };
 
@@ -82,10 +82,9 @@ GpuDilate<inputpixeltype, inputbandcount, outputpixeltype, outputbandcount>::~Gp
 }
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
-ErrorCode GpuDilate<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(unsigned blockWidth, unsigned blockHeight)
+ErrorCode GpuDilate<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(unsigned blockWidth, unsigned blockHeight, unsigned buffer)
 {
 	dim3 dimBlock(blockWidth,blockHeight);
-	const unsigned int buffer = 0;
 
 	size_t gridWidth = this->dataSize.width / dimBlock.x + (((this->dataSize.width % dimBlock.x)==0) ? 0 :1 );
 	size_t gridHeight = this->dataSize.height / dimBlock.y + (((this->dataSize.height % dimBlock.y)==0) ? 0 :1 );

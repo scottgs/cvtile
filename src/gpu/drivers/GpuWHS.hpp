@@ -58,7 +58,7 @@ public:
 	~GpuWHS();
 
 protected:
-	ErrorCode launchKernel(unsigned blockWidth, unsigned blockHeight);
+	ErrorCode launchKernel(unsigned blockWidth, unsigned blockHeight, unsigned buffer);
 
 };
 
@@ -88,7 +88,6 @@ ErrorCode GpuWHS<InputPixelType, InputBandCount, OutputPixelType, OutputBandCoun
 	size_t gridWidth = this->dataSize.width / dimBlock.x + (((this->dataSize.width % dimBlock.x)==0) ? 0 :1 );
 	size_t gridHeight = this->dataSize.height / dimBlock.y + (((this->dataSize.height % dimBlock.y)==0) ? 0 :1 );
 	dim3 dimGrid(gridWidth, gridHeight);
-	const unsigned int buffer = 0;
 	// Bind the texture to the array and setup the access parameters
 	cudaError cuer = cvt::gpu::bind_texture<InputPixelType,0>(this->gpuInputDataArray);
 	if (cudaSuccess != cuer)

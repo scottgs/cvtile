@@ -32,7 +32,7 @@ class GpuBinaryImageAlgorithm : public GpuAlgorithm<InputPixelType, InputBandCou
 
 	protected:
 
-	virtual ErrorCode launchKernel(unsigned bw, unsigned bh);
+	virtual ErrorCode launchKernel(unsigned bw, unsigned bh, unsigned buffer);
 
 	/**
 	 * PROTECTED ATTRIBUTES
@@ -124,8 +124,8 @@ ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelTyp
 	// Invoke kernel with empirically chosen block size
 	unsigned short bW = 16;
 	unsigned short bH = 16;
-
-	launchKernel(bW, bH);
+	unsigned buffer = 0;	
+	launchKernel(bW, bH,buffer);
 
 	this->lastError = this->copyTileFromDevice(outTile);
 	if(this->lastError != cvt::Ok) {
@@ -257,7 +257,7 @@ ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelTyp
 }
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
-ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(unsigned bw, unsigned bh) {
+ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(unsigned bw, unsigned bh, unsigned buffer) {
 	return Ok; // NEED TO ADD DEFAULT KERNEL FOR FILTER
 }
 
