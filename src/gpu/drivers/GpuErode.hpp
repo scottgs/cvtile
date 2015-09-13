@@ -85,6 +85,8 @@ template< typename InputPixelType, int InputBandCount, typename OutputPixelType,
 ErrorCode GpuErode<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(unsigned blockWidth, unsigned blockHeight)
 {
 	dim3 dimBlock(blockWidth,blockHeight);
+	const unsigned int buffer = 0;
+
 	size_t gridWidth = this->dataSize.width / dimBlock.x + (((this->dataSize.width % dimBlock.x)==0) ? 0 :1 );
 	size_t gridHeight = this->dataSize.height / dimBlock.y + (((this->dataSize.height % dimBlock.y)==0) ? 0 :1 );
 	dim3 dimGrid(gridWidth, gridHeight);
@@ -110,7 +112,7 @@ ErrorCode GpuErode<InputPixelType, InputBandCount, OutputPixelType, OutputBandCo
 	 cvt::gpu::launch_erode<InputPixelType, OutputPixelType>(dimGrid, dimBlock, 0,
 	   this->stream, (OutputPixelType *)this->gpuOutputData,
 	   this->dataSize.width, this->dataSize.height, this->relativeOffsetsGpu_,
-	   this->relativeOffsets_.size());
+	   this->relativeOffsets_.size(),buffer);
 	cuer = cudaGetLastError();
 	if (cuer != cudaSuccess) {
 		std::cout << "CUDA ERROR = " << cuer << std::endl;

@@ -440,7 +440,7 @@ void launch_simpleDataCopy(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, 
 
 template< typename InputPixelType, typename OutputPixelType>
 __global__ static
-void absDiffernceTexture(OutputPixelType * const outputData, const unsigned int width, const unsigned int height)
+void absDiffernceTexture(OutputPixelType * const outputData, const unsigned int width, const unsigned int height, const unsigned int buffer)
 {
 	// calculate position
 	int xIndex = blockIdx.x * blockDim.x + threadIdx.x;
@@ -460,9 +460,9 @@ void absDiffernceTexture(OutputPixelType * const outputData, const unsigned int 
 template< typename InputPixelType, typename OutputPixelType>
 void launch_absDifference(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, const cudaStream_t stream,
 						  OutputPixelType * const outputData, const unsigned int width,
-						  const unsigned int height)
+						  const unsigned int height, const unsigned int buffer)
 {
-	absDiffernceTexture<InputPixelType,OutputPixelType><<<dimGrid, dimBlock, shmemSize, stream>>>(outputData, width, height);
+	absDiffernceTexture<InputPixelType,OutputPixelType><<<dimGrid, dimBlock, shmemSize, stream>>>(outputData, width, height,buffer);
 }
 
 template< typename InputPixelType, typename OutputPixelType>
@@ -488,7 +488,7 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 	const unsigned int pixel_one_d = xIndex + yIndex * roiWidth;
 	const unsigned int area = roiHeight * roiWidth;
 	const unsigned int outputBandSize = area;
-	init texture support; work in progress
+	//init texture support; work in progress
 
 		int cur_y_index;
 		int cur_x_index;
@@ -656,8 +656,8 @@ template< typename InputPixelType, typename OutputPixelType >
 void launch_window_histogram_statistics (const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
 		   const cudaStream_t stream,  OutputPixelType * const outputData,
 		   const unsigned int width,  const unsigned int height, int2 * const relativeOffsets,
-		   const unsigned int numElements) {
-	window_histogram_statistics<InputPixelType, OutputPixelType><<<dimGrid, dimBlock, shmemSize,stream>>>(outputData, height, width, relativeOffsets, numElements);
+		   const unsigned int numElements, const unsigned int buffer) {
+	window_histogram_statistics<InputPixelType, OutputPixelType><<<dimGrid, dimBlock, shmemSize,stream>>>(outputData, height, width, relativeOffsets, numElements, buffer);
 }
 
 /* Assumes 2-D Grid, 2-D Block Config, 1 to 1 Mapping */
@@ -665,7 +665,7 @@ template< typename InputPixelType, typename OutputPixelType>
 __global__ static
 void erode(OutputPixelType* const  outputData, const unsigned int height, 
 	    const unsigned int width, const int2 * relativeOffsets, 
-	    const unsigned int numElements)
+	    const unsigned int numElements, const unsigned int buffer)
 {
 	const unsigned int xIndex = blockIdx.x * blockDim.x + threadIdx.x;
 	const unsigned int yIndex = blockIdx.y * blockDim.y + threadIdx.y;
@@ -702,16 +702,16 @@ template< typename InputPixelType, typename OutputPixelType>
 void launch_erode(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, 
 		   const cudaStream_t stream,  OutputPixelType * const outputData, 
 		   const unsigned int width,  const unsigned int height, int2 * const relativeOffsets, 
-		   const unsigned int numElements)
+		   const unsigned int numElements, const unsigned int buffer)
 {
-	erode<InputPixelType,OutputPixelType><<<dimGrid, dimBlock, shmemSize, stream>>>(outputData, height, width, relativeOffsets, numElements);
+	erode<InputPixelType,OutputPixelType><<<dimGrid, dimBlock, shmemSize, stream>>>(outputData, height, width, relativeOffsets, numElements, buffer);
 }
 
 template< typename InputPixelType, typename OutputPixelType>
 __global__ static
 void dilate(OutputPixelType* const  outputData, const unsigned int height, 
 	    const unsigned int width, const int2 * relativeOffsets, 
-	    const unsigned int numElements)
+	    const unsigned int numElements, const unsigned int buffer)
 {
 	const unsigned int xIndex = blockIdx.x * blockDim.x + threadIdx.x;
 	const unsigned int yIndex = blockIdx.y * blockDim.y + threadIdx.y;
@@ -746,9 +746,9 @@ template< typename InputPixelType, typename OutputPixelType>
 void launch_dilate(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
 		   const cudaStream_t stream,  OutputPixelType * const outputData, 
 		   const unsigned int width,  const unsigned int height, int2 * const relativeOffsets, 
-		   const unsigned int numElements)
+		   const unsigned int numElements, const unsigned int buffer)
 {
-	dilate<InputPixelType,OutputPixelType><<<dimGrid, dimBlock, shmemSize, stream>>>(outputData, height, width, relativeOffsets, numElements);
+	dilate<InputPixelType,OutputPixelType><<<dimGrid, dimBlock, shmemSize, stream>>>(outputData, height, width, relativeOffsets, numElements, buffer);
 }
 
 

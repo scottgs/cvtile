@@ -88,7 +88,7 @@ ErrorCode GpuWHS<InputPixelType, InputBandCount, OutputPixelType, OutputBandCoun
 	size_t gridWidth = this->dataSize.width / dimBlock.x + (((this->dataSize.width % dimBlock.x)==0) ? 0 :1 );
 	size_t gridHeight = this->dataSize.height / dimBlock.y + (((this->dataSize.height % dimBlock.y)==0) ? 0 :1 );
 	dim3 dimGrid(gridWidth, gridHeight);
-
+	const unsigned int buffer = 0;
 	// Bind the texture to the array and setup the access parameters
 	cudaError cuer = cvt::gpu::bind_texture<InputPixelType,0>(this->gpuInputDataArray);
 	if (cudaSuccess != cuer)
@@ -101,7 +101,7 @@ ErrorCode GpuWHS<InputPixelType, InputBandCount, OutputPixelType, OutputBandCoun
 	cvt::gpu::launch_window_histogram_statistics<InputPixelType, OutputPixelType>(dimGrid, dimBlock, 0,
 	   this->stream, (OutputPixelType *)this->gpuOutputData,
 	   this->dataSize.width, this->dataSize.height, this->relativeOffsetsGpu_,
-	   this->relativeOffsets_.size());
+	   this->relativeOffsets_.size(),buffer);
 	
 	// check for kernel launch success	
 	cuer = cudaGetLastError();

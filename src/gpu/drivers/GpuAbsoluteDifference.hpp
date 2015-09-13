@@ -53,13 +53,14 @@ ErrorCode GpuAbsoluteDifference<InputPixelType, InputBandCount, OutputPixelType,
 	size_t gridHeight = this->dataSize.height / dimBlock.y + (((this->dataSize.height % dimBlock.y)==0) ? 0 :1 );
 	dim3 dimGrid(gridWidth, gridHeight);
 
+	const unsigned int buffer = 0;
 	// Bind the texture to the array and setup the access parameters
 	bind_texture<InputPixelType, 0>(this->gpuInputDataArray);
 	bind_texture<InputPixelType, 1>(this->gpuInputDataArrayTwo_);
 
  	cvt::gpu::launch_absDifference<short,short>(dimGrid, dimBlock, 0,
 	   this->stream, (OutputPixelType *)this->gpuOutputData,
-	   this->dataSize.width, this->dataSize.height);
+	   this->dataSize.width, this->dataSize.height,buffer);
 	
 	cudaError cuer;
 	cuer = cudaGetLastError();
