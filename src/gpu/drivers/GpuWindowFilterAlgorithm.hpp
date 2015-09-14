@@ -76,7 +76,7 @@ class GpuWindowFilterAlgorithm : public GpuAlgorithm<InputPixelType, InputBandCo
 
 
 	ErrorCode allocateAdditionalGpuMemory();
-	virtual ErrorCode launchKernel(unsigned bw, unsigned bh, unsigned buffer);
+	virtual ErrorCode launchKernel(unsigned bw, unsigned bh);
 	void computeRelativeOffsets();
 	ErrorCode transferRelativeOffsetsToDevice(); 
 
@@ -87,7 +87,8 @@ class GpuWindowFilterAlgorithm : public GpuAlgorithm<InputPixelType, InputBandCo
 	ssize_t windowRadius_;
 	std::vector<int2> relativeOffsets_;
 	int2 *relativeOffsetsGpu_;
-	enum windowRadiusType type;	
+	enum windowRadiusType type;
+	size_t bufferWidth_;
 	
 
 }; // END of GpuWindowFilterAlgorithm
@@ -100,6 +101,7 @@ GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, Output
 	cudaDeviceId, unbufferedDataWidth,unbufferedDataHeight) 
 {
 	windowRadius_ = windowRadius;
+	bufferWidth_ = windowRadius;
 }
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
@@ -147,15 +149,13 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 	unsigned short bW = 16;
 	unsigned short bH = 16;
 	unsigned buffer = 0;
-	buffer = tile.getSize().width - tile.getROI().x;
-	std::cout << tile.getSize() << " " << tile.getROI() << std::endl;
-	std::cout << buffer << " " << windowRadius_ << std::endl;
 
-	if (buffer > windowRadius_) {
-		throw std::runtime_error("Buffer size is greater than your window radius");
+
+	if (tile.getROI().x != bufferWidth_) {
+		throw std::runtime_error("Buffer size of incoming tile is not equal to the window radius");
 	}
 
-	launchKernel(bW, bH,buffer);
+	launchKernel(bW, bH);
 
 	this->lastError = this->copyTileFromDevice(outTile);
 	if(this->lastError != cvt::Ok) {
@@ -178,7 +178,7 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 }
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
-ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(unsigned bw, unsigned bh, unsigned buffer) {
+ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(unsigned bw, unsigned bh) {
 	return Ok; // NEED TO ADD DEFAULT KERNEL FOR FILTER
 }
 

@@ -32,12 +32,13 @@ class GpuBinaryImageAlgorithm : public GpuAlgorithm<InputPixelType, InputBandCou
 
 	protected:
 
-	virtual ErrorCode launchKernel(unsigned bw, unsigned bh, unsigned buffer);
+	virtual ErrorCode launchKernel(unsigned bw, unsigned bh);
 
 	/**
 	 * PROTECTED ATTRIBUTES
 	 * */
 	cudaArray * gpuInputDataArrayTwo_;
+	size_t bufferWidth_;
 
 }; // END of GpuBinaryImageAlgorithm
 
@@ -48,7 +49,7 @@ GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputB
 	: cvt::gpu::GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>(
 	cudaDeviceId, unbufferedDataWidth,unbufferedDataHeight) 
 {
-	;
+	bufferWidth_ = 0;
 }
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
@@ -124,8 +125,12 @@ ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelTyp
 	// Invoke kernel with empirically chosen block size
 	unsigned short bW = 16;
 	unsigned short bH = 16;
-	unsigned buffer = 0;
-	launchKernel(bW, bH,buffer);
+	
+	if (tile.getROI().x != bufferWidth_ || tile2.getROI().x || bufferWidth_) {
+		throw std::runtime_error("Both the incoming tiles must have the same bufferWidth");
+	}
+
+	launchKernel(bW, bH);
 
 	this->lastError = this->copyTileFromDevice(outTile);
 	if(this->lastError != cvt::Ok) {
@@ -257,7 +262,7 @@ ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelTyp
 }
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
-ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(unsigned bw, unsigned bh, unsigned buffer) {
+ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(unsigned bw, unsigned bh) {
 	return Ok; // NEED TO ADD DEFAULT KERNEL FOR FILTER
 }
 

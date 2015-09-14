@@ -72,13 +72,13 @@ template < typename InputPixelType, int InputBandCount, typename OutputPixelType
 		virtual ErrorCode operator()(const cvt::cvTile<InputPixelType> &tile, const cvt::cvTile<OutputPixelType> ** outTile);
 
 		protected:
-		virtual ErrorCode launchKernel(unsigned bw, unsigned bh, unsigned buffer);
+		virtual ErrorCode launchKernel(unsigned bw, unsigned bh);
 	
 	};	
 
 		
 template < typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
-		ErrorCode gpuAlgoImpl<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(unsigned bw, unsigned bh, unsigned buffer)
+		ErrorCode gpuAlgoImpl<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(unsigned bw, unsigned bh)
 		{
 
 			dim3 blockDim(bw, bh);
@@ -103,7 +103,7 @@ template < typename InputPixelType, int InputBandCount, typename OutputPixelType
 		
 			if(this->usingTexture)
 				cvt::gpu::bind_texture<InputPixelType, 0>((cudaArray*)this->gpuInput);	
-			launchKernel(this->dataSize.width, this->dataSize.height, 0);
+			launchKernel(this->dataSize.width, this->dataSize.height);
 			
 			this->lastError = this->copyTileFromDevice(outTile);
 

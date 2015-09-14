@@ -22,7 +22,7 @@ public:
 	~GpuAbsoluteDifference();
 
 protected:
-	ErrorCode launchKernel(unsigned blockWidth, unsigned blockHeight, unsigned buffer);
+	ErrorCode launchKernel(unsigned blockWidth, unsigned blockHeight);
 
 };
 
@@ -46,7 +46,7 @@ GpuAbsoluteDifference<inputpixeltype, inputbandcount, outputpixeltype, outputban
 }
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
-ErrorCode GpuAbsoluteDifference<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(unsigned blockWidth, unsigned blockHeight,unsigned buffer)
+ErrorCode GpuAbsoluteDifference<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(unsigned blockWidth, unsigned blockHeight)
 {
 	dim3 dimBlock(blockWidth,blockHeight);
 	size_t gridWidth = this->dataSize.width / dimBlock.x + (((this->dataSize.width % dimBlock.x)==0) ? 0 :1 );
@@ -59,7 +59,7 @@ ErrorCode GpuAbsoluteDifference<InputPixelType, InputBandCount, OutputPixelType,
 
  	cvt::gpu::launch_absDifference<short,short>(dimGrid, dimBlock, 0,
 	   this->stream, (OutputPixelType *)this->gpuOutputData,
-	   this->dataSize.width, this->dataSize.height,buffer);
+	   this->dataSize.width, this->dataSize.height,this->bufferWidth_);
 	
 	cudaError cuer;
 	cuer = cudaGetLastError();

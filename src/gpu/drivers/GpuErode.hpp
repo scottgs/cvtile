@@ -58,7 +58,7 @@ public:
 	~GpuErode();
 
 protected:
-	ErrorCode launchKernel(unsigned blockWidth, unsigned blockHeight, unsigned buffer);
+	ErrorCode launchKernel(unsigned blockWidth, unsigned blockHeight);
 
 };
 
@@ -82,7 +82,7 @@ GpuErode<inputpixeltype, inputbandcount, outputpixeltype, outputbandcount>::~Gpu
 }
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
-ErrorCode GpuErode<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(unsigned blockWidth, unsigned blockHeight, unsigned buffer)
+ErrorCode GpuErode<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(unsigned blockWidth, unsigned blockHeight)
 {
 	dim3 dimBlock(blockWidth,blockHeight);
 
@@ -111,7 +111,7 @@ ErrorCode GpuErode<InputPixelType, InputBandCount, OutputPixelType, OutputBandCo
 	 cvt::gpu::launch_erode<InputPixelType, OutputPixelType>(dimGrid, dimBlock, 0,
 	   this->stream, (OutputPixelType *)this->gpuOutputData,
 	   this->dataSize.width, this->dataSize.height, this->relativeOffsetsGpu_,
-	   this->relativeOffsets_.size(),buffer);
+	   this->relativeOffsets_.size(),this->bufferWidth_);
 	cuer = cudaGetLastError();
 	if (cuer != cudaSuccess) {
 		std::cout << "CUDA ERROR = " << cuer << std::endl;

@@ -58,7 +58,7 @@ public:
 	~GpuDilate();
 
 protected:
-	ErrorCode launchKernel(unsigned blockWidth, unsigned blockHeight, unsigned buffer);
+	ErrorCode launchKernel(unsigned blockWidth, unsigned blockHeight);
 
 };
 
@@ -82,7 +82,7 @@ GpuDilate<inputpixeltype, inputbandcount, outputpixeltype, outputbandcount>::~Gp
 }
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
-ErrorCode GpuDilate<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(unsigned blockWidth, unsigned blockHeight, unsigned buffer)
+ErrorCode GpuDilate<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(unsigned blockWidth, unsigned blockHeight)
 {
 	dim3 dimBlock(blockWidth,blockHeight);
 
@@ -111,7 +111,7 @@ ErrorCode GpuDilate<InputPixelType, InputBandCount, OutputPixelType, OutputBandC
 	 cvt::gpu::launch_dilate<InputPixelType, OutputPixelType>(dimGrid, dimBlock, 0,
 	   this->stream, (OutputPixelType *)this->gpuOutputData,
 	   this->dataSize.width, this->dataSize.height, this->relativeOffsetsGpu_,
-	   this->relativeOffsets_.size(), buffer);
+	   this->relativeOffsets_.size(), this->bufferWidth_);
 	cuer = cudaGetLastError();
 	if (cuer != cudaSuccess) {
 		std::cout << "CUDA ERROR = " << cuer << std::endl;
