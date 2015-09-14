@@ -289,6 +289,34 @@ class TilerTestSuite : public CxxTest::TestSuite
 			read_tiler.close();
 		}
 
+		void testRead16x16TileWithBuffer()
+		{
+			Tiler read_tiler;
+			std::string sourceFile("test2.tif");
+
+			TS_ASSERT(NoError == read_tiler.open(sourceFile));
+
+			//tile Size
+			const cv::Size2i sz(16,16);
+
+			//set the cvTileSize so the image will be partitioned based on this
+			read_tiler.setCvTileSize(sz);
+
+			//loop through all tiles and put them into the writer Tiler
+			for (int i = 0; i < read_tiler.getCvTileCount(); ++i)
+			{
+					// READ WITH BUFFER
+				cvt::cvTile<unsigned char> iTile = read_tiler.getCvTile<unsigned char>(i, 5);
+				TS_ASSERT_EQUALS(iTile.getROI().x,5);
+				TS_ASSERT_EQUALS(iTile.getROI().y,5);
+				TS_ASSERT_EQUALS(iTile.getROI().size().width,16);
+				TS_ASSERT_EQUALS(iTile.getROI().size().height,16);
+			}
+
+			read_tiler.close();
+		}
+
+
 		// this currently fails for GTiff
 		void testOpenWithImplicitTileSize()
 		{
