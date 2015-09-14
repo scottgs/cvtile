@@ -142,7 +142,13 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 	// Invoke kernel with empirically chosen block size
 	unsigned short bW = 16;
 	unsigned short bH = 16;
-	unsigned buffer = 0;	
+	unsigned buffer = 0;
+	buffer = tile.getSize().width - tile.getROI().x;
+
+	if (buffer > windowRadius) {
+		throw std::runtime_error("Buffer size is greater than your window radius");
+	}
+
 	launchKernel(bW, bH,buffer);
 
 	this->lastError = this->copyTileFromDevice(outTile);

@@ -442,9 +442,15 @@ template< typename InputPixelType, typename OutputPixelType>
 __global__ static
 void absDiffernceTexture(OutputPixelType * const outputData, const unsigned int width, const unsigned int height, const unsigned int buffer)
 {
-	// calculate position
-	int xIndex = blockIdx.x * blockDim.x + threadIdx.x;
-	int yIndex = blockIdx.y * blockDim.y + threadIdx.y;
+	
+   // Data index now buffered
+   const int width = roiWidth + buffer + buffer;
+   const int height = roiHeight + buffer + buffer;
+
+   // Block indexing is within the ROI, add the left and top buffer size to get data index position
+   const unsigned int xIndex = blockIdx.x * blockDim.x + threadIdx.x + buffer;
+   const unsigned int yIndex = blockIdx.y * blockDim.y + threadIdx.y + buffer;
+
 
 	// vals for current abs 
 	OutputPixelType t_one, t_two;
@@ -452,7 +458,7 @@ void absDiffernceTexture(OutputPixelType * const outputData, const unsigned int 
 	if(xIndex < width && yIndex < height){
 		t_one = fetchTexture<InputPixelType, 0>(xIndex, yIndex);
 		t_two = fetchTexture<InputPixelType, 1>(xIndex, yIndex);
-		*(outputData + xIndex * width + yIndex) = __usad(t_one, t_two, 0);
+		*(outputData + xIndex * width + yIndex + buffer) = __usad(t_one, t_two, 0);
 	}
 	
 }
@@ -666,12 +672,18 @@ void erode(OutputPixelType* const  outputData, const unsigned int height,
 	    const unsigned int width, const int2 * relativeOffsets, 
 	    const unsigned int numElements, const unsigned int buffer)
 {
-	const unsigned int xIndex = blockIdx.x * blockDim.x + threadIdx.x;
-	const unsigned int yIndex = blockIdx.y * blockDim.y + threadIdx.y;
-	
+   // Data index now buffered
+   const int width = roiWidth + buffer + buffer;
+   const int height = roiHeight + buffer + buffer;
+
+   // Block indexing is within the ROI, add the left and top buffer size to get data index position
+   const unsigned int xIndex = blockIdx.x * blockDim.x + threadIdx.x + buffer;
+   const unsigned int yIndex = blockIdx.y * blockDim.y + threadIdx.y + buffer;
+
+
 	if(yIndex < height && xIndex < width){
 
-		const unsigned int pixel_one_d = xIndex + yIndex * width; 
+		const unsigned int pixel_one_d = xIndex + yIndex * roiWidth;
 		int cur_y_index;
 		int cur_x_index;
 
