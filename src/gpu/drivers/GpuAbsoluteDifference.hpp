@@ -22,7 +22,7 @@ public:
 	~GpuAbsoluteDifference();
 
 protected:
-	ErrorCode launchKernel(unsigned blockWidth, unsigned blockHeight);
+	ErrorCode launchKernel(unsigned blockWidth, unsigned blockHeight, unsigned buffer);
 
 };
 

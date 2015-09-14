@@ -82,7 +82,7 @@ GpuWHS<inputpixeltype, inputbandcount, outputpixeltype, outputbandcount>::~GpuWH
 }
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
-ErrorCode GpuWHS<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(unsigned blockWidth, unsigned blockHeight)
+ErrorCode GpuWHS<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(unsigned blockWidth, unsigned blockHeight, unsigned buffer)
 {
 	dim3 dimBlock(blockWidth,blockHeight);
 	size_t gridWidth = this->dataSize.width / dimBlock.x + (((this->dataSize.width % dimBlock.x)==0) ? 0 :1 );

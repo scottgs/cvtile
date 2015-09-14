@@ -42,6 +42,10 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 #include <sstream>
 
+
+
+#include <iostream>
+
 namespace cvt {
 
 namespace gpu {
@@ -72,7 +76,7 @@ class GpuWindowFilterAlgorithm : public GpuAlgorithm<InputPixelType, InputBandCo
 
 
 	ErrorCode allocateAdditionalGpuMemory();
-	virtual ErrorCode launchKernel(unsigned bw, unsigned bh);
+	virtual ErrorCode launchKernel(unsigned bw, unsigned bh, unsigned buffer);
 	void computeRelativeOffsets();
 	ErrorCode transferRelativeOffsetsToDevice(); 
 
@@ -144,8 +148,10 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 	unsigned short bH = 16;
 	unsigned buffer = 0;
 	buffer = tile.getSize().width - tile.getROI().x;
+	std::cout << tile.getSize() << " " << tile.getROI() << std::endl;
+	std::cout << buffer << " " << windowRadius_ << std::endl;
 
-	if (buffer > windowRadius) {
+	if (buffer > windowRadius_) {
 		throw std::runtime_error("Buffer size is greater than your window radius");
 	}
 

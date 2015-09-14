@@ -440,7 +440,7 @@ void launch_simpleDataCopy(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, 
 
 template< typename InputPixelType, typename OutputPixelType>
 __global__ static
-void absDiffernceTexture(OutputPixelType * const outputData, const unsigned int width, const unsigned int height, const unsigned int buffer)
+void absDiffernceTexture(OutputPixelType * const outputData, const unsigned int roiWidth, const unsigned int roiHeight, const unsigned int buffer)
 {
 	
    // Data index now buffered
@@ -668,8 +668,8 @@ void launch_window_histogram_statistics (const dim3 dimGrid, const dim3 dimBlock
 /* Assumes 2-D Grid, 2-D Block Config, 1 to 1 Mapping */
 template< typename InputPixelType, typename OutputPixelType>
 __global__ static
-void erode(OutputPixelType* const  outputData, const unsigned int height, 
-	    const unsigned int width, const int2 * relativeOffsets, 
+void erode(OutputPixelType* const  outputData, const unsigned int roiHeight, 
+	    const unsigned int roiWidth, const int2 * relativeOffsets, 
 	    const unsigned int numElements, const unsigned int buffer)
 {
    // Data index now buffered

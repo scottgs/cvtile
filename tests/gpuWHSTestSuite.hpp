@@ -281,6 +281,84 @@ class gpuWHSTestSuite : public CxxTest::TestSuite
 		
 		}
 
+
+		void testWindowHistogramSingleBandImageBuffered () {
+			std::cout << std::endl << "GPU WHS VERIFICATION TEST" << std::endl;
+			int cuda_device_id = 0;
+			//unsigned int window_size = 1;
+
+
+
+			cvt::Tiler read_tiler;
+
+			cv::Size2i tSize(256,256);
+			read_tiler.setCvTileSize(tSize);
+
+			read_tiler.open("test1-1.tif");
+
+			cvt::cvTile<short> inputTile;
+			//cvt::cvTile<float> *outputTile;
+			inputTile = read_tiler.getCvTile<short>(4,11);
+			/* Loop through all the tiles in the image */
+			for (int window = 1; window <= 11; window++) {	
+					
+					cvt::gpu::GpuWHS<short,1,float,5> whs(cuda_device_id,
+					tSize.width,tSize.height,window);
+					whs.initializeDevice(cvt::gpu::SQUARE);
+
+					cvt::cvTile<float> *outputTile;
+					whs(inputTile,(const cvt::cvTile<float> **)&outputTile);
+					if (!outputTile) {
+						std::cout << "FAILURE TO GET DATA FROM DEVICE" << std::endl;
+						return;
+					}
+					TS_ASSERT_EQUALS(outputTile->getBandCount(),5);	
+					/*Calculate Window Histogram Statistics for each pixel*/
+					cv::Size2i dims = inputTile.getSize();
+					const int area = dims.width * dims.height;
+					std::vector<Stats> stats;
+					stats.resize(area);
+			
+					for (int i = 0; i < area; ++i) {
+						std::vector<double> data;
+
+						for (int x = 0 - window; x <= window; ++x) {
+							for (int y = 0 - window; y <= window; ++y) {
+								const int X = (i / 256) + x;
+								const int Y = (i % 256) + y;
+								if (X >= 0 && X < dims.width && Y >= 0 && Y < dims.height) {
+									//std::cout << "( " << X << "," << Y << " ) ";
+									data.push_back(inputTile[0].at<short>(X,Y));
+								}
+								else {
+									data.push_back(0);
+								}
+							}
+						}
+
+						calcStatisitics(&stats[i], data.data(),32, data.size());	
+
+					}
+					
+					for (size_t s = 0; s < stats.size(); ++s) {
+						const size_t row = s / 256;
+						const size_t col = s % 256;
+					
+						TS_ASSERT_DELTA(stats[s].entropy,(*outputTile)[0].at<float>(row,col),1e-5);
+						TS_ASSERT_DELTA(stats[s].mean,(*outputTile)[1].at<float>(row,col),1e-5);
+						TS_ASSERT_DELTA(stats[s].variance,(*outputTile)[2].at<float>(row,col),1e-5);
+						TS_ASSERT_DELTA(stats[s].skewness,(*outputTile)[3].at<float>(row,col),1e-5);
+						TS_ASSERT_DELTA(stats[s].kurtosis,(*outputTile)[4].at<float>(row,col),1e-5);
+					}
+					delete outputTile;
+					
+
+			}
+			read_tiler.close();
+
+		
+		}
+
 		void testTimingVariousBlockSizes () {
 			std::cout << std::endl << "GPU WHS TESTING BLOCKSIZES" << std::endl;
 			int cuda_device_id = 0;

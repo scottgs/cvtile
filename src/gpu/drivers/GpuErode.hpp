@@ -82,7 +82,7 @@ GpuErode<inputpixeltype, inputbandcount, outputpixeltype, outputbandcount>::~Gpu
 }
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
-ErrorCode GpuErode<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(unsigned blockWidth, unsigned blockHeight, buffer)
+ErrorCode GpuErode<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(unsigned blockWidth, unsigned blockHeight, unsigned buffer)
 {
 	dim3 dimBlock(blockWidth,blockHeight);
 
