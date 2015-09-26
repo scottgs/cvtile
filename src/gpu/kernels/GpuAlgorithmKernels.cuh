@@ -442,39 +442,43 @@ template< typename InputPixelType, typename OutputPixelType>
 __global__ static
 void absDiffernceTexture(OutputPixelType * const outputData, const unsigned int roiWidth, const unsigned int roiHeight, const unsigned int buffer)
 {
-	
    // Data index now buffered
    const int width = roiWidth + buffer + buffer;
    const int height = roiHeight + buffer + buffer;
 
+   const unsigned int roiXidx = blockIdx.x * blockDim.x + threadIdx.x;
+   const unsigned int roiYidx = blockIdx.y * blockDim.y + threadIdx.y;
+
    // Block indexing is within the ROI, add the left and top buffer size to get data index position
-   const unsigned int xIndex = blockIdx.x * blockDim.x + threadIdx.x + buffer;
-   const unsigned int yIndex = blockIdx.y * blockDim.y + threadIdx.y + buffer;
+   const unsigned int xIndex = roiXidx + buffer;
+   const unsigned int yIndex = roiYidx + buffer;
 
+	InputPixelType t_one;
+	InputPixelType t_two;
 
-	// vals for current abs 
-	OutputPixelType t_one, t_two;
+   if(roiYidx < roiHeight && roiXidx < roiWidth && xIndex < width && yIndex < height)
+   {
 
-	if(xIndex < width && yIndex < height){
+		// Output size is the ROI size
+		const unsigned int pixel_one_d = roiXidx + roiYidx * roiWidth; // xIndex + yIndex
 		t_one = fetchTexture<InputPixelType, 0>(xIndex, yIndex);
 		t_two = fetchTexture<InputPixelType, 1>(xIndex, yIndex);
-		*(outputData + xIndex * width + yIndex + buffer) = __usad(t_one, t_two, 0);
+		outputData[pixel_one_d] = __usad(t_one, t_two, 0);
 	}
-	
 }
 
 template< typename InputPixelType, typename OutputPixelType>
 void launch_absDifference(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, const cudaStream_t stream,
-						  OutputPixelType * const outputData, const unsigned int width,
-						  const unsigned int height, const unsigned int buffer)
+						  OutputPixelType * const outputData, const unsigned int roiWidth,
+						  const unsigned int roiHeight, const unsigned int buffer)
 {
-	absDiffernceTexture<InputPixelType,OutputPixelType><<<dimGrid, dimBlock, shmemSize, stream>>>(outputData, width, height,buffer);
+	absDiffernceTexture<InputPixelType,OutputPixelType><<<dimGrid, dimBlock, shmemSize, stream>>>(outputData, roiWidth, roiHeight,buffer);
 }
 
 template< typename InputPixelType, typename OutputPixelType>
 __global__ static
-void window_histogram_statistics(OutputPixelType * const  outputData, const unsigned int roiHeight,
-	    const unsigned int roiWidth, const int2 * relativeOffsets,
+void window_histogram_statistics(OutputPixelType * const  outputData, const unsigned int roiWidth,
+	    const unsigned int roiHeight, const int2 * relativeOffsets,
 	    const unsigned int numElements, const unsigned int buffer)
 {
 
@@ -482,40 +486,34 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
    const int width = roiWidth + buffer + buffer;
    const int height = roiHeight + buffer + buffer;
 
-   // Block indexing is within the ROI, add the left and top buffer size to get data index position
-   const unsigned int xIndex = blockIdx.x * blockDim.x + threadIdx.x + buffer;
-   const unsigned int yIndex = blockIdx.y * blockDim.y + threadIdx.y + buffer;
+   const unsigned int roiXidx = blockIdx.x * blockDim.x + threadIdx.x;
+   const unsigned int roiYidx = blockIdx.y * blockDim.y + threadIdx.y;
 
+   // Block indexing is within the ROI, add the left and top buffer size to get data index position
+   const unsigned int xIndex = roiXidx + buffer;
+   const unsigned int yIndex = roiYidx + buffer;
 	
-   if(yIndex < height && xIndex < width)
+   if(roiYidx < roiHeight && roiXidx < roiWidth && xIndex < width && yIndex < height)
    {
 
-	// Output size is the ROI size
-	const unsigned int pixel_one_d = xIndex + yIndex * roiWidth;
-	const unsigned int area = roiHeight * roiWidth;
-	const unsigned int outputBandSize = area;
-	//init texture support; work in progress
+		// Output size is the ROI size
+		const unsigned int pixel_one_d = roiXidx + roiYidx * roiWidth; // xIndex + yIndex
+		const unsigned int outputBandSize = roiHeight * roiWidth;
+		//init texture support; work in progress
 
 		int cur_y_index;
 		int cur_x_index;
 		InputPixelType min = fetchTexture<InputPixelType, 0>(xIndex, yIndex);
 		InputPixelType max = fetchTexture<InputPixelType, 0>(xIndex, yIndex);
 		
-		//extern __shared__ double values[]; uncomment when wanting to use dyanmic shared memory
 		double values[1024];
-		//const unsigned int pos = (threadIdx.x + threadIdx.y * blockDim.y) * numElements;
 
 		for(unsigned int i = 0; i < numElements; ++i)
 		{
 			cur_x_index = xIndex + relativeOffsets[i].x;
 			cur_y_index = yIndex + relativeOffsets[i].y;	
-			
-			if( cur_y_index < height && cur_y_index >= 0 && cur_x_index < width && cur_x_index >= 0){
-				values[i] = fetchTexture<InputPixelType, 0>(cur_x_index, cur_y_index);
-				//printf("GOOD COUNDS(%d, %d)\n", cur_x_index, cur_y_index);
-			}
-			else 
-				values[i] = 0;
+			//if( cur_y_index < roiHeight && cur_y_index >= 0 && cur_x_index < roiWidth && cur_x_index >= 0){
+			values[i] = fetchTexture<InputPixelType, 0>(cur_x_index, cur_y_index);
 
 			if (values[i] > max) {
 				max = values[i];
@@ -618,6 +616,7 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 
 			//band 4 = kurtosis
 			outputData[pixel_one_d + (outputBandSize * 4)] = 0;
+
 			return;
 
 	}
@@ -640,7 +639,7 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 	outputData[pixel_one_d] = (OutputPixelType) (entropy * -1);	
 		//outputData[pixel_one_d] = 1;
 		//band 1 = mean
-		//outputData[pixel_one_d + outputBandSize] = mean;
+	outputData[pixel_one_d + outputBandSize] = mean;
 			
 	outputData[pixel_one_d + outputBandSize] = ( OutputPixelType)mean;
 		//printf("mean %d\n", mean);
@@ -653,16 +652,17 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 		//band 4 = kurtosis
 	outputData[pixel_one_d + (outputBandSize * 4)] = (OutputPixelType) kurtosis;
 	
-    } // END OF A VALID PIXEL POSITION
+	
+	} // END OF A VALID PIXEL POSITION
 
 }
 
 template< typename InputPixelType, typename OutputPixelType >
 void launch_window_histogram_statistics (const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
 		   const cudaStream_t stream,  OutputPixelType * const outputData,
-		   const unsigned int width,  const unsigned int height, int2 * const relativeOffsets,
+		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets,
 		   const unsigned int numElements, const unsigned int buffer) {
-	window_histogram_statistics<InputPixelType, OutputPixelType><<<dimGrid, dimBlock, shmemSize,stream>>>(outputData, height, width, relativeOffsets, numElements, buffer);
+	window_histogram_statistics<InputPixelType, OutputPixelType><<<dimGrid, dimBlock, shmemSize,stream>>>(outputData, roiHeight, roiWidth, relativeOffsets, numElements, buffer);
 }
 
 /* Assumes 2-D Grid, 2-D Block Config, 1 to 1 Mapping */
@@ -672,24 +672,28 @@ void erode(OutputPixelType* const  outputData, const unsigned int roiHeight,
 	    const unsigned int roiWidth, const int2 * relativeOffsets, 
 	    const unsigned int numElements, const unsigned int buffer)
 {
-   // Data index now buffered
+	
+	// Data index now buffered
    const int width = roiWidth + buffer + buffer;
    const int height = roiHeight + buffer + buffer;
 
+   const unsigned int roiXidx = blockIdx.x * blockDim.x + threadIdx.x;
+   const unsigned int roiYidx = blockIdx.y * blockDim.y + threadIdx.y;
+
    // Block indexing is within the ROI, add the left and top buffer size to get data index position
-   const unsigned int xIndex = blockIdx.x * blockDim.x + threadIdx.x + buffer;
-   const unsigned int yIndex = blockIdx.y * blockDim.y + threadIdx.y + buffer;
+   const unsigned int xIndex = roiXidx + buffer;
+   const unsigned int yIndex = roiYidx + buffer;
+	
+   if(roiYidx < roiHeight && roiXidx < roiWidth && xIndex < width && yIndex < height)
+   {
 
-
-	if(yIndex < height && xIndex < width){
-
-		const unsigned int pixel_one_d = xIndex + yIndex * roiWidth;
+		// Output size is the ROI size
+		const unsigned int pixel_one_d = roiXidx + roiYidx * roiWidth; // xIndex + yIndex
 		int cur_y_index;
 		int cur_x_index;
 
 		InputPixelType min = fetchTexture<InputPixelType, 0>(xIndex, yIndex);
 	
-		//extern __shared__ int2 offSets[]; 
 		OutputPixelType values[1024];
 
 		for(unsigned int i = 0; i < numElements; ++i)
@@ -697,13 +701,12 @@ void erode(OutputPixelType* const  outputData, const unsigned int roiHeight,
 			cur_x_index = xIndex + relativeOffsets[i].x;
 			cur_y_index = yIndex + relativeOffsets[i].y;	
 		
-			if( cur_y_index < height && cur_y_index >= 0 && cur_x_index < width && cur_x_index >= 0 ){
-				values[i] = fetchTexture<InputPixelType, 0>(cur_x_index, cur_y_index);
-				if (values[i] < min) {
-					min = values[i];
-				}
-
+			values[i] = fetchTexture<InputPixelType, 0>(cur_x_index, cur_y_index);
+			if (values[i] < min) {
+				min = values[i];
 			}
+
+			
 		}
 		outputData[pixel_one_d] = min;
 	}
@@ -712,42 +715,53 @@ void erode(OutputPixelType* const  outputData, const unsigned int roiHeight,
 template< typename InputPixelType, typename OutputPixelType>
 void launch_erode(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, 
 		   const cudaStream_t stream,  OutputPixelType * const outputData, 
-		   const unsigned int width,  const unsigned int height, int2 * const relativeOffsets, 
+		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets, 
 		   const unsigned int numElements, const unsigned int buffer)
 {
-	erode<InputPixelType,OutputPixelType><<<dimGrid, dimBlock, shmemSize, stream>>>(outputData, height, width, relativeOffsets, numElements, buffer);
+	erode<InputPixelType,OutputPixelType><<<dimGrid, dimBlock, shmemSize, stream>>>(outputData, roiHeight, roiWidth, relativeOffsets, numElements, buffer);
 }
 
 template< typename InputPixelType, typename OutputPixelType>
 __global__ static
-void dilate(OutputPixelType* const  outputData, const unsigned int height, 
-	    const unsigned int width, const int2 * relativeOffsets, 
+void dilate(OutputPixelType* const  outputData, const unsigned int roiHeight, 
+	    const unsigned int roiWidth, const int2 * relativeOffsets, 
 	    const unsigned int numElements, const unsigned int buffer)
 {
-	const unsigned int xIndex = blockIdx.x * blockDim.x + threadIdx.x;
-	const unsigned int yIndex = blockIdx.y * blockDim.y + threadIdx.y;
-	
-	if(yIndex < height && xIndex < width){
-		const unsigned int pixel_one_d = xIndex + yIndex * width; 
-		int cur_y_index;
-		int cur_x_index;
 
+	// Data index now buffered
+   const int width = roiWidth + buffer + buffer;
+   const int height = roiHeight + buffer + buffer;
+
+   const unsigned int roiXidx = blockIdx.x * blockDim.x + threadIdx.x;
+   const unsigned int roiYidx = blockIdx.y * blockDim.y + threadIdx.y;
+
+   // Block indexing is within the ROI, add the left and top buffer size to get data index position
+   const unsigned int xIndex = roiXidx + buffer;
+   const unsigned int yIndex = roiYidx + buffer;
+	
+   if(roiYidx < roiHeight && roiXidx < roiWidth && xIndex < width && yIndex < height)
+   {
+
+		// Output size is the ROI size
+		const unsigned int pixel_one_d = roiXidx + roiYidx * roiWidth; // xIndex + yIndex
 		InputPixelType max = fetchTexture<InputPixelType, 0>(xIndex, yIndex);
 	
-		//extern __shared__ int2 offSets[]; 
+
 		OutputPixelType values[1024];
+		size_t cur_x_index;
+		size_t cur_y_index;
 
 		for(unsigned int i = 0; i < numElements; ++i)
 		{
 			cur_x_index = xIndex + relativeOffsets[i].x;
 			cur_y_index = yIndex + relativeOffsets[i].y;	
 		
-			if( cur_y_index < height && cur_y_index >= 0 && cur_x_index < width && cur_x_index >= 0 ){
-				values[i] = fetchTexture<InputPixelType, 0>(cur_x_index, cur_y_index);
-				if (values[i] > max) {
-					max = values[i];
-				}
+
+			values[i] = fetchTexture<InputPixelType, 0>(cur_x_index, cur_y_index);
+			if (values[i] > max) {
+				max = values[i];
 			}
+
 		}
 		outputData[pixel_one_d] = max;
 	}
@@ -756,10 +770,10 @@ void dilate(OutputPixelType* const  outputData, const unsigned int height,
 template< typename InputPixelType, typename OutputPixelType>
 void launch_dilate(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
 		   const cudaStream_t stream,  OutputPixelType * const outputData, 
-		   const unsigned int width,  const unsigned int height, int2 * const relativeOffsets, 
+		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets, 
 		   const unsigned int numElements, const unsigned int buffer)
 {
-	dilate<InputPixelType,OutputPixelType><<<dimGrid, dimBlock, shmemSize, stream>>>(outputData, height, width, relativeOffsets, numElements, buffer);
+	dilate<InputPixelType,OutputPixelType><<<dimGrid, dimBlock, shmemSize, stream>>>(outputData, roiHeight, roiWidth, relativeOffsets, numElements, buffer);
 }
 
 

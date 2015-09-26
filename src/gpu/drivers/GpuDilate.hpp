@@ -108,10 +108,10 @@ ErrorCode GpuDilate<InputPixelType, InputBandCount, OutputPixelType, OutputBandC
 	}
 	//TODO: Use this line when updating to use shared memory
 	 //const unsigned int shmem_bytes = neighbor_coordinates_.size() * sizeof(double) * blockWidth * blockHeight;
-	 cvt::gpu::launch_dilate<InputPixelType, OutputPixelType>(dimGrid, dimBlock, 0,
-	   this->stream, (OutputPixelType *)this->gpuOutputData,
-	   this->dataSize.width, this->dataSize.height, this->relativeOffsetsGpu_,
-	   this->relativeOffsets_.size(), this->bufferWidth_);
+	 cvt::gpu::launch_dilate<InputPixelType, OutputPixelType>(dimGrid, dimBlock, 0, this->stream,(OutputPixelType *)this->gpuOutputData,
+	   this->roiSize_.width,this->roiSize_.height, this->relativeOffsetsGpu_,
+	   this->relativeOffsets_.size(),this->bufferWidth_);
+	 
 	cuer = cudaGetLastError();
 	if (cuer != cudaSuccess) {
 		std::cout << "CUDA ERROR = " << cuer << std::endl;

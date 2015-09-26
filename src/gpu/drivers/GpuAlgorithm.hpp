@@ -173,7 +173,7 @@ class GpuAlgorithm{
 
 		ErrorCode copyTileToDevice(const cvt::cvTile<InputPixelType> &tile);
 
-		ErrorCode copyTileFromDevice(const cvt::cvTile<OutputPixelType> ** tilePtr);
+		virtual ErrorCode copyTileFromDevice(const cvt::cvTile<OutputPixelType> ** tilePtr);
 
 		ErrorCode setGpuDevice();
 

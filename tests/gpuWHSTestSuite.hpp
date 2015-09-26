@@ -225,134 +225,57 @@ class gpuWHSTestSuite : public CxxTest::TestSuite
 			for (int window = 1; window <= 11; window++) {	
 					inputTile = read_tiler.getCvTile<short>(4, window);
 					cvt::gpu::GpuWHS<short,1,float,5> whs(cuda_device_id,
-					tSize.width,tSize.height,window);
+					inputTile.getROI().width,inputTile.getROI().height,window);
 					whs.initializeDevice(cvt::gpu::SQUARE);
 
-					cvt::cvTile<float> *outputTile;
+					cvt::cvTile<float> *outputTile = NULL;
 					whs(inputTile,(const cvt::cvTile<float> **)&outputTile);
 					if (!outputTile) {
 						std::cout << "FAILURE TO GET DATA FROM DEVICE" << std::endl;
-						return;
+						std::cout << "HERE" <<std::endl;
+						exit(1);
 					}
 					TS_ASSERT_EQUALS(outputTile->getBandCount(),5);	
 					/*Calculate Window Histogram Statistics for each pixel*/
 					cv::Size2i dims = inputTile.getSize();
-					const int area = dims.width * dims.height;
+					cv::Rect roiDims = inputTile.getROI();
+					
+					const int imageArea = dims.width * dims.height;
+					const int outArea = roiDims.width * roiDims.height;
 					std::vector<Stats> stats;
-					stats.resize(area);
-			
-					for (int i = 0; i < area; ++i) {
+					stats.resize(outArea);
+					int r = 0;
+
+					for (r = 0; r < outArea; ++r){
 						std::vector<double> data;
 
 						for (int x = 0 - window; x <= window; ++x) {
 							for (int y = 0 - window; y <= window; ++y) {
-								const int X = (i / 256) + x;
-								const int Y = (i % 256) + y;
-								if (X >= 0 && X < dims.width && Y >= 0 && Y < dims.height) {
-									//std::cout << "( " << X << "," << Y << " ) ";
-									data.push_back(inputTile[0].at<short>(X,Y));
-								}
-								else {
-									data.push_back(0);
-								}
+
+								const int X = (r/roiDims.width) + x + window;
+								const int Y = (r%roiDims.height) + y + window;
+								data.push_back(inputTile[0].at<short>(X,Y));
 							}
+
 						}
-
-						calcStatisitics(&stats[i], data.data(),32, data.size());	
-
+						
+						calcStatisitics(&stats[r], data.data(),32, data.size());
 					}
-					
+					//return;	
 					for (size_t s = 0; s < stats.size(); ++s) {
-						const size_t row = s / 256;
-						const size_t col = s % 256;
-					
+						const size_t row = s / roiDims.width;
+						const size_t col = s % roiDims.height;
 						TS_ASSERT_DELTA(stats[s].entropy,(*outputTile)[0].at<float>(row,col),1e-5);
 						TS_ASSERT_DELTA(stats[s].mean,(*outputTile)[1].at<float>(row,col),1e-5);
 						TS_ASSERT_DELTA(stats[s].variance,(*outputTile)[2].at<float>(row,col),1e-5);
 						TS_ASSERT_DELTA(stats[s].skewness,(*outputTile)[3].at<float>(row,col),1e-5);
 						TS_ASSERT_DELTA(stats[s].kurtosis,(*outputTile)[4].at<float>(row,col),1e-5);
+
 					}
 					delete outputTile;
 					
 
 			}
-			read_tiler.close();
-
-		
-		}
-
-
-		void testWindowHistogramSingleBandImageBuffered () {
-			std::cout << std::endl << "GPU WHS VERIFICATION TEST" << std::endl;
-			int cuda_device_id = 0;
-			//unsigned int window_size = 1;
-
-
-
-			cvt::Tiler read_tiler;
-
-			cv::Size2i tSize(256,256);
-			read_tiler.setCvTileSize(tSize);
-
-			read_tiler.open("test1-1.tif");
-
-			cvt::cvTile<short> inputTile;
-			//cvt::cvTile<float> *outputTile;
-			inputTile = read_tiler.getCvTile<short>(4,11);
-
-			std::cout << inputTile.getROI() << std::endl;
-			std::cout << inputTile.getSize() << std::endl;
-
-			int window = 11;
-		
-			cvt::gpu::GpuWHS<short,1,float,5> whs(cuda_device_id,
-			tSize.width,tSize.height,window);
-
-			whs.initializeDevice(cvt::gpu::SQUARE);
-			cvt::cvTile<float> *outputTile;
-			whs(inputTile,(const cvt::cvTile<float> **)&outputTile);
-			if (!outputTile) {
-				std::cout << "FAILURE TO GET DATA FROM DEVICE" << std::endl;
-				return;
-			}
-			TS_ASSERT_EQUALS(outputTile->getBandCount(),5);	
-			/*Calculate Window Histogram Statistics for each pixel*/
-			cv::Size2i dims = inputTile.getSize();
-			const int area = dims.width * dims.height;
-			std::vector<Stats> stats;
-			stats.resize(area);
-			
-			for (int i = 0; i < area; ++i) {
-				std::vector<double> data;
-
-				for (int x = 0 - window; x <= window; ++x) {
-					for (int y = 0 - window; y <= window; ++y) {
-						const int X = (i / 256) + x;
-						const int Y = (i % 256) + y;
-						if (X >= 0 && X < dims.width && Y >= 0 && Y < dims.height) {
-						//std::cout << "( " << X << "," << Y << " ) ";
-						data.push_back(inputTile[0].at<short>(X,Y));
-					}
-					else {
-						data.push_back(0);
-					}
-				}
-			}
-			calcStatisitics(&stats[i], data.data(),32, data.size());	
-					
-			for (size_t s = 0; s < stats.size(); ++s) {
-				const size_t row = s / 256;
-				const size_t col = s % 256;
-					
-				TS_ASSERT_DELTA(stats[s].entropy,(*outputTile)[0].at<float>(row,col),1e-5);
-				TS_ASSERT_DELTA(stats[s].mean,(*outputTile)[1].at<float>(row,col),1e-5);
-				TS_ASSERT_DELTA(stats[s].variance,(*outputTile)[2].at<float>(row,col),1e-5);
-				TS_ASSERT_DELTA(stats[s].skewness,(*outputTile)[3].at<float>(row,col),1e-5);
-				TS_ASSERT_DELTA(stats[s].kurtosis,(*outputTile)[4].at<float>(row,col),1e-5);
-			}
-			}
-			delete outputTile;
-
 			read_tiler.close();
 
 		
@@ -377,13 +300,13 @@ class gpuWHSTestSuite : public CxxTest::TestSuite
 			std::chrono::high_resolution_clock::time_point startI = std::chrono::high_resolution_clock::now();
 #endif
 				
-			const cvt::cvTile<short> tile = read_tiler.getCvTile<short>( 4 ); //no buffer
+			const cvt::cvTile<short> tile = read_tiler.getCvTile<short>( 4,windowRadius); //no buffer
 			for (int i = 0; i < 35; ++i) {
 #if TIMIN_ON
 				std::chrono::high_resolution_clock::time_point startT = std::chrono::high_resolution_clock::now();
 #endif
 				
-				/* Do the Window Histogram Stats */
+				// Do the Window Histogram Stats
 				cvt::cvTile<float> *outputTile;
 				whs(tile,(const cvt::cvTile<float> **)&outputTile);
 
@@ -428,7 +351,7 @@ class gpuWHSTestSuite : public CxxTest::TestSuite
 			if(boost::filesystem::exists(outFile)){
 				boost::filesystem::remove(outFile);
 			}
-			/* Ensure tiler opens outfile correctly */
+			// Ensure tiler opens outfile correctly
 			TS_ASSERT_EQUALS(cvt::NoError, 
 				write_tiler.create(outFile, "GTiff", 
 				tSize, 
@@ -440,7 +363,7 @@ class gpuWHSTestSuite : public CxxTest::TestSuite
 			read_tiler.open(sourceFile); // need a big image
 
 				for (size_t i = 0; i < tileSizes.size(); ++i) {
-				/* Loop through all the tiles in the image */
+				// Loop through all the tiles in the image 
 
 				cv::Size2i tSize = tileSizes[i];
 				read_tiler.setCvTileSize(tSize);
@@ -461,10 +384,10 @@ class gpuWHSTestSuite : public CxxTest::TestSuite
 #if TIMIN_ON
 					std::chrono::high_resolution_clock::time_point startT = std::chrono::high_resolution_clock::now();
 #endif
-					/* Retrieve a tile, with 126 pixel edge buffer */
-					const cvt::cvTile<short> tile = read_tiler.getCvTile<short>(j); //126 pixel buffer
+					// Retrieve a tile, with 126 pixel edge buffer 
+					const cvt::cvTile<short> tile = read_tiler.getCvTile<short>(j,windowRadius); //126 pixel buffer
 
-					/* Do the Window Histogram Stats */
+					// Do the Window Histogram Stats 
 
 					whs(tile,(const cvt::cvTile<float> **)&outputTile);
 					write_tiler.putCvTile( *outputTile  , j);

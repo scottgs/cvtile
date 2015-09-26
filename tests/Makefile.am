@@ -13,7 +13,6 @@ runner_SOURCES	=	runner.cpp \
 				gpuDilateTestSuite.cpp \
 				gpuAbsoluteDifferenceTestSuite.cpp 
 
-
 #libraries that will be linked
 runner_LDADD	=	$(OPENCV_LIBS) $(top_builddir)/src/libcvtile.la \
 					-lboost_regex-mt -lboost_filesystem-mt -lboost_system-mt

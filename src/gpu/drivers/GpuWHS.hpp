@@ -97,9 +97,12 @@ ErrorCode GpuWHS<InputPixelType, InputBandCount, OutputPixelType, OutputBandCoun
 
 	 //TODO: Use this line when updating to use shared memory
 	 //const unsigned int shmem_bytes = neighbor_coordinates_.size() * sizeof(double) * blockWidth * blockHeight;
-	cvt::gpu::launch_window_histogram_statistics<InputPixelType, OutputPixelType>(dimGrid, dimBlock, 0,
-	   this->stream, (OutputPixelType *)this->gpuOutputData,
-	   this->dataSize.width, this->dataSize.height, this->relativeOffsetsGpu_,
+	 //
+	 //	
+	 //
+	 //std::cout << "width=" << newWidth <<" height=" << newHeight << std::endl;
+	cvt::gpu::launch_window_histogram_statistics<InputPixelType, OutputPixelType>(dimGrid, dimBlock, 0, this->stream,(OutputPixelType *)this->gpuOutputData,
+	   this->roiSize_.width,this->roiSize_.height, this->relativeOffsetsGpu_,
 	   this->relativeOffsets_.size(),this->bufferWidth_);
 	
 	// check for kernel launch success	
