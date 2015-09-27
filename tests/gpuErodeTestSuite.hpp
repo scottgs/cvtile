@@ -135,8 +135,8 @@ class gpuErodeTestSuite : public CxxTest::TestSuite
 					}
 					
 					for (size_t s = 0; s < results.size(); ++s) {
-						const size_t row = s / 256;
-						const size_t col = s % 256;
+						const size_t row = s / roiDims.height;
+						const size_t col = s % roiDims.width;
 	
 						TS_ASSERT_EQUALS(results[s],(*outputTile)[0].at<short>(row,col));
 					}
