@@ -863,6 +863,7 @@ void Tiler::setCvTileMetadata(int cvTileIndex, int cvTileBufferWidth, cvTile<T>&
 
 	const cv::Point2i two_d_idxs = this->getCvTileIndex2D(cvTileIndex);
 	const cv::Size2i tile_size = this->getCvTileSize();
+				
 
 	const int ul_x_pixel = two_d_idxs.x * tile_size.width;
 	const int ul_y_pixel = two_d_idxs.y * tile_size.height;
@@ -927,10 +928,9 @@ void Tiler::setGeneralCvTileMetadata(int ul_x_pixel, int ul_y_pixel, int cvTileB
 	// set ROI on the tile if the buffer width is non-zero
 	if (cvTileBufferWidth > 0)
 	{
+		//cv::Size2i bufferedTileSize = tile.getSize();
 		cv::Point2i offset(cvTileBufferWidth, cvTileBufferWidth);
-		cv::Size2i size(cvTileSize.width, cvTileSize.height);
-		cv::Rect roi(size, offset);
-
+		cv::Rect roi(offset,this->cvTileSize);
 		tile.setROI(roi);
 	}
 
