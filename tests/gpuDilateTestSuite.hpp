@@ -73,7 +73,7 @@ class gpuDilateTestSuite : public CxxTest::TestSuite
 
 		short dilate_window_data (std::vector<short>& data) {
 			short max = data[0]; 
-			for (size_t i = 0; i < data.size(); ++i) {
+			for (size_t i = 1; i < data.size(); ++i) {
 				if (max < data[i]) {
 					max = data[i];
 				}
@@ -93,15 +93,15 @@ class gpuDilateTestSuite : public CxxTest::TestSuite
 
 			cvt::cvTile<short> inputTile;
 
-			/* Loop through all the tiles in the image */
+			/* Loop through center tile in the image */
 			for (int window = 0; window <= 11; window++) {	
 					inputTile = read_tiler.getCvTile<short>(4, window);
-					cvt::gpu::GpuDilate<short,1,short,1> whs(cuda_device_id,
+					cvt::gpu::GpuDilate<short,1,short,1> dilate(cuda_device_id,
 					inputTile.getROI().width,inputTile.getROI().height,window);
-					whs.initializeDevice(cvt::gpu::SQUARE);
+					dilate.initializeDevice(cvt::gpu::SQUARE);
 
 					cvt::cvTile<short> *outputTile = NULL;
-					whs(inputTile,(const cvt::cvTile<short> **)&outputTile);
+					dilate(inputTile,(const cvt::cvTile<short> **)&outputTile);
 					if (!outputTile) {
 						std::cout << "FAILURE TO GET DATA FROM DEVICE" << std::endl;
 						std::cout << "HERE" <<std::endl;

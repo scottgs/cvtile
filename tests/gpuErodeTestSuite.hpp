@@ -81,6 +81,16 @@ class gpuErodeTestSuite : public CxxTest::TestSuite
 			return min;
 		}
 
+		unsigned short erode_window_data (std::vector<unsigned short>& data) {
+			short min = data[0]; 
+			for (size_t i = 0; i < data.size(); ++i) {
+				if (min > data[i]) {
+					min = data[i];
+				}
+			}
+			return min;
+		}
+
 		void testErodeFullPixelVerification () {
 			std::cout << std::endl << "GPU ERODE VERIFICATION TEST" << std::endl;
 			int cuda_device_id = 0;
@@ -96,12 +106,12 @@ class gpuErodeTestSuite : public CxxTest::TestSuite
 			/* Loop through all the tiles in the image */
 			for (int window = 0; window <= 11; window++) {	
 					inputTile = read_tiler.getCvTile<short>(4, window);
-					cvt::gpu::GpuErode<short,1,short,1> whs(cuda_device_id,
+					cvt::gpu::GpuErode<short,1,short,1> erode(cuda_device_id,
 					inputTile.getROI().width,inputTile.getROI().height,window);
-					whs.initializeDevice(cvt::gpu::SQUARE);
+					erode.initializeDevice(cvt::gpu::SQUARE);
 
 					cvt::cvTile<short> *outputTile = NULL;
-					whs(inputTile,(const cvt::cvTile<short> **)&outputTile);
+					erode(inputTile,(const cvt::cvTile<short> **)&outputTile);
 					if (!outputTile) {
 						std::cout << "FAILURE TO GET DATA FROM DEVICE" << std::endl;
 						std::cout << "HERE" <<std::endl;
@@ -139,6 +149,74 @@ class gpuErodeTestSuite : public CxxTest::TestSuite
 						const size_t col = s % roiDims.width;
 	
 						TS_ASSERT_EQUALS(results[s],(*outputTile)[0].at<short>(row,col));
+					}
+					//return;
+					delete outputTile;
+					
+
+			}
+			read_tiler.close();
+		
+		}
+
+		void testUnsignedErodeFullPixelVerification () {
+			std::cout << std::endl << "GPU ERODE UNSIGNED VERIFICATION TEST" << std::endl;
+			int cuda_device_id = 0;
+			cvt::Tiler read_tiler;
+
+			cv::Size2i tSize(256,256);
+			read_tiler.setCvTileSize(tSize);
+
+			read_tiler.open("test1-1.tif");
+
+			cvt::cvTile<unsigned char> inputTile;
+
+			/* Loop through all the tiles in the image */
+			for (int window = 0; window <= 11; window++) {	
+					inputTile = read_tiler.getCvTile<unsigned char>(4, window);
+					cvt::gpu::GpuErode<unsigned char,1,unsigned char,1> erode(cuda_device_id,
+					inputTile.getROI().width,inputTile.getROI().height,window);
+					erode.initializeDevice(cvt::gpu::SQUARE);
+
+					cvt::cvTile<unsigned char> *outputTile = NULL;
+					erode(inputTile,(const cvt::cvTile<unsigned char> **)&outputTile);
+					if (!outputTile) {
+						std::cout << "FAILURE TO GET DATA FROM DEVICE" << std::endl;
+						std::cout << "HERE" <<std::endl;
+						exit(1);
+					}
+					TS_ASSERT_EQUALS(outputTile->getBandCount(),1);	
+					/*Calculate Window Histogram Statistics for each pixel*/
+					cv::Size2i dims = inputTile.getSize();
+					cv::Rect roiDims = inputTile.getROI();
+					
+					const int imageArea = dims.width * dims.height;
+					const int outArea = roiDims.width * roiDims.height;
+					std::vector<unsigned char> results;
+					results.resize(outArea);
+					int r = 0;
+
+					for (r = 0; r < outArea; ++r){
+						std::vector<short> data;
+
+						for (int x = 0 - window; x <= window; ++x) {
+							for (int y = 0 - window; y <= window; ++y) {
+
+								const int X = (r/roiDims.width) + x + window;
+								const int Y = (r%roiDims.height) + y + window;
+								data.push_back(inputTile[0].at<unsigned char>(X,Y));
+							}
+
+						}
+						results[r] = erode_window_data(data);
+
+					}
+					
+					for (size_t s = 0; s < results.size(); ++s) {
+						const size_t row = s / roiDims.height;
+						const size_t col = s % roiDims.width;
+	
+						TS_ASSERT_EQUALS(results[s],(*outputTile)[0].at<unsigned char>(row,col));
 					}
 					//return;
 					delete outputTile;
