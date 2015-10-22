@@ -24,7 +24,8 @@ basedir = ${includedir}/cvtile/base
 base_HEADERS = base/cvTile.hpp \
 				base/cvTileIterator.hpp \
 				base/cvTileVectorProxy.hpp \
-				base/Tiler.hpp 
+				base/Tiler.hpp \
+				base/cvTileGdalExtensions.hpp
 
 algorithmsdir = ${includedir}/cvtile/algorithms
 algorithms_HEADERS = algorithms/algorithms.hpp \
