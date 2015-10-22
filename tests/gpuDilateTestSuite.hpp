@@ -73,7 +73,7 @@ class gpuDilateTestSuite : public CxxTest::TestSuite
 
 		short dilate_window_data (std::vector<short>& data) {
 			short max = data[0]; 
-			for (size_t i = 0; i < data.size(); ++i) {
+			for (size_t i = 1; i < data.size(); ++i) {
 				if (max < data[i]) {
 					max = data[i];
 				}
@@ -93,48 +93,52 @@ class gpuDilateTestSuite : public CxxTest::TestSuite
 
 			cvt::cvTile<short> inputTile;
 
-			inputTile = read_tiler.getCvTile<short>(4);
-
-			/* Loop through all the tiles in the image */
-			for (int window = 1; window <= 11; window++) {	
-
+			/* Loop through center tile in the image */
+			for (int window = 0; window <= 11; window++) {	
+					inputTile = read_tiler.getCvTile<short>(4, window);
 					cvt::gpu::GpuDilate<short,1,short,1> dilate(cuda_device_id,
-					tSize.width,tSize.height,window);
+					inputTile.getROI().width,inputTile.getROI().height,window);
 					dilate.initializeDevice(cvt::gpu::SQUARE);
 
-					cvt::cvTile<short> *outputTile;
+					cvt::cvTile<short> *outputTile = NULL;
 					dilate(inputTile,(const cvt::cvTile<short> **)&outputTile);
 					if (!outputTile) {
 						std::cout << "FAILURE TO GET DATA FROM DEVICE" << std::endl;
-						return;
+						std::cout << "HERE" <<std::endl;
+						exit(1);
 					}
 					TS_ASSERT_EQUALS(outputTile->getBandCount(),1);	
 					/*Calculate Window Histogram Statistics for each pixel*/
 					cv::Size2i dims = inputTile.getSize();
-					const int area = dims.width * dims.height;
+					cv::Rect roiDims = inputTile.getROI();
+					
+					const int imageArea = dims.width * dims.height;
+					const int outArea = roiDims.width * roiDims.height;
 					std::vector<short> results;
-					results.resize(area);
+					results.resize(outArea);
+					int r = 0;
 
-					for (int i = 0; i < area; ++i) {
+					for (r = 0; r < outArea; ++r){
 						std::vector<short> data;
+
 						for (int x = 0 - window; x <= window; ++x) {
 							for (int y = 0 - window; y <= window; ++y) {
-								const int X = (i / 256) + x;
-								const int Y = (i % 256) + y;
-								if (X >= 0 && X < dims.width && Y >= 0 && Y < dims.height) {	
-									data.push_back(inputTile[0].at<short>(X,Y));
-								}
+
+								const int X = (r/roiDims.width) + x + window;
+								const int Y = (r%roiDims.height) + y + window;
+								data.push_back(inputTile[0].at<short>(X,Y));
 							}
+
 						}
-						results[i] = dilate_window_data(data);
+						results[r] = dilate_window_data(data);
 
 					}
 					
 					for (size_t s = 0; s < results.size(); ++s) {
-						const size_t row = s / 256;
-						const size_t col = s % 256;
+						const size_t row = s / roiDims.height;
+						const size_t col = s % roiDims.width;
 	
-						TS_ASSERT_DELTA(results[s],(*outputTile)[0].at<short>(row,col),1e-5);
+						TS_ASSERT_EQUALS(results[s],(*outputTile)[0].at<short>(row,col));
 					}
 					delete outputTile;
 					

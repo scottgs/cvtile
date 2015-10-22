@@ -42,6 +42,10 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 #include <sstream>
 
+
+
+#include <iostream>
+
 namespace cvt {
 
 namespace gpu {
@@ -59,8 +63,8 @@ class GpuWindowFilterAlgorithm : public GpuAlgorithm<InputPixelType, InputBandCo
 
 	public:
 	
-	 explicit GpuWindowFilterAlgorithm(unsigned int cudaDeviceId, size_t unbufferedDataWidth,
-							 size_t unbufferedDataHeight, ssize_t windowRadius);
+	 explicit GpuWindowFilterAlgorithm(unsigned int cudaDeviceId, size_t roiDataWidth,
+							 size_t roiDataHeight, ssize_t windowRadius);
 
 	 virtual ~GpuWindowFilterAlgorithm();
 	 ErrorCode initializeDevice(enum windowRadiusType type);
@@ -75,7 +79,7 @@ class GpuWindowFilterAlgorithm : public GpuAlgorithm<InputPixelType, InputBandCo
 	virtual ErrorCode launchKernel(unsigned bw, unsigned bh);
 	void computeRelativeOffsets();
 	ErrorCode transferRelativeOffsetsToDevice(); 
-
+	ErrorCode copyTileFromDevice(const cvt::cvTile<OutputPixelType> ** tilePtr);
 
 	/**
 	 * PROTECTED ATTRIBUTES
@@ -83,19 +87,22 @@ class GpuWindowFilterAlgorithm : public GpuAlgorithm<InputPixelType, InputBandCo
 	ssize_t windowRadius_;
 	std::vector<int2> relativeOffsets_;
 	int2 *relativeOffsetsGpu_;
-	enum windowRadiusType type;	
-	
+	enum windowRadiusType type;
+	size_t roiWidth_;
+	cv::Size2i roiSize_;
+	size_t bufferWidth_;
 
 }; // END of GpuWindowFilterAlgorithm
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
 GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::GpuWindowFilterAlgorithm(
-	unsigned int cudaDeviceId, size_t unbufferedDataWidth, 
-	size_t unbufferedDataHeight, ssize_t windowRadius) 	
+	unsigned int cudaDeviceId, size_t roiDataWidth, 
+	size_t roiDataHeight, ssize_t windowRadius)	
 	: cvt::gpu::GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>(
-	cudaDeviceId, unbufferedDataWidth,unbufferedDataHeight) 
+	cudaDeviceId, roiDataWidth + windowRadius * 2, roiDataHeight + windowRadius * 2), 
+	windowRadius_(windowRadius), roiSize_(roiDataWidth,roiDataHeight), bufferWidth_(windowRadius) 
 {
-	windowRadius_ = windowRadius;
+	;
 }
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
@@ -122,7 +129,7 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 		//TO-DO Error Check Template Params for Type/Bounds
 
 	const cv::Size2i tileSize = tile.getSize();
-	
+
 	if (tileSize != this->dataSize)
 	{
 		std::stringstream ss;
@@ -142,6 +149,12 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 	// Invoke kernel with empirically chosen block size
 	unsigned short bW = 16;
 	unsigned short bH = 16;
+	unsigned buffer = 0;
+
+
+	if (tile.getROI().x != bufferWidth_) {
+		throw std::runtime_error("Buffer size of incoming tile is not equal to the window radius");
+	}
 
 	launchKernel(bW, bH);
 
@@ -156,14 +169,183 @@ template< typename InputPixelType, int InputBandCount, typename OutputPixelType,
 ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::initializeDevice(enum windowRadiusType type)
 {
 	/* Initialize additional argument then allow parent to init card */
-	this->type = type;
-	GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::initializeDevice();
+	//this->type = type;
+	//GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::initializeDevice();
+
+	//TO-DO Error Check Template Params for Type/Bounds
+
+	this->lastError = this->setGpuDevice();
+	if(this->lastError)
+		return this->lastError;
+	
+	if (this->properties.getMajorCompute() < 1)
+	{
+		this->lastError = InitFailNoCUDA;
+		return this->lastError;
+	}
+	
+	///////////////////////////////////////////
+	// VERIFY THAT GPU HAS SUFFICIENT MEMORY //
+   	///////////////////////////////////////////
+
+	if(this->properties.getTotalGlobalMemoryBytes() < this->bytesToTransfer)
+	{
+		this->lastError = InitFailInsufficientMemoryForInputData;
+		return this->lastError;
+	}
+
+	//TO-DO Check for sufficient texture memory
+	
+	cudaStreamCreate(&this->stream);
+	cudaError cuer = cudaGetLastError();
+	if(cuer != cudaSuccess){
+		this->lastError = InitFailcuStreamCreateErrorcudaErrorInvalidValue;
+		return this->lastError;
+	}
+
+	/* Texture memory supports only 4 Bands - Use generic global memory if more bands present */
+	std::string inTypeIdentifier(typeid(this->tempForTypeTesting).name());
+	size_t bitDepth = 0;
+	cudaChannelFormatDesc inputDescriptor;
+
+	if(inTypeIdentifier == "a" || 
+	   inTypeIdentifier == "s" || 
+	   inTypeIdentifier == "i" ||
+	   inTypeIdentifier == "l")
+	{
+		this->channelType = cudaChannelFormatKindSigned;
+	}
+	else if(inTypeIdentifier == "h" || 
+			inTypeIdentifier == "t" || 
+			inTypeIdentifier == "j" || 
+			inTypeIdentifier == "m")
+	{
+		this->channelType = cudaChannelFormatKindUnsigned;
+	}
+	else if(inTypeIdentifier == "f" || 
+			inTypeIdentifier == "d") 
+	{
+		this->channelType = cudaChannelFormatKindFloat;
+	}
+	else
+	{
+		this->lastError = InitFailUnsupportedInputType;
+		return this->lastError;
+	}
+
+	bitDepth = sizeof(this->tempForTypeTesting) * 8;
+
+	if(InputBandCount == 1 ){
+		inputDescriptor = cudaCreateChannelDesc(bitDepth, 0, 0, 0, this->channelType);
+	}
+	else if(InputBandCount == 2){
+		inputDescriptor = cudaCreateChannelDesc(bitDepth, bitDepth, 0, 0, this->channelType);
+	}
+	else if(InputBandCount == 3){
+		inputDescriptor = cudaCreateChannelDesc(bitDepth, bitDepth, bitDepth, 0, this->channelType);
+	}
+	else if(InputBandCount == 4){
+		inputDescriptor = cudaCreateChannelDesc(bitDepth, bitDepth, bitDepth, bitDepth, this->channelType);
+	}
+
+	cuer = cudaGetLastError();
+
+	if(cuer != cudaSuccess){
+		this->lastError = CudaError;
+		return this->lastError;
+	}	
+	
+	//////////////////////////////////////////////////////////
+	// ALLOCATE MEMORY FOR GPU INPUT AND OUTPUT DATA (TILE) //
+	/////////////////////////////////////////////////////////
+
+	if(InputBandCount <= 1 && InputBandCount != 0){
+	/* Gpu Input Data */
+		cudaMallocArray(
+						(cudaArray**)&this->gpuInputDataArray,   
+						 &inputDescriptor, 
+						 this->dataSize.width,  
+						 this->dataSize.height
+						);
+		this->gpuInput = this->gpuInputDataArray;
+		this->usingTexture = true;
+	}
+	else if(InputBandCount >= 2){
+		cudaMalloc((void **)&this->gpuInputDataGlobal, this->bytesToTransfer);
+		this->gpuInput = this->gpuInputDataGlobal;
+	}
+
+	if (cuer == cudaErrorMemoryAllocation){
+		this->lastError = InitFailcuInputArrayMemErrorcudaErrorMemoryAllocation;
+		return this->lastError;
+	}
+	else if(cuer != cudaSuccess){
+		this->lastError = CudaError;
+		return this->lastError;
+	}
+
+	/* Gpu Output Data */
+	const size_t bytes = roiSize_.area()* OutputBandCount * sizeof(OutputPixelType);
+	this->outputDataSize = bytes;
+	cudaMalloc((void**) &this->gpuOutputData, bytes);
+	cuer = cudaGetLastError();
+	if (cuer == cudaErrorMemoryAllocation)
+	{
+		this->lastError = InitFailcuOutArrayMemErrorcudaErrorMemoryAllocation;
+		return this->lastError;
+	}
+
+	//////////////////////////////////////////////////////////////////////////////////////
+	// CALL FUNCTION TO ALLOCATE ADDITIONAL GPU STORAGE - DOES NOTHING IF NOT OVERRIDEN //
+	/////////////////////////////////////////////////////////////////////////////////////
+	this->lastError = allocateAdditionalGpuMemory();
 
 	/* Transfer offsets to card */
 	transferRelativeOffsetsToDevice();	
 
 	return this->lastError;
 }
+
+template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
+ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::copyTileFromDevice(const cvt::cvTile<OutputPixelType> ** tilePtr)
+{
+
+	const size_t bytes = roiSize_.area() * OutputBandCount * sizeof(OutputPixelType);
+	std::vector<OutputPixelType> data;
+	data.resize(bytes/sizeof(OutputPixelType));
+
+	cudaMemcpyAsync(
+			&(data[0]),						
+			this->gpuOutputData,					
+			bytes,								
+			cudaMemcpyDeviceToHost,
+			this->stream
+			);		
+
+	cudaError cuer = cudaGetLastError();
+	if(cuer == cudaErrorInvalidValue)
+		this->lastError = TileFromDevicecudaErrorInvalidValue;
+	else if(cuer == cudaErrorInvalidDevicePointer)
+		this->lastError = TileFromDevicecudaErrorInvalidDevicePointer;
+	else if(cuer == cudaErrorInvalidMemcpyDirection)
+		this->lastError = TileFromDevicecudaErrorInvalidMemcpyDirection;
+	else if(cuer != cudaSuccess)
+		this->lastError = CudaError;
+
+	/*for(const auto& ele: data)
+	{
+		std::cout << "data: " << ele << std::endl;
+
+	}*/
+	if(cuer == cudaSuccess) {
+		(*tilePtr) = new cvTile<OutputPixelType>(&(data[0]), roiSize_, OutputBandCount);
+	}
+	else
+		(*tilePtr) = NULL;
+
+	return this->lastError;
+}
+
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
 ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(unsigned bw, unsigned bh) {

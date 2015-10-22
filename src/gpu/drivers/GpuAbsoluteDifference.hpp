@@ -59,7 +59,7 @@ ErrorCode GpuAbsoluteDifference<InputPixelType, InputBandCount, OutputPixelType,
 
  	cvt::gpu::launch_absDifference<short,short>(dimGrid, dimBlock, 0,
 	   this->stream, (OutputPixelType *)this->gpuOutputData,
-	   this->dataSize.width, this->dataSize.height);
+	   this->dataSize.width, this->dataSize.height,this->bufferWidth_);
 	
 	cudaError cuer;
 	cuer = cudaGetLastError();
