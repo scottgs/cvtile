@@ -60,3 +60,6 @@ Makefile.in
 
 #Other generated files
 tests/testingWindowHistogramStatisticsOutFile.tif
+
+#apps
+process_task

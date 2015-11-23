@@ -93,6 +93,10 @@ ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelTyp
 		throw std::runtime_error(ss.str());
 	}
 
+	if (tileSize != tile2.getSize()) {
+		throw std::runtime_error("Both the incoming tiles must have different sizes");
+	}
+
 	/*
 	 *  Copy data down for tile using the parents implementation
 	 */
@@ -101,8 +105,48 @@ ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelTyp
 	{
 		throw std::runtime_error("Failed to copy tile to device");
 	}
+	std::string inTypeIdentifier(typeid(this->tempForTypeTesting).name());
+	size_t bitDepth = 0;
+	cudaChannelFormatDesc inputDescriptor;
 
-	cudaChannelFormatDesc input_descriptor = cudaCreateChannelDesc(16, 0, 0, 0, cudaChannelFormatKindUnsigned);
+	if(inTypeIdentifier == "a" || 
+	   inTypeIdentifier == "s" || 
+	   inTypeIdentifier == "i" ||
+	   inTypeIdentifier == "l")
+	{
+		this->channelType = cudaChannelFormatKindSigned;
+	}
+	else if(inTypeIdentifier == "h" || 
+			inTypeIdentifier == "t" || 
+			inTypeIdentifier == "j" || 
+			inTypeIdentifier == "m")
+	{
+		this->channelType = cudaChannelFormatKindUnsigned;
+	}
+	else if(inTypeIdentifier == "f" || 
+			inTypeIdentifier == "d") 
+	{
+		this->channelType = cudaChannelFormatKindFloat;
+	}
+	else
+	{
+		this->lastError = InitFailUnsupportedInputType;
+		return this->lastError;
+	}
+
+	bitDepth = sizeof(this->tempForTypeTesting) * 8;
+
+	cudaError cuer;
+	inputDescriptor = cudaCreateChannelDesc(bitDepth, 0, 0, 0, this->channelType);
+	cuer = cudaGetLastError();
+	
+	if (cuer != cudaSuccess) {
+		this->lastError = CudaError;
+		std::cout << "CUDA ERR = " << cuer << std::endl;
+		throw std::runtime_error("GPU BINARY IMAGE RUN FAILED TO CREATE CHANNEL");
+	}
+
+	cudaChannelFormatDesc input_descriptor = cudaCreateChannelDesc(bitDepth, 0, 0, 0, cudaChannelFormatKindUnsigned);
 	cudaMallocArray((cudaArray**)&gpuInputDataArrayTwo_, &input_descriptor, this->dataSize.width, this->dataSize.height);
 	const unsigned int offsetX = 0;
 	const unsigned int offsetY = 0;
@@ -116,19 +160,15 @@ ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelTyp
 			cudaMemcpyHostToDevice,			// the type of the copy
 			this->stream);						// the device command stream
 
-	cudaError cuer = cudaGetLastError();
+	cuer = cudaGetLastError();
 	if (cuer != cudaSuccess) {
 		std::cout << "CUDA ERR = " << cuer << std::endl;
-		throw std::runtime_error("GPU WHS INIT FAILED TO ALLOCATE MEMORY");
+		throw std::runtime_error("GPU BINARY IMAGE RUN FAILED TO ALLOCATE MEMORY");
 	}
 
 	// Invoke kernel with empirically chosen block size
 	unsigned short bW = 16;
 	unsigned short bH = 16;
-	
-	if (tile.getROI().x != bufferWidth_ || tile2.getROI().x || bufferWidth_) {
-		throw std::runtime_error("Both the incoming tiles must have the same bufferWidth");
-	}
 
 	launchKernel(bW, bH);
 

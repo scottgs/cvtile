@@ -59,7 +59,7 @@ void launch_simpleDataCopy(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, 
 template <typename InputPixelType, typename OutputPixelType>
 void launch_absDifference(const dim3 dimGrid, const dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream,
 						  OutputPixelType * outputData, const unsigned int roiWidth,
-						  const unsigned int roiHeight, unsigned int buffer);
+						  const unsigned int roiHeight);
 
 template <typename InputPixelType, typename OutputPixelType>
 void launch_window_histogram_statistics(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,

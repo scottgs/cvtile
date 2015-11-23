@@ -123,19 +123,19 @@ template void launch_erode<float,float>(const dim3 dimGrid, const dim3 dimBlock,
 
 template void launch_absDifference<unsigned char,unsigned char>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, 
 							const cudaStream_t stream, unsigned char * const outputData, const unsigned int roiWidth,
-						  const unsigned int roiHeight, const unsigned int buffer);
+						  const unsigned int roiHeight);
 
 template void launch_absDifference<short,short>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, 
 							const cudaStream_t stream, short * const outputData, const unsigned int roiWidth,
-						  const unsigned int roiHeight, const unsigned int buffer);
+						  const unsigned int roiHeight);
 
 template void launch_absDifference<unsigned short,unsigned short>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, 
 							const cudaStream_t stream, unsigned short * const outputData, const unsigned int roiWidth,
-						  const unsigned int roiHeight, const unsigned int buffer);
+						  const unsigned int roiHeight);
 
 template void launch_absDifference<float,float>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, 
 							const cudaStream_t stream, float * const outputData, const unsigned int roiWidth,
-						  const unsigned int roiHeight, const unsigned int buffer);
+						  const unsigned int roiHeight);
 
 }; //end gpu namespace
 }; //end cvt namespace

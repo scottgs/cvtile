@@ -440,39 +440,36 @@ void launch_simpleDataCopy(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, 
 
 template< typename InputPixelType, typename OutputPixelType>
 __global__ static
-void absDiffernceTexture(OutputPixelType * const outputData, const unsigned int roiWidth, const unsigned int roiHeight, const unsigned int buffer)
+void absDiffernceTexture(OutputPixelType * const outputData, const unsigned int roiWidth, const unsigned int roiHeight)
 {
-   // Data index now buffered
-   const int width = roiWidth + buffer + buffer;
-   const int height = roiHeight + buffer + buffer;
+   // assuming not bufferred
+   const int width = roiWidth;
+   const int height = roiHeight; 
 
-   const unsigned int roiXidx = blockIdx.x * blockDim.x + threadIdx.x;
-   const unsigned int roiYidx = blockIdx.y * blockDim.y + threadIdx.y;
-
-   // Block indexing is within the ROI, add the left and top buffer size to get data index position
-   const unsigned int xIndex = roiXidx + buffer;
-   const unsigned int yIndex = roiYidx + buffer;
+   const unsigned int yIndex = blockIdx.x * blockDim.x + threadIdx.x;
+   const unsigned int xIndex = blockIdx.y * blockDim.y + threadIdx.y;
 
 	InputPixelType t_one;
 	InputPixelType t_two;
 
-   if(roiYidx < roiHeight && roiXidx < roiWidth && xIndex < width && yIndex < height)
+   if(xIndex < width && yIndex < height)
    {
 
 		// Output size is the ROI size
-		const unsigned int pixel_one_d = roiXidx + roiYidx * roiWidth; // xIndex + yIndex
+		const unsigned int pixel_one_d = xIndex + yIndex * width; // xIndex + yIndex
 		t_one = fetchTexture<InputPixelType, 0>(xIndex, yIndex);
 		t_two = fetchTexture<InputPixelType, 1>(xIndex, yIndex);
-		outputData[pixel_one_d] = __usad(t_one, t_two, 0);
+		const OutputPixelType diff = t_one - t_two;
+		outputData[pixel_one_d] = diff > 0 ? diff : -diff;
 	}
 }
 
 template< typename InputPixelType, typename OutputPixelType>
 void launch_absDifference(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, const cudaStream_t stream,
 						  OutputPixelType * const outputData, const unsigned int roiWidth,
-						  const unsigned int roiHeight, const unsigned int buffer)
+						  const unsigned int roiHeight)
 {
-	absDiffernceTexture<InputPixelType,OutputPixelType><<<dimGrid, dimBlock, shmemSize, stream>>>(outputData, roiWidth, roiHeight,buffer);
+	absDiffernceTexture<InputPixelType,OutputPixelType><<<dimGrid, dimBlock, shmemSize, stream>>>(outputData, roiWidth, roiHeight);
 }
 
 template< typename InputPixelType, typename OutputPixelType>

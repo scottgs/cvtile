@@ -149,10 +149,9 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 	// Invoke kernel with empirically chosen block size
 	unsigned short bW = 16;
 	unsigned short bH = 16;
-	unsigned buffer = 0;
 
 
-	if (tile.getROI().x != bufferWidth_) {
+	if ((unsigned int) tile.getROI().x != bufferWidth_) {
 		throw std::runtime_error("Buffer size of incoming tile is not equal to the window radius");
 	}
 

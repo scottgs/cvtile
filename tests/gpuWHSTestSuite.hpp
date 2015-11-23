@@ -240,7 +240,6 @@ class gpuWHSTestSuite : public CxxTest::TestSuite
 					cv::Size2i dims = inputTile.getSize();
 					cv::Rect roiDims = inputTile.getROI();
 					
-					const int imageArea = dims.width * dims.height;
 					const int outArea = roiDims.width * roiDims.height;
 					std::vector<Stats> stats;
 					stats.resize(outArea);

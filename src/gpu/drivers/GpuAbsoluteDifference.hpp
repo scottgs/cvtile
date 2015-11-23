@@ -57,9 +57,9 @@ ErrorCode GpuAbsoluteDifference<InputPixelType, InputBandCount, OutputPixelType,
 	bind_texture<InputPixelType, 0>(this->gpuInputDataArray);
 	bind_texture<InputPixelType, 1>(this->gpuInputDataArrayTwo_);
 
- 	cvt::gpu::launch_absDifference<short,short>(dimGrid, dimBlock, 0,
+ 	cvt::gpu::launch_absDifference<InputPixelType,OutputPixelType>(dimGrid, dimBlock, 0,
 	   this->stream, (OutputPixelType *)this->gpuOutputData,
-	   this->dataSize.width, this->dataSize.height,this->bufferWidth_);
+	   this->dataSize.width, this->dataSize.height);
 	
 	cudaError cuer;
 	cuer = cudaGetLastError();

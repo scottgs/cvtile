@@ -122,7 +122,6 @@ class gpuErodeTestSuite : public CxxTest::TestSuite
 					cv::Size2i dims = inputTile.getSize();
 					cv::Rect roiDims = inputTile.getROI();
 					
-					const int imageArea = dims.width * dims.height;
 					const int outArea = roiDims.width * roiDims.height;
 					std::vector<short> results;
 					results.resize(outArea);
@@ -190,7 +189,6 @@ class gpuErodeTestSuite : public CxxTest::TestSuite
 					cv::Size2i dims = inputTile.getSize();
 					cv::Rect roiDims = inputTile.getROI();
 					
-					const int imageArea = dims.width * dims.height;
 					const int outArea = roiDims.width * roiDims.height;
 					std::vector<unsigned char> results;
 					results.resize(outArea);
