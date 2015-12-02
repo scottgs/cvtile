@@ -222,7 +222,7 @@ class gpuWHSTestSuite : public CxxTest::TestSuite
 			
 
 			/* Loop through all the tiles in the image */
-			for (int window = 0; window <= 11; window++) {	
+			for (int window = 1; window <= 11; window++) {	
 					inputTile = read_tiler.getCvTile<short>(4, window);
 					cvt::gpu::GpuWHS<short,1,float,5> whs(cuda_device_id,
 					inputTile.getROI().width,inputTile.getROI().height,window);

@@ -104,7 +104,7 @@ class gpuErodeTestSuite : public CxxTest::TestSuite
 			cvt::cvTile<short> inputTile;
 
 			/* Loop through all the tiles in the image */
-			for (int window = 0; window <= 11; window++) {	
+			for (int window = 1; window <= 11; window++) {	
 					inputTile = read_tiler.getCvTile<short>(4, window);
 					cvt::gpu::GpuErode<short,1,short,1> erode(cuda_device_id,
 					inputTile.getROI().width,inputTile.getROI().height,window);
