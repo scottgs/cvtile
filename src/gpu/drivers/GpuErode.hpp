@@ -38,7 +38,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "../../Cuda4or5.h"
 #include "../kernels/GpuAlgorithmKernels.hpp"
-//#include "../kernels/GpuTileAlgorithmKernels.hpp"
 #include "GpuWindowFilterAlgorithm.hpp"
 #include <vector>
 
