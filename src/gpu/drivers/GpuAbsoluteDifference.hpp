@@ -1,5 +1,5 @@
-#ifndef _GPU_ERODE_ALGORITHM_
-#define _GPU_ERODE_ALGORITHM_
+#ifndef _GPU_ABSOLUTE_DIFFERENCE_ALGORITHM_
+#define _GPU_ABSOLUTE_DIFFERENCE_ALGORITHM_
 
 #include "../../Cuda4or5.h"
 #include "../kernels/GpuAlgorithmKernels.hpp"
