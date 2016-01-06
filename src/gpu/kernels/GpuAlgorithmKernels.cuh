@@ -446,8 +446,8 @@ void absDiffernceTexture(OutputPixelType * const outputData, const unsigned int 
    const int width = roiWidth;
    const int height = roiHeight; 
 
-   const unsigned int yIndex = blockIdx.x * blockDim.x + threadIdx.x;
-   const unsigned int xIndex = blockIdx.y * blockDim.y + threadIdx.y;
+   const unsigned int xIndex = blockIdx.x * blockDim.x + threadIdx.x;
+   const unsigned int yIndex = blockIdx.y * blockDim.y + threadIdx.y;
 
 	InputPixelType t_one;
 	InputPixelType t_two;
