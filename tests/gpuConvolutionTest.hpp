@@ -87,8 +87,8 @@ class gpuConvolutionTestSuite : public CxxTest::TestSuite
 			cv::Mat& a = inTile[0];
 			cv::Mat& b = (*outTile)[0];
 
-			for(int i = 0; i < dSize.width; ++i) {
-				for(int j = 0; j < dSize.height; ++j) {
+			for(int i = 0; i < roi.width; ++i) {
+				for(int j = 0; j < roi.height; ++j) {
 					std::cout << "b[" << i << "," << j << "] = " << b.at<short>(i,j) << std::endl;
 				}
 			}
