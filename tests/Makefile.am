@@ -5,16 +5,14 @@ AM_CPPFLAGS	=	$(OPENCV_CFLAGS) -std=c++0x
 
 #the source files used to build the runner target
 runner_SOURCES	=	runner.cpp \
+				CvTileTestSuite.cpp \ 
+				TilerTestSuite.cpp \
+				gpuTestSuite.cpp \
+				gpuWHSTestSuite.cpp \
+				gpuErodeTestSuite.cpp \
+				gpuDilateTestSuite.cpp \
+				gpuAbsoluteDifferenceTestSuite.cpp \
 				gpuConvolutionTest.cpp
-#				CvTileTestSuite.cpp 
-#				TilerTestSuite.cpp 
-#				gpuTestSuite.cpp 
-#				gpuWHSTestSuite.cpp 
-#				gpuErodeTestSuite.cpp 
-#				gpuDilateTestSuite.cpp
-#				gpuAbsoluteDifferenceTestSuite.cpp 
-#				gpuConvolutionTest.cpp
-
 
 #libraries that will be linked
 runner_LDADD	=	$(OPENCV_LIBS) $(top_builddir)/src/libcvtile.la \

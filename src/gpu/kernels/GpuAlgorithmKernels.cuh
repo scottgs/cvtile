@@ -781,7 +781,7 @@ void launch_erode(const dim3 dimGrid, const dim3 dimBlock, const unsigned int sh
 
 template< typename InputPixelType, typename OutputPixelType>
 __global__ static
-oid dilate(OutputPixelType* const  outputData, const unsigned int roiHeight, 
+void dilate(OutputPixelType* const  outputData, const unsigned int roiHeight, 
 	    const unsigned int roiWidth, const int2 * relativeOffsets, 
 	    const unsigned int numElements, const unsigned int buffer)
 {
