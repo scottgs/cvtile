@@ -75,7 +75,7 @@ class gpuConvolutionTestSuite : public CxxTest::TestSuite
 				}
 			}
 			
-			
+			inTile.setROI(cv::Rect(filterRadius, filterRadius, roi.width, roi.height));	
 			cvt::gpu::GpuConvolution<short,1,short,1,short> conv(0, roi.width, roi.height,
 									    filterRadius, weightsMat);
 
