@@ -55,26 +55,28 @@ class gpuConvolutionTestSuite : public CxxTest::TestSuite
 
 		//TO-DO test for all types once instantiated
 		void testCovolutionFullPixelOneBand() {
-
-			cv::Size2i dSize(5,5);	
+			ssize_t filterRadius = 1;
+			cv::Size2i roi(5,5);
+			cv::Size2i dSize(roi.width + filterRadius * 2,roi.height + filterRadius * 2);
 			vector<short> data;
 			data.resize(dSize.area());
 
 			for(unsigned int i = 0; i < dSize.area(); ++i) {
 				data[i] = i;
 			}
-			cvt::cvTile<short> inTile(data.data(), dSize, 1);
+
+			cvt::cvTile<short> inTile(data.data(), roi, 1);
 			cvt::cvTile<short>* outTile;
 
-			ssize_t filterRadius = 1;
 			cv::Mat weightsMat = cv::Mat::zeros(3,3,CV_16UC1);
 			for(int i = 0; i < 3; ++i) {
 				for(int j = 0; j < 3; ++j) {
 					weightsMat.at<short>(i,j) = 2;
 				}
 			}
-			cvt::gpu::GpuConvolution<short,1,short,1,short> conv(0,dSize.width, dSize.height,
-																   filterRadius, weightsMat);
+			
+			cvt::gpu::GpuConvolution<short,1,short,1,short> conv(0, inTile.getROI().x, inTile.getROI().y,
+									    filterRadius, weightsMat);
 
 			TS_ASSERT_EQUALS(cvt::Ok, conv.initializeDevice(cvt::gpu::SQUARE));
 			
