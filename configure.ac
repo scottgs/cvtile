@@ -23,6 +23,7 @@ AC_CONFIG_FILES([Makefile
 		src/gpu/drivers/Makefile
 		src/gpu/kernels/Makefile
 		tests/Makefile
+		apps/Makefile
 		])
 
 #find out what version we are running

@@ -38,7 +38,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "../../Cuda4or5.h"
 #include "../kernels/GpuAlgorithmKernels.hpp"
-//#include "../kernels/GpuTileAlgorithmKernels.hpp"
 #include "GpuWindowFilterAlgorithm.hpp"
 #include <vector>
 
@@ -85,6 +84,7 @@ template< typename InputPixelType, int InputBandCount, typename OutputPixelType,
 ErrorCode GpuErode<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(unsigned blockWidth, unsigned blockHeight)
 {
 	dim3 dimBlock(blockWidth,blockHeight);
+
 	size_t gridWidth = this->dataSize.width / dimBlock.x + (((this->dataSize.width % dimBlock.x)==0) ? 0 :1 );
 	size_t gridHeight = this->dataSize.height / dimBlock.y + (((this->dataSize.height % dimBlock.y)==0) ? 0 :1 );
 	dim3 dimGrid(gridWidth, gridHeight);
@@ -107,10 +107,10 @@ ErrorCode GpuErode<InputPixelType, InputBandCount, OutputPixelType, OutputBandCo
 	}
 	//TODO: Use this line when updating to use shared memory
 	 //const unsigned int shmem_bytes = neighbor_coordinates_.size() * sizeof(double) * blockWidth * blockHeight;
-	 cvt::gpu::launch_erode<InputPixelType, OutputPixelType>(dimGrid, dimBlock, 0,
-	   this->stream, (OutputPixelType *)this->gpuOutputData,
-	   this->dataSize.width, this->dataSize.height, this->relativeOffsetsGpu_,
-	   this->relativeOffsets_.size());
+	 cvt::gpu::launch_erode<InputPixelType, OutputPixelType>(dimGrid, dimBlock, 0, this->stream,(OutputPixelType *)this->gpuOutputData,
+	   this->roiSize_.width,this->roiSize_.height, this->relativeOffsetsGpu_,
+	   this->relativeOffsets_.size(),this->bufferWidth_);
+	 
 	cuer = cudaGetLastError();
 	if (cuer != cudaSuccess) {
 		std::cout << "CUDA ERROR = " << cuer << std::endl;

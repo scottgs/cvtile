@@ -38,7 +38,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "../../Cuda4or5.h"
 #include "../kernels/GpuAlgorithmKernels.hpp"
-//#include "../kernels/GpuTileAlgorithmKernels.hpp"
 #include "GpuWindowFilterAlgorithm.hpp"
 #include <vector>
 
@@ -88,7 +87,6 @@ ErrorCode GpuWHS<InputPixelType, InputBandCount, OutputPixelType, OutputBandCoun
 	size_t gridWidth = this->dataSize.width / dimBlock.x + (((this->dataSize.width % dimBlock.x)==0) ? 0 :1 );
 	size_t gridHeight = this->dataSize.height / dimBlock.y + (((this->dataSize.height % dimBlock.y)==0) ? 0 :1 );
 	dim3 dimGrid(gridWidth, gridHeight);
-
 	// Bind the texture to the array and setup the access parameters
 	cudaError cuer = cvt::gpu::bind_texture<InputPixelType,0>(this->gpuInputDataArray);
 	if (cudaSuccess != cuer)
@@ -98,10 +96,13 @@ ErrorCode GpuWHS<InputPixelType, InputBandCount, OutputPixelType, OutputBandCoun
 
 	 //TODO: Use this line when updating to use shared memory
 	 //const unsigned int shmem_bytes = neighbor_coordinates_.size() * sizeof(double) * blockWidth * blockHeight;
-	cvt::gpu::launch_window_histogram_statistics<InputPixelType, OutputPixelType>(dimGrid, dimBlock, 0,
-	   this->stream, (OutputPixelType *)this->gpuOutputData,
-	   this->dataSize.width, this->dataSize.height, this->relativeOffsetsGpu_,
-	   this->relativeOffsets_.size());
+	 //
+	 //	
+	 //
+	 //std::cout << "width=" << newWidth <<" height=" << newHeight << std::endl;
+	cvt::gpu::launch_window_histogram_statistics<InputPixelType, OutputPixelType>(dimGrid, dimBlock, 0, this->stream,(OutputPixelType *)this->gpuOutputData,
+	   this->roiSize_.width,this->roiSize_.height, this->relativeOffsetsGpu_,
+	   this->relativeOffsets_.size(),this->bufferWidth_);
 	
 	// check for kernel launch success	
 	cuer = cudaGetLastError();

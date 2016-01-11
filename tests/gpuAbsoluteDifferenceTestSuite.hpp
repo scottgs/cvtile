@@ -34,15 +34,39 @@ class gpuAbsoluteDifferenceTestSuite : public CxxTest::TestSuite
 		void tearDown()
 		{;}
 
-		short erode_window_data (std::vector<short>& data) {
-			short min = data[0]; 
-			for (size_t i = 0; i < data.size(); ++i) {
-				if (min > data[i]) {
-					min = data[i];
-				}
+		void testAbsSimplePixelVerification() {	
+			std::cout << std::endl << "GPU ABS DIFF VERIFICATION TEST" << std::endl;
+			int cuda_device_id = 0;
+			cvt::Tiler read_tiler;
+
+			cv::Size2i tSize(256,256);
+			read_tiler.setCvTileSize(tSize);
+			read_tiler.open("test1.tif");
+			cvt::cvTile<unsigned short> inputTile;
+			inputTile = read_tiler.getCvTile<unsigned short>(4);
+
+			std::vector<unsigned short> data(tSize.area(),0);
+			cvt::cvTile<unsigned short> zeroedTile(data.data(),tSize,1);
+
+			cvt::gpu::GpuAbsoluteDifference<unsigned short,1,unsigned short,1> absDiff(cuda_device_id,
+				tSize.width,tSize.height);
+			absDiff.initializeDevice();
+
+			cvt::cvTile<unsigned short> *outputTile;
+			absDiff(inputTile,zeroedTile,(const cvt::cvTile<unsigned short> **)&outputTile);
+			if (!outputTile) {
+				std::cout << "FAILURE TO GET DATA FROM DEVICE" << std::endl;
+				return;
 			}
-			return min;
-		}
+			TS_ASSERT_EQUALS(outputTile->getBandCount(),1);	
+			for (int i = 0; i < tSize.area(); ++i) {
+				const size_t row = i / tSize.height;
+				const size_t col = i % tSize.width;
+				TS_ASSERT_EQUALS(inputTile[0].at<unsigned short>(row,col),(*outputTile)[0].at<unsigned short>(row,col));
+			}
+
+			read_tiler.close();
+		} 
 
 		void testAbsDiffFullPixelVerification () {
 			std::cout << std::endl << "GPU ABS DIFF VERIFICATION TEST" << std::endl;
@@ -52,21 +76,21 @@ class gpuAbsoluteDifferenceTestSuite : public CxxTest::TestSuite
 			cv::Size2i tSize(256,256);
 			read_tiler.setCvTileSize(tSize);
 			read_tiler2.setCvTileSize(tSize);
-			read_tiler.open("test1-1.tif");
-			read_tiler2.open("test1.tif");
+			read_tiler.open("test1.tif");
+			read_tiler2.open("test1-1.tif");
 
-			cvt::cvTile<short> inputTile;
-			cvt::cvTile<short> inputTile2;
+			cvt::cvTile<unsigned short> inputTile;
+			cvt::cvTile<unsigned short> inputTile2;
 
-			inputTile = read_tiler.getCvTile<short>(4);
-			inputTile2 = read_tiler2.getCvTile<short>(4);
+			inputTile = read_tiler.getCvTile<unsigned short>(4);
+			inputTile2 = read_tiler2.getCvTile<unsigned short>(4);
 
-			cvt::gpu::GpuAbsoluteDifference<short,1,short,1> absDiff(cuda_device_id,
+			cvt::gpu::GpuAbsoluteDifference<unsigned short,1,unsigned short,1> absDiff(cuda_device_id,
 				tSize.width,tSize.height);
 			absDiff.initializeDevice();
 
-			cvt::cvTile<short> *outputTile;
-			absDiff(inputTile,inputTile2,(const cvt::cvTile<short> **)&outputTile);
+			cvt::cvTile<unsigned short> *outputTile;
+			absDiff(inputTile,inputTile2,(const cvt::cvTile<unsigned short> **)&outputTile);
 			if (!outputTile) {
 				std::cout << "FAILURE TO GET DATA FROM DEVICE" << std::endl;
 				return;
@@ -75,20 +99,20 @@ class gpuAbsoluteDifferenceTestSuite : public CxxTest::TestSuite
 			/*Calculate Window Histogram Statistics for each pixel*/
 			cv::Size2i dims = inputTile.getSize();
 			const int area = dims.width * dims.height;
-			std::vector<short> results;
+			std::vector<int> results;
 			results.resize(area);
 
 			for (int i = 0; i < area; ++i) {
 				const size_t row = i / tSize.height;
 				const size_t col = i % tSize.width;
-				results[i] = abs((inputTile[0].at<short>(row,col) - inputTile2[0].at<short>(row,col)));	
+				const short diff = abs(inputTile[0].at<unsigned short>(row,col) - inputTile2[0].at<unsigned short>(row,col));
+				results[i] = diff > 0 ? diff : -diff;
 			}
-					
 			for (size_t s = 0; s < results.size(); ++s) {
 					const size_t row = s / tSize.height;
 					const size_t col = s % tSize.width;
 	
-					TS_ASSERT_EQUALS(results[s],(*outputTile)[0].at<short>(row,col));
+					TS_ASSERT_EQUALS((unsigned short)results[s],(*outputTile)[0].at<unsigned short>(row,col));
 			}
 			delete outputTile;
 				

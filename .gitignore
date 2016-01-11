@@ -58,3 +58,9 @@ config.status
 Makefile
 libtool
 Makefile.in
+
+#Other generated files
+tests/testingWindowHistogramStatisticsOutFile.tif
+
+#apps
+process_task

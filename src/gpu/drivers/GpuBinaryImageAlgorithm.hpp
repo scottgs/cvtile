@@ -1,3 +1,38 @@
+/*
+*******************************************************************************
+
+Copyright (c) 2015, The Curators of the University of Missouri
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+
+*******************************************************************************
+*/
+
 #ifndef GPU_BINARY_IMAGE_ALGORITHM_
 #define GPU_BINARY_IMAGE_ALGORITHM_
 
@@ -38,6 +73,7 @@ class GpuBinaryImageAlgorithm : public GpuAlgorithm<InputPixelType, InputBandCou
 	 * PROTECTED ATTRIBUTES
 	 * */
 	cudaArray * gpuInputDataArrayTwo_;
+	size_t bufferWidth_;
 
 }; // END of GpuBinaryImageAlgorithm
 
@@ -48,7 +84,7 @@ GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputB
 	: cvt::gpu::GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>(
 	cudaDeviceId, unbufferedDataWidth,unbufferedDataHeight) 
 {
-	;
+	bufferWidth_ = 0;
 }
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
@@ -92,6 +128,10 @@ ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelTyp
 		throw std::runtime_error(ss.str());
 	}
 
+	if (tileSize != tile2.getSize()) {
+		throw std::runtime_error("Both the incoming tiles must have different sizes");
+	}
+
 	/*
 	 *  Copy data down for tile using the parents implementation
 	 */
@@ -100,8 +140,48 @@ ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelTyp
 	{
 		throw std::runtime_error("Failed to copy tile to device");
 	}
+	std::string inTypeIdentifier(typeid(this->tempForTypeTesting).name());
+	size_t bitDepth = 0;
+	cudaChannelFormatDesc inputDescriptor;
 
-	cudaChannelFormatDesc input_descriptor = cudaCreateChannelDesc(16, 0, 0, 0, cudaChannelFormatKindUnsigned);
+	if(inTypeIdentifier == "a" || 
+	   inTypeIdentifier == "s" || 
+	   inTypeIdentifier == "i" ||
+	   inTypeIdentifier == "l")
+	{
+		this->channelType = cudaChannelFormatKindSigned;
+	}
+	else if(inTypeIdentifier == "h" || 
+			inTypeIdentifier == "t" || 
+			inTypeIdentifier == "j" || 
+			inTypeIdentifier == "m")
+	{
+		this->channelType = cudaChannelFormatKindUnsigned;
+	}
+	else if(inTypeIdentifier == "f" || 
+			inTypeIdentifier == "d") 
+	{
+		this->channelType = cudaChannelFormatKindFloat;
+	}
+	else
+	{
+		this->lastError = InitFailUnsupportedInputType;
+		return this->lastError;
+	}
+
+	bitDepth = sizeof(this->tempForTypeTesting) * 8;
+
+	cudaError cuer;
+	inputDescriptor = cudaCreateChannelDesc(bitDepth, 0, 0, 0, this->channelType);
+	cuer = cudaGetLastError();
+	
+	if (cuer != cudaSuccess) {
+		this->lastError = CudaError;
+		std::cout << "CUDA ERR = " << cuer << std::endl;
+		throw std::runtime_error("GPU BINARY IMAGE RUN FAILED TO CREATE CHANNEL");
+	}
+
+	cudaChannelFormatDesc input_descriptor = cudaCreateChannelDesc(bitDepth, 0, 0, 0, cudaChannelFormatKindUnsigned);
 	cudaMallocArray((cudaArray**)&gpuInputDataArrayTwo_, &input_descriptor, this->dataSize.width, this->dataSize.height);
 	const unsigned int offsetX = 0;
 	const unsigned int offsetY = 0;
@@ -115,10 +195,10 @@ ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelTyp
 			cudaMemcpyHostToDevice,			// the type of the copy
 			this->stream);						// the device command stream
 
-	cudaError cuer = cudaGetLastError();
+	cuer = cudaGetLastError();
 	if (cuer != cudaSuccess) {
 		std::cout << "CUDA ERR = " << cuer << std::endl;
-		throw std::runtime_error("GPU WHS INIT FAILED TO ALLOCATE MEMORY");
+		throw std::runtime_error("GPU BINARY IMAGE RUN FAILED TO ALLOCATE MEMORY");
 	}
 
 	// Invoke kernel with empirically chosen block size
