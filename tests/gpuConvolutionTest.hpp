@@ -65,7 +65,7 @@ class gpuConvolutionTestSuite : public CxxTest::TestSuite
 				data[i] = i;
 			}
 
-			cvt::cvTile<short> inTile(data.data(), roi, 1);
+			cvt::cvTile<short> inTile(data.data(), dSize, 1);
 			cvt::cvTile<short>* outTile;
 
 			cv::Mat weightsMat = cv::Mat::zeros(3,3,CV_16UC1);
@@ -75,7 +75,8 @@ class gpuConvolutionTestSuite : public CxxTest::TestSuite
 				}
 			}
 			
-			cvt::gpu::GpuConvolution<short,1,short,1,short> conv(0, inTile.getROI().x, inTile.getROI().y,
+			
+			cvt::gpu::GpuConvolution<short,1,short,1,short> conv(0, roi.width, roi.height,
 									    filterRadius, weightsMat);
 
 			TS_ASSERT_EQUALS(cvt::Ok, conv.initializeDevice(cvt::gpu::SQUARE));
