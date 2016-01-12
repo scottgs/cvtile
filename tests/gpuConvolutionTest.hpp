@@ -55,6 +55,7 @@ class gpuConvolutionTestSuite : public CxxTest::TestSuite
 
 		//TO-DO test for all types once instantiated
 		void testCovolutionFullPixelOneBand() {
+			std::cout << std::endl << "GPU CONV VERIFICATION TEST" << std::endl;
 			ssize_t filterRadius = 1;
 			cv::Size2i roi(5,5);
 			cv::Size2i dSize(roi.width + filterRadius * 2,roi.height + filterRadius * 2);
@@ -84,15 +85,26 @@ class gpuConvolutionTestSuite : public CxxTest::TestSuite
 			conv(inTile, (const cvt::cvTile<short>**)&outTile);
 			TS_ASSERT_EQUALS(0, (outTile == NULL));
 
-			cv::Mat& a = inTile[0];
+			//TODO Can we remove this?
+			//cv::Mat& a = inTile[0];
 			cv::Mat& b = (*outTile)[0];
 
+			short expected[] = {32, 54, 66, 78, 
+					  90, 102, 72, 90, 
+					  144, 162, 180, 198, 
+					  216, 150, 174, 270, 
+					  288, 306, 324, 342,
+					  234, 258, 396, 414, 432};
+
+			int k = 0;
 			for(int i = 0; i < roi.width; ++i) {
 				for(int j = 0; j < roi.height; ++j) {
-					std::cout << "b[" << i << "," << j << "] = " << b.at<short>(i,j) << std::endl;
+					//std::cout << "b[" << i << "," << j << "] = " << b.at<short>(i,j) << std::endl;
+					TS_ASSERT_EQUALS(b.at<short>(i,j), expected[k]);
+					k++;
 				}
 			}
-		}
+	}
 		
 };
 
