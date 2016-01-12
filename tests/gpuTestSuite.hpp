@@ -355,7 +355,8 @@ class gpuTestSuite : public CxxTest::TestSuite{
 			gpuAlgo(inTile, (const cvt::cvTile<short> **)(&outTile));
 		
 			TS_ASSERT_EQUALS(0, (outTile == NULL));
-			auto err = gpuAlgo.getLastError();
+			//TODO err is not being used. Remove?
+			//auto err = gpuAlgo.getLastError();
 
 			for(int k = 0; k < 3; ++k)
 			{

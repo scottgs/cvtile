@@ -109,10 +109,12 @@ class gpuDilateTestSuite : public CxxTest::TestSuite
 					}
 					TS_ASSERT_EQUALS(outputTile->getBandCount(),1);	
 					/*Calculate Window Histogram Statistics for each pixel*/
-					cv::Size2i dims = inputTile.getSize();
+					//TODO remove dims if we aren't using it anymore.
+					//cv::Size2i dims = inputTile.getSize();
 					cv::Rect roiDims = inputTile.getROI();
 					
-					const int imageArea = dims.width * dims.height;
+					//TODO remove this if we aren't going to use it.
+					//const int imageArea = dims.width * dims.height;
 					const int outArea = roiDims.width * roiDims.height;
 					std::vector<short> results;
 					results.resize(outArea);

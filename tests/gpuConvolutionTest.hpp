@@ -62,7 +62,7 @@ class gpuConvolutionTestSuite : public CxxTest::TestSuite
 			vector<short> data;
 			data.resize(dSize.area());
 
-			for(unsigned int i = 0; i < dSize.area(); ++i) {
+			for(int i = 0; i < dSize.area(); ++i) {
 				data[i] = i;
 			}
 
