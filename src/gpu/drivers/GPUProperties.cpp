@@ -214,7 +214,7 @@ std::vector<int> getGpuDeviceIds(int min_major , int min_minor )
 	}
 
 	//Filter out non CUDA capabale GPU devices
-	for (size_t i=0; i<raw_number_of_gpu_devices; i++) 
+	for (int i=0; i<raw_number_of_gpu_devices; i++) 
 	{
 		cudaDeviceProp deviceProp;
 		cudaGetDeviceProperties(&deviceProp, i);

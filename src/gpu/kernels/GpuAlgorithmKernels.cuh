@@ -438,6 +438,68 @@ void launch_simpleDataCopy(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, 
 	}
 }
 
+template< typename InputPixelType, typename OutputPixelType, typename FilterType>
+__global__ static
+void convolutionTexture(OutputPixelType* const outputData, const unsigned int width,
+						const unsigned int height, const int2* relativeOffsets,
+						FilterType* const filterWeights, const unsigned int filterSize,
+						const unsigned int bandCount) 
+{
+	const unsigned int xIndex = blockIdx.x * blockDim.x + threadIdx.x;
+	const unsigned int yIndex = blockIdx.y * blockDim.y + threadIdx.y;
+	
+	if(yIndex < height && xIndex < width){
+		const unsigned int pixel_one_d = xIndex + yIndex * width; 
+		OutputPixelType outputValue;
+
+		for(unsigned int i = 0; i < filterSize; ++i){
+			const int cur_x_index = xIndex + relativeOffsets[i].x;
+			const int cur_y_index = yIndex + relativeOffsets[i].y;	
+			if( cur_y_index < height && cur_y_index >= 0 && cur_x_index < width && cur_x_index >= 0 ){
+				outputValue += fetchTexture<InputPixelType, 0>(cur_x_index, cur_y_index) * filterWeights[i];	
+			}
+		}
+		outputData[pixel_one_d] = outputValue;
+	}
+}
+
+template< typename InputPixelType, typename OutputPixelType, typename FilterType>
+__global__ static
+void convolutionGlobal(InputPixelType* inputData, OutputPixelType* const outputData, const unsigned int width,
+						const unsigned int height, const int2* relativeOffsets,
+						FilterType* const filterWeights, const unsigned int filterSize, const unsigned int bandCount) 
+{
+	const unsigned int xIndex = blockIdx.x * blockDim.x + threadIdx.x;
+	const unsigned int yIndex = blockIdx.y * blockDim.y + threadIdx.y;
+	const unsigned int pixel_one_d = xIndex + yIndex * width; 
+	
+	if(yIndex < height && xIndex < width){
+		OutputPixelType outputValue;
+		for(unsigned int i = 0; i < filterSize; ++i){
+			const int cur_x_index = xIndex + relativeOffsets[i].x;
+			const int cur_y_index = yIndex + relativeOffsets[i].y;	
+			const int cur_pixel_one_d = cur_x_index + cur_y_index * width; 
+			if( cur_y_index < height && cur_y_index >= 0 && cur_x_index < width && cur_x_index >= 0 ){
+				outputValue += inputData[cur_pixel_one_d] * filterWeights[i];	
+			}
+		}
+		outputData[pixel_one_d] = outputValue;
+	}
+}
+
+template<typename InputPixelType, typename OutputPixelType, typename FilterType>
+void launchConvolution(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream, InputPixelType* inputData, 
+						OutputPixelType * gpuOutputData, int2* relativeOffsets, FilterType* const filterWeights, const unsigned int filterSize, 
+						unsigned int outputWidth, unsigned int outputHeight, unsigned int bandCount,
+						bool usingTexture)
+{
+	if (!usingTexture)
+		convolutionGlobal<InputPixelType, OutputPixelType, FilterType><<<dimGrid, dimBlock, shmemSize, stream>>>(inputData, gpuOutputData, outputWidth,  outputHeight, relativeOffsets, filterWeights, filterSize, bandCount);
+	else
+		convolutionTexture<InputPixelType, OutputPixelType, FilterType><<<dimGrid, dimBlock, shmemSize, stream>>>(gpuOutputData, outputWidth,  outputHeight, relativeOffsets, filterWeights, filterSize, bandCount);
+}
+
+
 template< typename InputPixelType, typename OutputPixelType>
 __global__ static
 void absDiffernceTexture(OutputPixelType * const outputData, const unsigned int roiWidth, const unsigned int roiHeight)
@@ -771,8 +833,6 @@ void launch_dilate(const dim3 dimGrid, const dim3 dimBlock, const unsigned int s
 {
 	dilate<InputPixelType,OutputPixelType><<<dimGrid, dimBlock, shmemSize, stream>>>(outputData, roiHeight, roiWidth, relativeOffsets, numElements, buffer);
 }
-
-
 
 }; //end gpu namespace
 }; //end cvt namespace

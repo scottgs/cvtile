@@ -119,7 +119,8 @@ class gpuErodeTestSuite : public CxxTest::TestSuite
 					}
 					TS_ASSERT_EQUALS(outputTile->getBandCount(),1);	
 					/*Calculate Window Histogram Statistics for each pixel*/
-					cv::Size2i dims = inputTile.getSize();
+					//TODO remove dims if it is not used.
+					//cv::Size2i dims = inputTile.getSize();
 					cv::Rect roiDims = inputTile.getROI();
 					
 					const int outArea = roiDims.width * roiDims.height;
@@ -186,7 +187,9 @@ class gpuErodeTestSuite : public CxxTest::TestSuite
 					}
 					TS_ASSERT_EQUALS(outputTile->getBandCount(),1);	
 					/*Calculate Window Histogram Statistics for each pixel*/
-					cv::Size2i dims = inputTile.getSize();
+
+					//TODO remove dims if it is not used.
+					//cv::Size2i dims = inputTile.getSize();
 					cv::Rect roiDims = inputTile.getROI();
 					
 					const int outArea = roiDims.width * roiDims.height;

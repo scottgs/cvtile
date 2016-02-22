@@ -79,6 +79,11 @@ void launch_erode(const dim3 dimGrid, const dim3 dimBlock, const unsigned int sh
 		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets, 
 		   const unsigned int numElements,unsigned int buffer);
 
+template <typename InputPixelType, typename OutputPixelType, typename ConvolutionType>
+void launchConvolution(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream, InputPixelType* inputData,
+									   OutputPixelType* gpuOutputData, int2* relativeOffsets, ConvolutionType* const filterWeights, const unsigned int filterSize,
+									   unsigned int outputWidth, unsigned int outputHeight, unsigned int bandCount,
+									   bool usingTexture);	
 
 } // end of gpu namespace
 } // end of cvt namespace

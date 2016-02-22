@@ -88,6 +88,11 @@ class GpuWindowFilterAlgorithm : public GpuAlgorithm<InputPixelType, InputBandCo
 	std::vector<int2> relativeOffsets_;
 	int2 *relativeOffsetsGpu_;
 	enum windowRadiusType type;
+	/***************************
+	 *  NOTE: Any class that extends the window filter class can not have an roi that
+	 *  is equal to the whole image. You will need a buffer. 
+	 *
+	 **************************/
 	size_t roiWidth_;
 	cv::Size2i roiSize_;
 	size_t bufferWidth_;
