@@ -47,7 +47,7 @@ CvTileAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount
 		
 		return GpuAbsoluteDiff(cuda_device_id,tile_width,tile.height);
 	}
-	else if (aboost::iequals(algorithm,"GpuErode")) {
+	else if (boost::iequals(algorithm,"GpuErode")) {
 		ssize_t window_radius = gpu_alg_params["filter-radius"].as<std::string>();
 		std::string filter_type = gpu_alg_params["filter-type"].as<std::string();
 			
@@ -55,7 +55,7 @@ CvTileAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount
 		
 		return dilate
 	}
-	else if (aboost::iequals(algorithm,"GpuWHS")) {
+	else if (boost::iequals(algorithm,"GpuWHS")) {
 		
 		ssize_t window_radius = gpu_alg_params["filter-radius"].as<std::string>();
 		std::string filter_type = gpu_alg_params["filter-type"].as<std::string();
