@@ -45,7 +45,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "drivers/GpuDilate.hpp"
 #include "drivers/GpuErode.hpp"
 #include "drivers/GpuWHS.hpp"
-
+#include "drivers/GpuAbsoluteDifference.hpp"
 #include "kernels/GpuAlgorithmKernels.hpp"
 
 #endif /* CVTILE_GPU_H */

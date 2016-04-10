@@ -12,7 +12,6 @@ class AppModuleFactory {
 	public :
 		AppModuleFactory ();
 		bool getAppModuleConfig (int ac, char** av, boost::program_options::options_description& od, boost::program_options::variables_map& vm);
-		void createTileProcessor(s);
 	
 };
 
@@ -92,7 +91,5 @@ bool AppModuleFactory::getAppModuleConfig (int ac, char** av, boost::program_opt
 	}
 	return true;
 }
-
-};
 
 #endif
