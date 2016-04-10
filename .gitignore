@@ -63,4 +63,4 @@ Makefile.in
 tests/testingWindowHistogramStatisticsOutFile.tif
 
 #apps
-process_task
+scene_processor
