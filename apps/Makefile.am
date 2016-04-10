@@ -1,5 +1,9 @@
-AM_CPPFLAGS = -I.. -std=c++0x 
+bin_PROGRAMS = scene_processor
 
-bin_PROGRAMS = process_task
-process_task_SOURCES = process_task.cpp
+AM_CXXFLAGS = -I.. -std=c++11 $(CUDA_CFLAGS)
 
+
+scene_processor_SOURCES = scene_processor.cpp
+#scene_processor_LDADD = $(top_builddir)/src/.libs/libcvtile.a $(CUDA_LIBS) $(CUDA_LDFLAGS) $(OPENCV_LIBS)
+
+scene_processor_LDADD = $(top_builddir)/src/.libs/libcvtile.a  $(CUDA_LIBS) $(CUDA_LDFLAGS) $(OPENCV_LIBS) -lboost_system -lboost_program_options -lgdal -lboost_regex 
