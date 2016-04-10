@@ -105,7 +105,6 @@ cv::Mat erosionByReconstructionUphill(const cv::Mat& mask, const cv::Mat& mark);
 template <typename OperatingPixelType>
 std::vector<cv::Mat> cvt::algorithms::opencvOpenDmp(const cv::Mat& inputImage, const std::vector<int>& ses)
 {
-	cgi::log::MetaLogStream& log(cgi::log::MetaLogStream::instance());
 	// ++ Open, then dilate by reconstruction
 
 	// Build Structuring Elements
@@ -173,7 +172,6 @@ template <typename OperatingPixelType>
 cv::Mat cvt::algorithms::dilationByReconstructionDownhill(const cv::Mat& mask, const cv::Mat& mark)
 {
 	//typedef unsigned short OperatingPixelType;
-	cgi::log::MetaLogStream& log(cgi::log::MetaLogStream::instance());
 
 	if (false == std::numeric_limits<OperatingPixelType>::is_integer)
 		throw std::logic_error("Invalid template / operating-pixel type");
@@ -388,7 +386,6 @@ cv::Mat cvt::algorithms::dilationByReconstructionDownhill(const cv::Mat& mask, c
 template <typename OperatingPixelType>
 std::vector<cv::Mat> cvt::algorithms::opencvCloseDmp(const cv::Mat& inputImage, const std::vector<int>& ses)
 {
-	cgi::log::MetaLogStream& log(cgi::log::MetaLogStream::instance());
 	// ++ Close, then erode by reconstruction
 
 	
@@ -457,7 +454,6 @@ std::vector<cv::Mat> cvt::algorithms::opencvCloseDmp(const cv::Mat& inputImage, 
 template <typename OperatingPixelType>
 cv::Mat cvt::algorithms::erosionByReconstructionUphill(const cv::Mat& mask, const cv::Mat& mark)
 {
-	cgi::log::MetaLogStream& log(cgi::log::MetaLogStream::instance());
 
 	if (false == std::numeric_limits<OperatingPixelType>::is_integer)
 		throw std::logic_error("Invalid template / operating-pixel type");
