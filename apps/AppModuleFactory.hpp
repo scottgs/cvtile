@@ -21,20 +21,18 @@ AppModuleFactory::AppModuleFactory () {
 
 bool AppModuleFactory::getAppModuleConfig (int ac, char** av, boost::program_options::options_description& od, boost::program_options::variables_map& vm) {
 	// handle a incorrect passed command line
-	if (ac <= 1 || !av || !(*av)) {
-		return false;
-	}
-
 	boost::program_options::options_description base("Command Line Options");
 	base.add_options()
 		("help,h", "usage ./process_task <algorithm> <config_file> <outputfile>")
 		("algorithm,a", boost::program_options::value<std::string>(), "algorithm to use")	
 	    ("config-file,c", boost::program_options::value<std::string>(), "configuration for algorithm")
-		("output-file,o", boost::program_options::value<std::string>(), "the name and path of the outputfile")
+		("output-image,o", boost::program_options::value<std::string>(), "the name and path of the outputfile")
 	    ;
-		od.add(base);
-
-
+	od.add(base);
+	
+	if (ac <= 5 || !av || !(*av)) {
+		return false;
+	}
 		//Declare a group of options that will be 
 		// allowed both on command line and in
 		// config file

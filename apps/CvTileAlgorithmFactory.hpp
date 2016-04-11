@@ -17,7 +17,7 @@ class CvTileAlgorithmFactory {
 		CvTileAlgorithmFactory();
 		~CvTileAlgorithmFactory();
 		//cvt::gpu::GpuAlgorithm<InputPixelType,InputBandCount,OutputPixelType,OutputBandCount> makeCvTileAlgorithm(boost::program_options::variables_map& gpu_alg_params);	
-		std::unique_ptr<cvt::gpu::GpuAlgorithm<InputPixelType,InputBandCount,OutputPixelType,OutputBandCount> > makeCvTileAlgorithm(boost::program_options::variables_map& gpu_alg_params);
+		std::shared_ptr<cvt::gpu::GpuAlgorithm<InputPixelType,InputBandCount,OutputPixelType,OutputBandCount> > makeCvTileAlgorithm(boost::program_options::variables_map& gpu_alg_params);
 };
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount>
@@ -32,48 +32,48 @@ CvTileAlgorithmFactory<InputPixelType, InputBandCount, OutputPixelType, OutputBa
 
 // NOTE: Need a refactor on gpu id number
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount>
-std::unique_ptr<cvt::gpu::GpuAlgorithm<InputPixelType,InputBandCount,OutputPixelType,OutputBandCount> > 
+std::shared_ptr<cvt::gpu::GpuAlgorithm<InputPixelType,InputBandCount,OutputPixelType,OutputBandCount> > 
 CvTileAlgorithmFactory<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::makeCvTileAlgorithm (boost::program_options::variables_map& gpu_alg_params) {
 
 	std::string algorithm = gpu_alg_params["algorithm"].as<std::string>();
 	size_t tile_height = gpu_alg_params["tile-width"].as<size_t>();
 	size_t tile_width = gpu_alg_params["tile-height"].as<size_t>();
-	unsigned int cuda_device_id = gpu_alg_params["gpu-number"].as<std::string>();
+	unsigned int cuda_device_id = gpu_alg_params["gpu-number"].as<size_t>();
 
 	if (boost::iequals(algorithm,"GpuErode")) {	
 
-		ssize_t window_radius = gpu_alg_params["filter-radius"].as<std::string>();
+		ssize_t window_radius = gpu_alg_params["filter-radius"].as<size_t>();
 		std::string filter_type = gpu_alg_params["filter-type"].as<std::string>();
 			
 		GpuErode *erode = new GpuErode(cuda_device_id,tile_width,tile_height,window_radius);
 			
-		return std::unique_ptr<GpuErode>(erode);
+		return std::shared_ptr<GpuErode>(erode);
 	}
 	else if (boost::iequals(algorithm,"GpuAbsoluteDiff")) {
 		GpuAbs *abs = new GpuAbs(cuda_device_id,tile_width,tile_height);	
 
-		std::unique_ptr<GpuAbs> abs_ptr(abs);
+		std::shared_ptr<GpuAbs> abs_ptr(abs);
 		return abs_ptr;
 
 	}
 	else if (boost::iequals(algorithm,"GpuDilate")) {
-		ssize_t window_radius = gpu_alg_params["filter-radius"].as<std::string>();
+		ssize_t window_radius = gpu_alg_params["filter-radius"].as<size_t>();
 		std::string filter_type = gpu_alg_params["filter-type"].as<std::string>();
 			
 		GpuDilate *dilate = new GpuDilate(cuda_device_id,tile_width,tile_height,window_radius);	
-		std::unique_ptr<GpuDilate> dilate_ptr(dilate);
+		std::shared_ptr<GpuDilate> dilate_ptr(dilate);
 		return dilate_ptr;
 
 	}
 	else if (boost::iequals(algorithm,"GpuWHS")) {
 		
-		ssize_t window_radius = gpu_alg_params["filter-radius"].as<std::string>();
+		ssize_t window_radius = gpu_alg_params["filter-radius"].as<ssize_t>();
 		std::string filter_type = gpu_alg_params["filter-type"].as<std::string>();
 			
 		GpuWhs *whs = new GpuWhs(cuda_device_id,tile_width,tile_height,window_radius);		
-		std::unique_ptr<GpuWhs> whs_ptr(whs);	
+		std::shared_ptr<GpuWhs> whs_ptr(whs);	
 		return whs_ptr;
 	}
-
-}
+	return nullptr;
+};
 
