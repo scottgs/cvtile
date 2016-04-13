@@ -25,9 +25,9 @@ bool AppModuleFactory::getAppModuleConfig (int ac, char** av, boost::program_opt
 	base.add_options()
 		("help,h", "usage ./process_task <algorithm> <config_file> <outputfile>")
 		("algorithm,a", boost::program_options::value<std::string>(), "algorithm to use")	
-	    ("config-file,c", boost::program_options::value<std::string>(), "configuration for algorithm")
+	  ("config-file,c", boost::program_options::value<std::string>(), "configuration for algorithm")
 		("output-image,o", boost::program_options::value<std::string>(), "the name and path of the outputfile")
-	    ;
+	  ;
 	od.add(base);
 	
 	if (ac <= 5 || !av || !(*av)) {
@@ -36,7 +36,7 @@ bool AppModuleFactory::getAppModuleConfig (int ac, char** av, boost::program_opt
 		//Declare a group of options that will be 
 		// allowed both on command line and in
 		// config file
-		int t1, t2,t3,t4;
+		int t1, t2,t3,t4,t5;
 		boost::program_options::options_description config("Configuration File Options");
 		config.add_options()
  			("input-image-1", boost::program_options::value<std::string>(), "the image used for uniary and binary image processing algorithms")
@@ -44,6 +44,7 @@ bool AppModuleFactory::getAppModuleConfig (int ac, char** av, boost::program_opt
  			("tile-height", boost::program_options::value<int>(&t2)->default_value(256), "the tile height per image")
 			("band-depth", boost::program_options::value<int>(&t3)->default_value(3), "the number of bands to process")
 			("gpu-number", boost::program_options::value<int>(&t4)->default_value(0), "the GPU card to use")
+			("buffer-radius", boost::program_options::value<int>(&t5)->default_value(5),"the image used with input_image_1 for binary image processing algorithms");
 			;                                      
 
 
@@ -63,7 +64,6 @@ bool AppModuleFactory::getAppModuleConfig (int ac, char** av, boost::program_opt
 		config.add_options()("input-image-2", boost::program_options::value<std::string>(), "the image used with input_image_1 for binary image processing algorithms");
 	}
 	else if (boost::iequals(algorithm,"GpuWHS") || boost::iequals(algorithm,"GpuErode") || boost::iequals(algorithm,"GpuDilate") ) {
-		config.add_options()("filter-radius", boost::program_options::value<std::string>(), "the image used with input_image_1 for binary image processing algorithms");
 		config.add_options()("filter-type", boost::program_options::value<std::string>(), "the image used with input_image_1 for binary image processing algorithms");
 	}
 	
