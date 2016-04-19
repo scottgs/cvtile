@@ -38,8 +38,8 @@ CvTileAlgorithmFactory<InputPixelType, InputBandCount, OutputPixelType, OutputBa
 	std::string algorithm = gpu_alg_params["algorithm"].as<std::string>();
 	size_t tile_height = gpu_alg_params["tile-width"].as<size_t>();
 	size_t tile_width = gpu_alg_params["tile-height"].as<size_t>();
-	unsigned int cuda_device_id = gpu_alg_params["gpu-number"].as<size_t>();
-	ssize_t buffer_radius = gpu_alg_params["buffer-radius"].as<size_t>();
+	size_t cuda_device_id = gpu_alg_params["gpu-number"].as<size_t>();
+	ssize_t buffer_radius = static_cast<ssize_t>(gpu_alg_params["buffer-radius"].as<size_t>());
 
 	size_t roi_height = tile_height - buffer_radius;
 	size_t roi_width = tile_width - buffer_radius;
@@ -47,10 +47,10 @@ CvTileAlgorithmFactory<InputPixelType, InputBandCount, OutputPixelType, OutputBa
 
 	if (boost::iequals(algorithm,"GpuErode")) {	
 
-		std::string filter_type = gpu_alg_params["filter-type"].as<std::string>();
+		size_t filter_type = gpu_alg_params["filter-type"].as<size_t>();
 			
 		GpuErode *erode = new GpuErode(cuda_device_id,roi_width,roi_height,buffer_radius);
-			
+		erode->initializeDevice(static_cast<cvt::gpu::windowRadiusType>(filter_type));
 		return std::shared_ptr<GpuErode>(erode);
 	}
 	else if (boost::iequals(algorithm,"GpuAbsoluteDiff")) {
@@ -61,19 +61,21 @@ CvTileAlgorithmFactory<InputPixelType, InputBandCount, OutputPixelType, OutputBa
 
 	}
 	else if (boost::iequals(algorithm,"GpuDilate")) {
-		std::string filter_type = gpu_alg_params["filter-type"].as<std::string>();
+		size_t filter_type = gpu_alg_params["filter-type"].as<size_t>();
 			
 		GpuDilate *dilate = new GpuDilate(cuda_device_id,roi_width,roi_height,buffer_radius);	
 		std::shared_ptr<GpuDilate> dilate_ptr(dilate);
+		dilate->initializeDevice(static_cast<cvt::gpu::windowRadiusType>(filter_type));
 		return dilate_ptr;
 
 	}
 	else if (boost::iequals(algorithm,"GpuWHS")) {
 		
-		std::string filter_type = gpu_alg_params["filter-type"].as<std::string>();
+		size_t filter_type = gpu_alg_params["filter-type"].as<size_t>();
 			
 		GpuWhs *whs = new GpuWhs(cuda_device_id,roi_width,roi_height,buffer_radius);		
 		std::shared_ptr<GpuWhs> whs_ptr(whs);	
+		whs_ptr->initializeDevice(static_cast<cvt::gpu::windowRadiusType>(filter_type));
 		return whs_ptr;
 	}
 	return nullptr;

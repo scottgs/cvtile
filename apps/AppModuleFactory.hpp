@@ -36,15 +36,15 @@ bool AppModuleFactory::getAppModuleConfig (int ac, char** av, boost::program_opt
 		//Declare a group of options that will be 
 		// allowed both on command line and in
 		// config file
-		int t1, t2,t3,t4,t5;
+		size_t t1, t2,t3,t4,t5,t6;
 		boost::program_options::options_description config("Configuration File Options");
 		config.add_options()
  			("input-image-1", boost::program_options::value<std::string>(), "the image used for uniary and binary image processing algorithms")
-   			("tile-width", boost::program_options::value<int>(&t1)->default_value(256), "the tile width per image")
- 			("tile-height", boost::program_options::value<int>(&t2)->default_value(256), "the tile height per image")
-			("band-depth", boost::program_options::value<int>(&t3)->default_value(3), "the number of bands to process")
-			("gpu-number", boost::program_options::value<int>(&t4)->default_value(0), "the GPU card to use")
-			("buffer-radius", boost::program_options::value<int>(&t5)->default_value(5),"the image used with input_image_1 for binary image processing algorithms");
+   			("tile-width", boost::program_options::value<size_t>(&t1)->default_value(256), "the tile width per image")
+ 			("tile-height", boost::program_options::value<size_t>(&t2)->default_value(256), "the tile height per image")
+			("band-depth", boost::program_options::value<size_t>(&t3)->default_value(3), "the number of bands to process")
+			("gpu-number", boost::program_options::value<size_t>(&t4)->default_value(2), "the GPU card to use")
+			("buffer-radius", boost::program_options::value<size_t>(&t5)->default_value(5),"the image used with input_image_1 for binary image processing algorithms");
 			;                                      
 
 
@@ -57,16 +57,18 @@ bool AppModuleFactory::getAppModuleConfig (int ac, char** av, boost::program_opt
 		std::cout << "No algorithm selected" << std::endl;
 		return false;
 	}	
-	
+
+
 	std::string algorithm = vm["algorithm"].as<std::string>();
 
 	if (boost::iequals(algorithm,"GpuAbsoluteDiff")) {		
 		config.add_options()("input-image-2", boost::program_options::value<std::string>(), "the image used with input_image_1 for binary image processing algorithms");
 	}
 	else if (boost::iequals(algorithm,"GpuWHS") || boost::iequals(algorithm,"GpuErode") || boost::iequals(algorithm,"GpuDilate") ) {
-		config.add_options()("filter-type", boost::program_options::value<std::string>(), "the image used with input_image_1 for binary image processing algorithms");
+		config.add_options()("filter-type", boost::program_options::value<size_t>(&t6)->default_value(0), "The structuring element type {Sqaure = 0, Circle = 1}");
 	}
-	
+
+
 	od.add(config);
 	if (vm.count("config-file") > 0) { 
 		std::string config_file = vm["config-file"].as<std::string>();
@@ -74,7 +76,7 @@ bool AppModuleFactory::getAppModuleConfig (int ac, char** av, boost::program_opt
     if (!ifs)
 		{
 			std::cout << "can not open config file: " << config_file << "\n";
-			return 0;
+			return false;
 		}
 		else
 		{
