@@ -31,10 +31,10 @@ int main (int argc, char** argv) {
 	const size_t tile_height = algorithm_config["tile-height"].as<size_t>();
 
 
+	ssize_t buffer_radius = static_cast<ssize_t>(algorithm_config["buffer-radius"].as<size_t>());
+
 	cvt::Tiler read_tiler;
 	cvt::Tiler write_tiler;
-	// raster size	
-	cv::Size2i rSize(tile_width,tile_height);
 	// tile size
 	cv::Size2i tSize(tile_width,tile_height);
 	// cvTile chip sizes
@@ -55,7 +55,7 @@ int main (int argc, char** argv) {
 			boost::filesystem::remove(out_file);
 	}
 
-	if (cvt::NoError != write_tiler.create(out_file, driver_name.c_str(), rSize, 1, cvt::Depth16S)) {
+	if (cvt::NoError != write_tiler.create(out_file, driver_name.c_str(), tSize, 1, cvt::Depth16S)) {
 		throw std::runtime_error("FAILED TO CREATE OUTPUT FILE");
 	}	
 
@@ -63,7 +63,6 @@ int main (int argc, char** argv) {
 	std::shared_ptr<cvt::gpu::GpuAlgorithm<short,1,short,1> > ga = factory.makeCvTileAlgorithm(algorithm_config);
 
 	cvt::cvTile<short> inputTile;
-	ssize_t buffer_radius = static_cast<ssize_t>(algorithm_config["buffer-radius"].as<size_t>());
 	for (auto i = 0; i < read_tiler.getCvTileCount(); ++i) {
 		inputTile = read_tiler.getCvTile<short>(i, buffer_radius);
 		cvt::cvTile<short> *outputTile = NULL;

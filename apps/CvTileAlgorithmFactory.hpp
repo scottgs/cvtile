@@ -38,12 +38,13 @@ CvTileAlgorithmFactory<InputPixelType, InputBandCount, OutputPixelType, OutputBa
 	std::string algorithm = gpu_alg_params["algorithm"].as<std::string>();
 	size_t tile_height = gpu_alg_params["tile-width"].as<size_t>();
 	size_t tile_width = gpu_alg_params["tile-height"].as<size_t>();
-	size_t cuda_device_id = gpu_alg_params["gpu-number"].as<size_t>();
+	size_t cuda_device_id = gpu_alg_params["gpu-number"].as<size_t>(); // passed in parameter
 	ssize_t buffer_radius = static_cast<ssize_t>(gpu_alg_params["buffer-radius"].as<size_t>());
 
-	size_t roi_height = tile_height - buffer_radius;
-	size_t roi_width = tile_width - buffer_radius;
+	size_t roi_height = tile_height;
+	size_t roi_width = tile_width;
 
+	std::cout << roi_height << std::endl;
 
 	if (boost::iequals(algorithm,"GpuErode")) {	
 
