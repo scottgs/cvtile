@@ -67,6 +67,9 @@ bool AppModuleFactory::getAppModuleConfig (int ac, char** av, boost::program_opt
 	else if (boost::iequals(algorithm,"GpuWHS") || boost::iequals(algorithm,"GpuErode") || boost::iequals(algorithm,"GpuDilate") ) {
 		config.add_options()("filter-type", boost::program_options::value<size_t>(&t6)->default_value(0), "The structuring element type {Sqaure = 0, Circle = 1}");
 	}
+	else {
+		throw std::runtime_error("NOT POSSIBLE ALG\n");
+	}
 
 
 	od.add(config);

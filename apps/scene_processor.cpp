@@ -55,26 +55,50 @@ int main (int argc, char** argv) {
 			boost::filesystem::remove(out_file);
 	}
 
-	if (cvt::NoError != write_tiler.create(out_file, driver_name.c_str(), tSize, 1, cvt::Depth16S)) {
+	if (cvt::NoError != write_tiler.create(out_file, driver_name.c_str(), tSize, 5, cvt::Depth32F)) {
 		throw std::runtime_error("FAILED TO CREATE OUTPUT FILE");
 	}	
 
-	CvTileAlgorithmFactory<short,1,short,1> factory;
-	std::shared_ptr<cvt::gpu::GpuAlgorithm<short,1,short,1> > ga = factory.makeCvTileAlgorithm(algorithm_config);
-
+  CvTileAlgorithmFactory<short,1,float,5> factory;
+	std::shared_ptr<cvt::gpu::GpuAlgorithm<short,1,float,5> > ga = factory.makeCvTileAlgorithm(algorithm_config);
 	cvt::cvTile<short> inputTile;
-	for (auto i = 0; i < read_tiler.getCvTileCount(); ++i) {
-		inputTile = read_tiler.getCvTile<short>(i, buffer_radius);
-		cvt::cvTile<short> *outputTile = NULL;
-		(*ga)(inputTile,(const cvt::cvTile<short> **)&outputTile);
-		if (!outputTile) {
-			std::cout << "FAILURE TO GET DATA FROM DEVICE" << std::endl;
-			std::cout << "HERE" <<std::endl;
-			exit(1);
-		}
-		write_tiler.putCvTile(*outputTile,i);
-	}
 
+	if (algorithm_config.count("input-image-1") && algorithm_config.count("input-image-2") == 0) {
+
+		for (auto i = 0; i < read_tiler.getCvTileCount(); ++i) {
+			inputTile = read_tiler.getCvTile<short>(i, buffer_radius);
+			cvt::cvTile<float> *outputTile = NULL;
+			(*ga)(inputTile,(const cvt::cvTile<float> **)&outputTile);
+			if (!outputTile) {
+				std::cout << "FAILURE TO GET DATA FROM DEVICE" << std::endl;
+				std::cout << "HERE" <<std::endl;
+				exit(1);
+			}
+			write_tiler.putCvTile(*outputTile,i);
+		}
+	}
+	else {
+		std::cout << algorithm_config["input-image-2"].as<std::string>() << std::endl;
+		cvt::Tiler read_tiler_two;
+		read_tiler_two.setCvTileSize(tSize);
+		cvt::cvTile<short> inputTileTwo;
+
+		for (auto i = 0; i < read_tiler.getCvTileCount(); ++i) {
+
+			inputTile = read_tiler.getCvTile<short>(i, buffer_radius);
+			inputTileTwo = read_tiler_two.getCvTile<short>(i, buffer_radius);
+
+			cvt::cvTile<float> *outputTile = NULL;
+			(*ga)(inputTile,inputTileTwo,(const cvt::cvTile<float> **)&outputTile);
+			if (!outputTile) {
+				std::cout << "FAILURE TO GET DATA FROM DEVICE" << std::endl;
+				std::cout << "HERE" <<std::endl;
+				exit(1);
+			}
+			write_tiler.putCvTile(*outputTile,i);
+		}
+		read_tiler_two.close();
+	}
 	write_tiler.close();
 	read_tiler.close();
 
