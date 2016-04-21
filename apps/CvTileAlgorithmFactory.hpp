@@ -17,7 +17,7 @@ class CvTileAlgorithmFactory {
 		CvTileAlgorithmFactory();
 		~CvTileAlgorithmFactory();
 		//cvt::gpu::GpuAlgorithm<InputPixelType,InputBandCount,OutputPixelType,OutputBandCount> makeCvTileAlgorithm(boost::program_options::variables_map& gpu_alg_params);	
-		std::shared_ptr<cvt::gpu::GpuAlgorithm<InputPixelType,InputBandCount,OutputPixelType,OutputBandCount> > makeCvTileAlgorithm(boost::program_options::variables_map& gpu_alg_params);
+		std::shared_ptr<cvt::gpu::GpuAlgorithm<InputPixelType,InputBandCount,OutputPixelType,OutputBandCount> > makeCvTileAlgorithm(boost::program_options::variables_map& gpu_alg_params,const size_t cuda_device_id);
 };
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount>
@@ -33,12 +33,12 @@ CvTileAlgorithmFactory<InputPixelType, InputBandCount, OutputPixelType, OutputBa
 // NOTE: Need a refactor on gpu id number
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount>
 std::shared_ptr<cvt::gpu::GpuAlgorithm<InputPixelType,InputBandCount,OutputPixelType,OutputBandCount> > 
-CvTileAlgorithmFactory<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::makeCvTileAlgorithm (boost::program_options::variables_map& gpu_alg_params) {
+CvTileAlgorithmFactory<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::makeCvTileAlgorithm (boost::program_options::variables_map& gpu_alg_params, const size_t cuda_device_id) {
 
 	std::string algorithm = gpu_alg_params["algorithm"].as<std::string>();
 	size_t tile_height = gpu_alg_params["tile-width"].as<size_t>();
 	size_t tile_width = gpu_alg_params["tile-height"].as<size_t>();
-	size_t cuda_device_id = gpu_alg_params["gpu-number"].as<size_t>(); // passed in parameter
+	//size_t cuda_device_id = gpu_alg_params["gpu-number"].as<size_t>(); // passed in parameter
 	ssize_t buffer_radius = static_cast<ssize_t>(gpu_alg_params["buffer-radius"].as<size_t>());
 
 	size_t roi_height = tile_height;

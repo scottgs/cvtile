@@ -22,11 +22,13 @@ AppModuleFactory::AppModuleFactory () {
 bool AppModuleFactory::getAppModuleConfig (int ac, char** av, boost::program_options::options_description& od, boost::program_options::variables_map& vm) {
 	// handle a incorrect passed command line
 	boost::program_options::options_description base("Command Line Options");
+	size_t t0;
 	base.add_options()
 		("help,h", "usage ./process_task <algorithm> <config_file> <outputfile>")
 		("algorithm,a", boost::program_options::value<std::string>(), "algorithm to use")	
 	  ("config-file,c", boost::program_options::value<std::string>(), "configuration for algorithm")
 		("output-image,o", boost::program_options::value<std::string>(), "the name and path of the outputfile")
+		("threads,t", boost::program_options::value<size_t>(&t0)->default_value(1), "the number of threads to spawn upto max possible concurrent hardware threads ")
 	  ;
 	od.add(base);
 	
@@ -43,7 +45,6 @@ bool AppModuleFactory::getAppModuleConfig (int ac, char** av, boost::program_opt
    			("tile-width", boost::program_options::value<size_t>(&t1)->default_value(256), "the tile width per image")
  			("tile-height", boost::program_options::value<size_t>(&t2)->default_value(256), "the tile height per image")
 			("band-depth", boost::program_options::value<size_t>(&t3)->default_value(3), "the number of bands to process")
-			("gpu-number", boost::program_options::value<size_t>(&t4)->default_value(2), "the GPU card to use")
 			("buffer-radius", boost::program_options::value<size_t>(&t5)->default_value(5),"the image used with input_image_1 for binary image processing algorithms");
 			;                                      
 
