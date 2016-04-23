@@ -3,7 +3,7 @@
 #include <memory>
 #include <exception>
 #include <thread>
-
+#include <mutex>
 #include "AppModuleFactory.hpp"
 #include "CvTileAlgorithmFactory.hpp"
 #include <cvtile/cvtile.hpp>
@@ -11,6 +11,8 @@
 
 namespace po = boost::program_options;
 using namespace std;
+
+std::mutex worker_mutex;
 
 // interleaved task processing
 void run_unary_task(const std::shared_ptr<cvt::gpu::GpuAlgorithm<short,1,float,5> >& gpu_algorithm, 
@@ -201,7 +203,11 @@ void run_unary_task(const std::shared_ptr<cvt::gpu::GpuAlgorithm<short,1,float,5
 	size_t total_tiles = read_tiler.getCvTileCount();
 
 	for (size_t i = start_tile; i < total_tiles; i += num_workers) {
+			
+			worker_mutex.lock();
 			inputTile = read_tiler.getCvTile<short>(i, buffer_radius);
+			worker_mutex.unlock();
+
 			cvt::cvTile<float> *outputTile = NULL;
 			(*gpu_algorithm)(inputTile,(const cvt::cvTile<float> **)&outputTile);
 			if (!outputTile) {
@@ -209,7 +215,9 @@ void run_unary_task(const std::shared_ptr<cvt::gpu::GpuAlgorithm<short,1,float,5
 				std::cout << "HERE" <<std::endl;
 				exit(1);
 			}
+			worker_mutex.lock();
 			write_tiler.putCvTile(*outputTile,i);
+			worker_mutex.unlock();
 		}
 }
 
@@ -227,9 +235,11 @@ void run_binary_task (const std::shared_ptr<cvt::gpu::GpuAlgorithm<short,1,float
 		cvt::cvTile<short> inputTileTwo;
 
 		for (size_t i = start_tile; i < total_tiles; i += num_workers) {
-
+			
+			worker_mutex.lock();
 			inputTile = read_tiler.getCvTile<short>(i, buffer_radius);
 			inputTileTwo = read_tiler_two.getCvTile<short>(i, buffer_radius);
+			worker_mutex.unlock();
 
 			cvt::cvTile<float> *outputTile = NULL;
 			(*gpu_algorithm)(inputTile,inputTileTwo,(const cvt::cvTile<float> **)&outputTile);
@@ -238,7 +248,9 @@ void run_binary_task (const std::shared_ptr<cvt::gpu::GpuAlgorithm<short,1,float
 				std::cout << "HERE" <<std::endl;
 				exit(1);
 			}
+			worker_mutex.lock();
 			write_tiler.putCvTile(*outputTile,i);
+			worker_mutex.unlock();
 		}
 
 }
