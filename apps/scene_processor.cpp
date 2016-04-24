@@ -84,7 +84,9 @@ int main (int argc, char** argv) {
 		throw std::runtime_error("FAILED TO OPEN INPUT FILE");
 	}
 
-	std::string driver_name("GTIFF");
+	std::cout << read_tiler.getCvTileCount() << std::endl;
+
+	std::string driver_name("GTiff");
 	
 	std::string out_file = algorithm_config["output-image"].as<std::string>();
 
@@ -92,7 +94,7 @@ int main (int argc, char** argv) {
 			boost::filesystem::remove(out_file);
 	}
 
-	if (cvt::NoError != write_tiler.create(out_file, driver_name.c_str(), tSize, 5, cvt::Depth32F)) {
+	if (cvt::NoError != write_tiler.create(out_file, driver_name.c_str(), read_tiler.getRasterSize(), 5, cvt::Depth32F)) {
 		throw std::runtime_error("FAILED TO CREATE OUTPUT FILE");
 	}	
 
@@ -100,13 +102,13 @@ int main (int argc, char** argv) {
 	std::vector<int> gpu_ids = cvt::gpu::getGpuDeviceIds();
 
   CvTileAlgorithmFactory<short,1,float,5> factory;
-	std::vector<std::shared_ptr<cvt::gpu::GpuAlgorithm<short,1,float,5> > > gpu_algorithms(num_threads_requested);
+	std::vector<std::shared_ptr<cvt::gpu::GpuAlgorithm<short,1,float,5> > > gpu_algorithms;
 
 	std::vector<std::thread> thread_group;
-
+	//num_threads_requested = 2;
 	// create tiler processors per GPU
 	for (size_t i = 0; i < gpu_ids.size() && i < num_threads_requested; ++i) {
-		gpu_algorithms[i] = factory.makeCvTileAlgorithm(algorithm_config,i + 2);
+		gpu_algorithms.push_back(factory.makeCvTileAlgorithm(algorithm_config,i + 2));
 	}
 	/*std::shared_ptr<cvt::gpu::GpuAlgorithm<short,1,float,5> > ga = factory.makeCvTileAlgorithm(algorithm_config);
 	cvt::cvTile<short> inputTile;*/
@@ -117,6 +119,7 @@ int main (int argc, char** argv) {
 			// spawn threads
 			for (size_t i = 0; i < num_threads_requested; ++i) {
 				thread_group.push_back(std::thread(run_unary_task,std::ref(gpu_algorithms[i]), std::ref(read_tiler),std::ref(write_tiler),buffer_radius,i,num_threads_requested));
+				std::cout << "spawned thread" << std::endl;
 			}
 
 			// join spawned threads when task completed
@@ -126,43 +129,13 @@ int main (int argc, char** argv) {
 
 		}
 		else {
+				std::cout << "RUN SINGLE THREADED" << std::endl;
 				run_unary_task (gpu_algorithms[0], read_tiler,write_tiler,buffer_radius,0, 1); 
 		}
-
-
-		/*for (auto i = 0; i < read_tiler.getCvTileCount(); ++i) {
-			inputTile = read_tiler.getCvTile<short>(i, buffer_radius);
-			cvt::cvTile<float> *outputTile = NULL;
-			(*ga)(inputTile,(const cvt::cvTile<float> **)&outputTile);
-			if (!outputTile) {
-				std::cout << "FAILURE TO GET DATA FROM DEVICE" << std::endl;
-				std::cout << "HERE" <<std::endl;
-				exit(1);
-			}
-			write_tiler.putCvTile(*outputTile,i);
-		}*/
 	}
 	else {
-		//std::cout << algorithm_config["input-image-2"].as<std::string>() << std::endl;
 		cvt::Tiler read_tiler_two;
-		/*read_tiler_two.setCvTileSize(tSize);
-		cvt::cvTile<short> inputTileTwo;
-
-		for (auto i = 0; i < read_tiler.getCvTileCount(); ++i) {
-
-			inputTile = read_tiler.getCvTile<short>(i, buffer_radius);
-			inputTileTwo = read_tiler_two.getCvTile<short>(i, buffer_radius);
-
-			cvt::cvTile<float> *outputTile = NULL;
-			(*ga)(inputTile,inputTileTwo,(const cvt::cvTile<float> **)&outputTile);
-			if (!outputTile) {
-				std::cout << "FAILURE TO GET DATA FROM DEVICE" << std::endl;
-				std::cout << "HERE" <<std::endl;
-				exit(1);
-			}
-			write_tiler.putCvTile(*outputTile,i);
-		}*/
-
+		
 		// greater than 1 thread or just run without threads
 		if (num_threads_requested > 1) {
 			// spawn threads
@@ -200,24 +173,32 @@ void run_unary_task(const std::shared_ptr<cvt::gpu::GpuAlgorithm<short,1,float,5
 {
 
 	cvt::cvTile<short> inputTile;
+	worker_mutex.lock();
 	size_t total_tiles = read_tiler.getCvTileCount();
+	std::cout << "NUM TITLES " << total_tiles << std::endl;
+	worker_mutex.unlock();
 
 	for (size_t i = start_tile; i < total_tiles; i += num_workers) {
 			
 			worker_mutex.lock();
 			inputTile = read_tiler.getCvTile<short>(i, buffer_radius);
+			if (inputTile.getBandCount() == 0) {
+				std::cout << "BAD TILE " << i << std::endl;
+			}
+			//std::cout << "I Worked: " << i << std::endl;
 			worker_mutex.unlock();
 
 			cvt::cvTile<float> *outputTile = NULL;
 			(*gpu_algorithm)(inputTile,(const cvt::cvTile<float> **)&outputTile);
 			if (!outputTile) {
-				std::cout << "FAILURE TO GET DATA FROM DEVICE" << std::endl;
-				std::cout << "HERE" <<std::endl;
-				exit(1);
+				throw std::runtime_error("FAILED TO GET DATA FROM DEVICE");
 			}
 			worker_mutex.lock();
-			write_tiler.putCvTile(*outputTile,i);
+			if (cvt::NoError != write_tiler.putCvTile(*outputTile,i)) {
+				std::cout << "FAILED TO WRITE TILE " << i << std::endl;
+			}
 			worker_mutex.unlock();
+			delete outputTile;
 		}
 }
 
@@ -244,13 +225,13 @@ void run_binary_task (const std::shared_ptr<cvt::gpu::GpuAlgorithm<short,1,float
 			cvt::cvTile<float> *outputTile = NULL;
 			(*gpu_algorithm)(inputTile,inputTileTwo,(const cvt::cvTile<float> **)&outputTile);
 			if (!outputTile) {
-				std::cout << "FAILURE TO GET DATA FROM DEVICE" << std::endl;
-				std::cout << "HERE" <<std::endl;
+				throw std::runtime_error("FAILED TO GET DATA FROM DEVICE");
 				exit(1);
 			}
 			worker_mutex.lock();
 			write_tiler.putCvTile(*outputTile,i);
 			worker_mutex.unlock();
+			delete outputTile;
 		}
 
 }
