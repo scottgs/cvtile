@@ -541,19 +541,10 @@ void launch_absDifference(const dim3 dimGrid, const dim3 dimBlock, const unsigne
 	absDiffernceTexture<InputPixelType,OutputPixelType><<<dimGrid, dimBlock, shmemSize, stream>>>(outputData, roiWidth, roiHeight);
 }
 
-/*
 template< typename InputPixelType, typename OutputPixelType>
 __global__ static
 void window_histogram_statistics(OutputPixelType * const  outputData, const unsigned int roiWidth,
-	    const unsigned int roiHeight, const int2 * relativeOffsets,
-	    const unsigned int numElements, const unsigned int buffer)
-*/
-
-template< typename InputPixelType, typename OutputPixelType>
-__global__ static
-void window_histogram_statistics(OutputPixelType * const  outputData, const unsigned int roiWidth,
-	    const unsigned int roiHeight,
-	    const unsigned int numElements, const unsigned int buffer)
+	    const unsigned int roiHeight, const unsigned int buffer)
 {
 
    // Data index now buffered
@@ -581,7 +572,7 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 		
 		double values[1024];
 
-		for(unsigned int i = 0; i < numElements; ++i)
+		for(unsigned int i = 0; i < relativeOffsetCount; ++i)
 		{
 			cur_x_index = xIndex + relativeOffsets[i].x;
 			cur_y_index = yIndex + relativeOffsets[i].y;	
@@ -602,11 +593,11 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 		double sum = 0;
 		double mean = 0;
 
-		for (unsigned int i = 0; i < numElements; ++i) {
+		for (unsigned int i = 0; i < relativeOffsetCount; ++i) {
 			sum = sum + values[i];
 		}
 
-		mean = (double) sum/ numElements;
+		mean = (double) sum/ relativeOffsetCount;
 
 		short num_bins = 128;
 		short histogram[128];
@@ -625,7 +616,7 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 		}
 		
 		short bin_idx = 0;
-		for (unsigned int i  = 0; i < numElements; ++i) {
+		for (unsigned int i  = 0; i < relativeOffsetCount; ++i) {
 		
 			bin_idx = (short) ((values[i] - min) / bin_width);
 		
@@ -641,7 +632,7 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 		 * Calculate the PDF array
 		 */
 		for (unsigned int i = 0; i < num_bins; ++i) {
-			pdf[i] = ((float) histogram[i]) / numElements;
+			pdf[i] = ((float) histogram[i]) / relativeOffsetCount;
 		}
 
 		 /* 
@@ -655,7 +646,7 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 		 }
 			
 		// Normalize data with the mean
-		for (unsigned int i = 0; i < numElements; ++i) {
+		for (unsigned int i = 0; i < relativeOffsetCount; ++i) {
 			values[i] = values[i] - mean;
 		}
 
@@ -664,12 +655,12 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 		 */
 		double variance = 0;
 		double std = 0;
-		for (unsigned int i = 0; i < numElements; ++i) {
+		for (unsigned int i = 0; i < relativeOffsetCount; ++i) {
 				 variance = variance + (values[i] * values[i]);
 
 		}
 		
-		variance = (double) variance / (numElements);
+		variance = (double) variance / (relativeOffsetCount);
 		std = sqrtf(variance);
 		
 		
@@ -701,12 +692,12 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 	double skewness = 0;
 	double kurtosis = 0;
 
-	for (int i = 0; i < numElements; ++i) {
+	for (int i = 0; i < relativeOffsetCount; ++i) {
 		skewness = skewness + (values[i] * values[i] * values[i]);
 		kurtosis = kurtosis + (values[i] * values[i] * values[i] * values[i]); 
 	}
-	skewness = (double)skewness/(numElements * variance * std);
-	kurtosis = (double) kurtosis/(numElements * variance * variance);
+	skewness = (double)skewness/(relativeOffsetCount * variance * std);
+	kurtosis = (double) kurtosis/(relativeOffsetCount * variance * variance);
 
 		//band 0 = entropy
 	outputData[pixel_one_d] = (OutputPixelType) (entropy * -1);	
