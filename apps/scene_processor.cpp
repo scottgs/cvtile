@@ -15,7 +15,7 @@ using namespace std;
 std::mutex worker_mutex;
 
 // interleaved task processing function
-void run_unary_task( CvTileAlgorithmFactory<short,1,short,1>& factory,						
+void run_unary_task( CvTileAlgorithmFactory<short,1,float,5>& factory,						
 							po::variables_map& ac,
 							cvt::Tiler& read_tiler,
 							cvt::Tiler& output_tiler,
@@ -24,7 +24,7 @@ void run_unary_task( CvTileAlgorithmFactory<short,1,short,1>& factory,
 							size_t num_workers,
 							size_t cuda_device_id);
 
-void run_binary_task(CvTileAlgorithmFactory<short,1,short,1>& factory,
+void run_binary_task(CvTileAlgorithmFactory<short,1,float,5>& factory,
 							po::variables_map& ac,
 							cvt::Tiler& read_tiler,
 							cvt::Tiler& read_tiler_two,
@@ -103,7 +103,7 @@ int main (int argc, char** argv) {
 		throw std::runtime_error("FAILED TO CREATE OUTPUT FILE");
 	}	
 
-  CvTileAlgorithmFactory<short,1,short,1> factory;
+  CvTileAlgorithmFactory<short,1,float,5> factory;
 
 	std::vector<std::thread> thread_group;
 	if (algorithm_config.count("input-image-1") && algorithm_config.count("input-image-2") == 0) { // UNARY CVTILE OPS
@@ -121,7 +121,6 @@ int main (int argc, char** argv) {
 
 	}
 	else {  // BINARY CVTILE OPS
-		std::cout << "HEEEEEE" << std::endl;
 		cvt::Tiler read_tiler_two;
 		read_tiler_two.setCvTileSize(tSize);
 
@@ -147,7 +146,7 @@ int main (int argc, char** argv) {
 }
 
 
-void run_unary_task(CvTileAlgorithmFactory<short,1,short,1>& factory,
+void run_unary_task(CvTileAlgorithmFactory<short,1,float,5>& factory,
 							po::variables_map& ac,
 							cvt::Tiler& read_tiler,
 							cvt::Tiler& write_tiler,
@@ -160,7 +159,7 @@ void run_unary_task(CvTileAlgorithmFactory<short,1,short,1>& factory,
 	 * Create instance of GPU algorithm based on requested algorithm
 	 * */
 	worker_mutex.lock();
-	std::shared_ptr<cvt::gpu::GpuAlgorithm<short,1,short,1> > gpu_algorithm = factory.makeCvTileAlgorithm(ac,cuda_device_id);
+	std::shared_ptr<cvt::gpu::GpuAlgorithm<short,1,float,5> > gpu_algorithm = factory.makeCvTileAlgorithm(ac,cuda_device_id);
 	worker_mutex.unlock();
 
 	cvt::cvTile<short> inputTile;
@@ -190,8 +189,8 @@ void run_unary_task(CvTileAlgorithmFactory<short,1,short,1>& factory,
 			/*
 			 * Run GPU Algorithm with assigned work tiles
 			 * */
-			cvt::cvTile<short> *outputTile = NULL;
-			if ( (*gpu_algorithm)(inputTile,(const cvt::cvTile<short> **)&outputTile) != cvt::ErrorCode::Ok) {
+			cvt::cvTile<float> *outputTile = NULL;
+			if ( (*gpu_algorithm)(inputTile,(const cvt::cvTile<float> **)&outputTile) != cvt::ErrorCode::Ok) {
 				throw std::runtime_error("FAILED TO RUN ALG");
 			}	
 
@@ -214,7 +213,7 @@ void run_unary_task(CvTileAlgorithmFactory<short,1,short,1>& factory,
 }
 
 
-void run_binary_task(CvTileAlgorithmFactory<short,1,short,1>& factory,
+void run_binary_task(CvTileAlgorithmFactory<short,1,float,5>& factory,
 							po::variables_map& ac,
 							cvt::Tiler& read_tiler,
 							cvt::Tiler& read_tiler_two,
@@ -229,7 +228,7 @@ void run_binary_task(CvTileAlgorithmFactory<short,1,short,1>& factory,
 	 * Create instance of GPU algorithm based on requested algorithm
 	 * */
 	worker_mutex.lock();
-	std::shared_ptr<cvt::gpu::GpuAlgorithm<short,1,short,1> > gpu_algorithm = factory.makeCvTileAlgorithm(ac,cuda_device_id);
+	std::shared_ptr<cvt::gpu::GpuAlgorithm<short,1,float,5> > gpu_algorithm = factory.makeCvTileAlgorithm(ac,cuda_device_id);
 	worker_mutex.unlock();
 
 	cvt::cvTile<short> inputTile;
@@ -262,8 +261,8 @@ void run_binary_task(CvTileAlgorithmFactory<short,1,short,1>& factory,
 			/*
 			 * Run GPU Algorithm with assigned work tiles
 			 * */
-			cvt::cvTile<short> *outputTile = NULL;
-			if ( (*gpu_algorithm)(inputTile,inputTileTwo,(const cvt::cvTile<short> **)&outputTile) != cvt::ErrorCode::Ok) {
+			cvt::cvTile<float> *outputTile = NULL;
+			if ( (*gpu_algorithm)(inputTile,inputTileTwo,(const cvt::cvTile<float> **)&outputTile) != cvt::ErrorCode::Ok) {
 				throw std::runtime_error("FAILED TO RUN ALG");
 			}	
 

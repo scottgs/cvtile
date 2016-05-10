@@ -398,12 +398,6 @@ __device__ __forceinline__ float fetchTexture<float, 1>(int x, int y)
 }
 
 //////////////////////////////////
-// constant memory for linear structuring elements
-/////////////////////////////////
-__constant__ int2 relativeOffsets [800];
-
-
-//////////////////////////////////
 // Kernels and Launch Functions //
 /////////////////////////////////
 
@@ -540,17 +534,19 @@ void launch_absDifference(const dim3 dimGrid, const dim3 dimBlock, const unsigne
 	absDiffernceTexture<InputPixelType,OutputPixelType><<<dimGrid, dimBlock, shmemSize, stream>>>(outputData, roiWidth, roiHeight);
 }
 
-
-/*void window_histogram_statistics(OutputPixelType * const  outputData, const unsigned int roiWidth,
-	    const unsigned int roiHeight, const int2 * relativeOffsets,
+/*template< typename InputPixelType, typename OutputPixelType>
+__global__ static
+void window_histogram_statistics(OutputPixelType * const  outputData, const unsigned int roiWidth,
+	    const unsigned int roiHeight,
 	    const unsigned int numElements, const unsigned int buffer)*/
+
+
 
 template< typename InputPixelType, typename OutputPixelType>
 __global__ static
 void window_histogram_statistics(OutputPixelType * const  outputData, const unsigned int roiWidth,
-	    const unsigned int roiHeight,
+	    const unsigned int roiHeight, const int2 * relativeOffsets,
 	    const unsigned int numElements, const unsigned int buffer)
-
 {
 
    // Data index now buffered
@@ -727,24 +723,24 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 
 }
 
-/*template< typename InputPixelType, typename OutputPixelType >
-//void launch_window_histogram_statistics (const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
-//		   const cudaStream_t stream,  OutputPixelType * const outputData,
-//		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets,
-//		   const unsigned int numElements, const unsigned int buffer) {
-//	window_histogram_statistics<InputPixelType, OutputPixelType><<<dimGrid, dimBlock, shmemSize,stream>>>(outputData, roiHeight, roiWidth, relativeOffsets, numElements, buffer);
-}*/
-
 template< typename InputPixelType, typename OutputPixelType >
+void launch_window_histogram_statistics (const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
+		   const cudaStream_t stream,  OutputPixelType * const outputData,
+		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets,
+		   const unsigned int numElements, const unsigned int buffer) {
+	window_histogram_statistics<InputPixelType, OutputPixelType><<<dimGrid, dimBlock, shmemSize,stream>>>(outputData, roiHeight, roiWidth, relativeOffsets, numElements, buffer);
+}
+
+/*template< typename InputPixelType, typename OutputPixelType >
 void launch_window_histogram_statistics (const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
 		   const cudaStream_t stream,  OutputPixelType * const outputData,
 		   const unsigned int roiWidth,  const unsigned int roiHeight, 
 		   const unsigned int numElements, const unsigned int buffer) {
 	window_histogram_statistics<InputPixelType, OutputPixelType><<<dimGrid, dimBlock, shmemSize,stream>>>(outputData, roiHeight, roiWidth, numElements, buffer);
-}
+}*/
 
 
-cudaError_t load_relative_offsets(const cudaStream_t stream, int2* host_offsets, size_t num_offsets) {
+/*cudaError_t load_relative_offsets(const cudaStream_t stream, int2* host_offsets, size_t num_offsets) {
 	int2* cpnt;
 	cudaError_t cuer;
 	cudaGetSymbolAddress((void **)&cpnt,relativeOffsets);
@@ -758,7 +754,7 @@ cudaError_t load_relative_offsets(const cudaStream_t stream, int2* host_offsets,
 	);
 	cuer = cudaGetLastError();
 	return cuer;
-}
+}*/
 
 
 /* Assumes 2-D Grid, 2-D Block Config, 1 to 1 Mapping */

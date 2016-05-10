@@ -101,7 +101,7 @@ ErrorCode GpuWHS<InputPixelType, InputBandCount, OutputPixelType, OutputBandCoun
 	 //	
 	 //
 	 //std::cout << "width=" << newWidth <<" height=" << newHeight << std::endl;
-	cvt::gpu::launch_window_histogram_statistics<InputPixelType, OutputPixelType>(dimGrid, dimBlock, 0, this->stream,(OutputPixelType *)this->gpuOutputData,this->roiSize_.width,this->roiSize_.height,this->relativeOffsets_.size(),this->bufferWidth_);
+	cvt::gpu::launch_window_histogram_statistics<InputPixelType, OutputPixelType>(dimGrid, dimBlock, 0, this->stream,(OutputPixelType *)this->gpuOutputData,this->roiSize_.width,this->roiSize_.height,this->relativeOffsetsGpu_, this->relativeOffsets_.size(),this->bufferWidth_);
 	
 	// check for kernel launch success	
 	cuer = cudaGetLastError();
