@@ -404,8 +404,6 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 		throw std::runtime_error("GPU WHS TO CONSTANT MEMORY");
 	}
 
-	this->lastError = cuer;
-
     return this->lastError;
 }
 
