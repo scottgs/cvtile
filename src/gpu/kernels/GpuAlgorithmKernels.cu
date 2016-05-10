@@ -73,40 +73,22 @@ template void launchConvolution<short,short,short>(dim3 dimGrid, dim3 dimBlock, 
 						unsigned int outputWidth, unsigned int outputHeight, unsigned int bandCount,
 						bool usingTexture);	
 
+
 template void launch_window_histogram_statistics<unsigned short, float>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
 		   const cudaStream_t stream,  float * const outputData,
-		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets,
-		   const unsigned int numElements, const unsigned int buffer);
+		   const unsigned int roiWidth,  const unsigned int roiHeight, const unsigned int buffer);
 
 template void launch_window_histogram_statistics<short, float>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
 		   const cudaStream_t stream,  float * const outputData,
-		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets,
-		   const unsigned int numElements, const unsigned int buffer);
-
-template void launch_window_histogram_statistics<float, float>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
-		   const cudaStream_t stream,  float * const outputData,
-		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets,
-		   const unsigned int numElements, const unsigned int buffer);
-
-/*template void launch_window_histogram_statistics<unsigned short, float>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
-		   const cudaStream_t stream,  float * const outputData,
-		   const unsigned int roiWidth,  const unsigned int roiHeight,
-			 const unsigned int numElements, const unsigned int buffer);
-
-template void launch_window_histogram_statistics<short, float>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
-		   const cudaStream_t stream,  float * const outputData,
-		   const unsigned int roiWidth,  const unsigned int roiHeight, 		   
-			 const unsigned int numElements, const unsigned int buffer);
+		   const unsigned int roiWidth,  const unsigned int roiHeight, const unsigned int buffer);
 
 template void launch_window_histogram_statistics<short, short>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
 		   const cudaStream_t stream,  short * const outputData,
-		   const unsigned int roiWidth,  const unsigned int roiHeight, 		   
-			 const unsigned int numElements, const unsigned int buffer);
+		   const unsigned int roiWidth,  const unsigned int roiHeight, const unsigned int buffer);
 
 template void launch_window_histogram_statistics<float, float>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
 		   const cudaStream_t stream,  float * const outputData,
-		   const unsigned int roiWidth,  const unsigned int roiHeight, 		   
-			 const unsigned int numElements, const unsigned int buffer);*/
+		   const unsigned int roiWidth,  const unsigned int roiHeight, const unsigned int buffer);
 
 
 

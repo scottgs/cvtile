@@ -412,11 +412,11 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 		throw std::runtime_error("GPU WHS () FAILED TO MEMCPY RELATIVE COORDS ON TO DEVICE");
 	}
 	
-	//cuer = cvt::gpu::load_relative_offsets(this->stream,this->relativeOffsets_.data(), this->relativeOffsets_.size()); 
-	//if (cuer != cudaSuccess) {
-	//	std::cout << "CUDA ERR = " << cuer << std::endl;
-	//	throw std::runtime_error("GPU WHS TO CONSTANT MEMORY");
-	//}
+	cuer = cvt::gpu::load_relative_offsets(this->stream,this->relativeOffsets_.data(), this->relativeOffsets_.size()); 
+	if (cuer != cudaSuccess) {
+		std::cout << "CUDA ERR = " << cuer << std::endl;
+		throw std::runtime_error("GPU WHS TO CONSTANT MEMORY");
+	}
 
 	return this->lastError;
 }
