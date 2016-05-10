@@ -398,8 +398,7 @@ void GpuWindowFilterAlgorithm<InputPixelType,InputBandCount, OutputPixelType, Ou
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
 ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::transferRelativeOffsetsToDevice() 
 {
-	
-	cuer = cvt::gpu::load_relative_offsets(this->stream,this->relativeOffsets_.data(), this->relativeOffsets_.size()); 
+	cudaError cuer = cvt::gpu::load_relative_offsets(this->stream,this->relativeOffsets_.data(), this->relativeOffsets_.size()); 
 	if (cuer != cudaSuccess) {
 		std::cout << "CUDA ERR = " << cuer << std::endl;
 		throw std::runtime_error("GPU WHS TO CONSTANT MEMORY");
