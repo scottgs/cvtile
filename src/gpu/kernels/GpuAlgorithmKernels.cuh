@@ -721,16 +721,6 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 
 }
 
-/*
-template< typename InputPixelType, typename OutputPixelType >
-void launch_window_histogram_statistics (const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
-		   const cudaStream_t stream,  OutputPixelType * const outputData,
-		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets,
-		   const unsigned int numElements, const unsigned int buffer) {
-	window_histogram_statistics<InputPixelType, OutputPixelType><<<dimGrid, dimBlock, shmemSize,stream>>>(outputData, roiHeight, roiWidth, relativeOffsets, numElements, buffer);
-}
-*/
-
 template< typename InputPixelType, typename OutputPixelType >
 void launch_window_histogram_statistics (const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
 		   const cudaStream_t stream,  OutputPixelType * const outputData,
