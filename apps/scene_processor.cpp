@@ -14,21 +14,26 @@ using namespace std;
 
 std::mutex worker_mutex;
 
-// interleaved task processing
-void run_unary_task(const std::shared_ptr<cvt::gpu::GpuAlgorithm<short,1,float,5> >& gpu_algorithm, 
+// interleaved task processing function
+void run_unary_task( CvTileAlgorithmFactory<short,1,short,1>& factory,						
+							po::variables_map& ac,
 							cvt::Tiler& read_tiler,
 							cvt::Tiler& output_tiler,
 							ssize_t buffer_radius,
 							size_t start_tile, 
-							size_t num_workers);
+							size_t num_workers,
+							size_t cuda_device_id);
 
-void run_binary_task (const std::shared_ptr<cvt::gpu::GpuAlgorithm<short,1,float,5> >& gpu_algorithm, 
+void run_binary_task(CvTileAlgorithmFactory<short,1,short,1>& factory,
+							po::variables_map& ac,
 							cvt::Tiler& read_tiler,
 							cvt::Tiler& read_tiler_two,
 							cvt::Tiler& write_tiler,
 							ssize_t buffer_radius,
 							size_t start_tile, 
-							size_t num_workers);
+							size_t num_workers,
+							size_t cuda_device_id );
+
 
 	// TODO: re-adjust the number of threads to use GPU, might want to do a CPU and GPU hybrid solution in the future
 
@@ -45,7 +50,7 @@ int main (int argc, char** argv) {
 	}
 	
 	
-	//vm["algorithm"].as<std::string>();
+
 
 	if (algorithm_config.count("tile-width") == 0 || algorithm_config.count("tile-height") == 0) { 
 		std::cout << "NO TILE WIDTH SET OR WIDTH SET\n";
@@ -59,7 +64,7 @@ int main (int argc, char** argv) {
 	size_t max_num_concurrent_threads = std::thread::hardware_concurrency();
 
 	// if requested threads is larger than max number of concurrent threads
-	// // requested threads is max number of concurrent threads
+	// requested threads is max number of concurrent threads
 	if ( num_threads_requested > max_num_concurrent_threads) {
 		num_threads_requested = max_num_concurrent_threads;
 	}
@@ -98,27 +103,14 @@ int main (int argc, char** argv) {
 		throw std::runtime_error("FAILED TO CREATE OUTPUT FILE");
 	}	
 
-	// re-adjust the number of threads to use GPU, might want to do a CPU and GPU hybrid solution in the future
-	std::vector<int> gpu_ids = cvt::gpu::getGpuDeviceIds();
-
-  CvTileAlgorithmFactory<short,1,float,5> factory;
-	std::vector<std::shared_ptr<cvt::gpu::GpuAlgorithm<short,1,float,5> > > gpu_algorithms;
+  CvTileAlgorithmFactory<short,1,short,1> factory;
 
 	std::vector<std::thread> thread_group;
-	//num_threads_requested = 2;
-	// create tiler processors per GPU
-	for (size_t i = 0; i < gpu_ids.size() && i < num_threads_requested; ++i) {
-		gpu_algorithms.push_back(factory.makeCvTileAlgorithm(algorithm_config,i + 2));
-	}
-	/*std::shared_ptr<cvt::gpu::GpuAlgorithm<short,1,float,5> > ga = factory.makeCvTileAlgorithm(algorithm_config);
-	cvt::cvTile<short> inputTile;*/
-
-	if (algorithm_config.count("input-image-1") && algorithm_config.count("input-image-2") == 0) {
-
-		if (num_threads_requested > 1) {
+	if (algorithm_config.count("input-image-1") && algorithm_config.count("input-image-2") == 0) { // UNARY CVTILE OPS
+		
 			// spawn threads
 			for (size_t i = 0; i < num_threads_requested; ++i) {
-				thread_group.push_back(std::thread(run_unary_task,std::ref(gpu_algorithms[i]), std::ref(read_tiler),std::ref(write_tiler),buffer_radius,i,num_threads_requested));
+				thread_group.emplace_back(run_unary_task,std::ref(factory),std::ref(algorithm_config), std::ref(read_tiler),std::ref(write_tiler),buffer_radius,i,num_threads_requested, i+ 2);
 				std::cout << "spawned thread" << std::endl;
 			}
 
@@ -127,33 +119,24 @@ int main (int argc, char** argv) {
 				thread_group[i].join();
 			}
 
-		}
-		else {
-				std::cout << "RUN SINGLE THREADED" << std::endl;
-				run_unary_task (gpu_algorithms[0], read_tiler,write_tiler,buffer_radius,0, 1); 
-		}
 	}
-	else {
+	else {  // BINARY CVTILE OPS
+		std::cout << "HEEEEEE" << std::endl;
 		cvt::Tiler read_tiler_two;
-		
-		// greater than 1 thread or just run without threads
-		if (num_threads_requested > 1) {
-			// spawn threads
-			for (size_t i = 0; i < num_threads_requested; ++i) {
-				thread_group.push_back(std::thread(run_binary_task,std::ref(gpu_algorithms[i]), std::ref(read_tiler),std::ref(read_tiler_two),std::ref(write_tiler),std::ref(buffer_radius),i,num_threads_requested));
-			}
+		read_tiler_two.setCvTileSize(tSize);
+
+		if (cvt::NoError != read_tiler_two.open(algorithm_config["input-image-2"].as<std::string>())) {
+			throw std::runtime_error("FAILED TO OPEN INPUT FILE");
+		}
+		// spawn threads
+		for (size_t i = 0; i < num_threads_requested; ++i) {
+			thread_group.emplace_back(run_binary_task,std::ref(factory),std::ref(algorithm_config), std::ref(read_tiler),std::ref(read_tiler_two),std::ref(write_tiler),buffer_radius,i,num_threads_requested, i+ 2);
+		}
 
 			// join spawned threads when task completed
-			for (size_t i = 0; i < num_threads_requested; ++i) {
-				thread_group[i].join();
-			}
-
+		for (size_t i = 0; i < num_threads_requested; ++i) {
+			thread_group[i].join();
 		}
-		else {
-				// run in sequential order
-				run_binary_task (gpu_algorithms[0], read_tiler,read_tiler_two,write_tiler,buffer_radius,0, 1); 
-		}
-
 		read_tiler_two.close();
 	}
 	write_tiler.close();
@@ -164,38 +147,66 @@ int main (int argc, char** argv) {
 }
 
 
-void run_unary_task(const std::shared_ptr<cvt::gpu::GpuAlgorithm<short,1,float,5> >& gpu_algorithm, 
+void run_unary_task(CvTileAlgorithmFactory<short,1,short,1>& factory,
+							po::variables_map& ac,
 							cvt::Tiler& read_tiler,
 							cvt::Tiler& write_tiler,
 							ssize_t buffer_radius,
 							size_t start_tile, 
-							size_t num_workers)
+							size_t num_workers,
+							size_t cuda_device_id )
 {
-
-	cvt::cvTile<short> inputTile;
+	/*
+	 * Create instance of GPU algorithm based on requested algorithm
+	 * */
 	worker_mutex.lock();
-	size_t total_tiles = read_tiler.getCvTileCount();
-	std::cout << "NUM TITLES " << total_tiles << std::endl;
+	std::shared_ptr<cvt::gpu::GpuAlgorithm<short,1,short,1> > gpu_algorithm = factory.makeCvTileAlgorithm(ac,cuda_device_id);
 	worker_mutex.unlock();
 
+	cvt::cvTile<short> inputTile;
+
+	/*
+	 * How many tiles are present that can be worked up to
+	 * */
+	worker_mutex.lock();
+	size_t total_tiles = read_tiler.getCvTileCount();
+	worker_mutex.unlock();
+	
+	/*
+	 * Process assigned tiles 
+	 *  */
 	for (size_t i = start_tile; i < total_tiles; i += num_workers) {
-			
+			/*
+			 * Pull assigned tiles from raw image
+			 * */
 			worker_mutex.lock();
 			inputTile = read_tiler.getCvTile<short>(i, buffer_radius);
 			if (inputTile.getBandCount() == 0) {
 				std::cout << "BAD TILE " << i << std::endl;
+				abort();
 			}
-			//std::cout << "I Worked: " << i << std::endl;
 			worker_mutex.unlock();
+			
+			/*
+			 * Run GPU Algorithm with assigned work tiles
+			 * */
+			cvt::cvTile<short> *outputTile = NULL;
+			if ( (*gpu_algorithm)(inputTile,(const cvt::cvTile<short> **)&outputTile) != cvt::ErrorCode::Ok) {
+				throw std::runtime_error("FAILED TO RUN ALG");
+			}	
 
-			cvt::cvTile<float> *outputTile = NULL;
-			(*gpu_algorithm)(inputTile,(const cvt::cvTile<float> **)&outputTile);
 			if (!outputTile) {
 				throw std::runtime_error("FAILED TO GET DATA FROM DEVICE");
 			}
+
+			/*
+			 * Write assigned output tile
+			 * */
+
 			worker_mutex.lock();
-			if (cvt::NoError != write_tiler.putCvTile(*outputTile,i)) {
+			if (write_tiler.putCvTile(*outputTile,i) != cvt::NoError) {
 				std::cout << "FAILED TO WRITE TILE " << i << std::endl;
+				abort();
 			}
 			worker_mutex.unlock();
 			delete outputTile;
@@ -203,35 +214,73 @@ void run_unary_task(const std::shared_ptr<cvt::gpu::GpuAlgorithm<short,1,float,5
 }
 
 
-void run_binary_task (const std::shared_ptr<cvt::gpu::GpuAlgorithm<short,1,float,5> >& gpu_algorithm, 
+void run_binary_task(CvTileAlgorithmFactory<short,1,short,1>& factory,
+							po::variables_map& ac,
 							cvt::Tiler& read_tiler,
 							cvt::Tiler& read_tiler_two,
 							cvt::Tiler& write_tiler,
 							ssize_t buffer_radius,
 							size_t start_tile, 
-							size_t num_workers) 
-{
-		cvt::cvTile<short> inputTile;
-		size_t total_tiles = read_tiler.getCvTileCount();
-		cvt::cvTile<short> inputTileTwo;
+							size_t num_workers,
+							size_t cuda_device_id )
 
-		for (size_t i = start_tile; i < total_tiles; i += num_workers) {
-			
+{
+	/*
+	 * Create instance of GPU algorithm based on requested algorithm
+	 * */
+	worker_mutex.lock();
+	std::shared_ptr<cvt::gpu::GpuAlgorithm<short,1,short,1> > gpu_algorithm = factory.makeCvTileAlgorithm(ac,cuda_device_id);
+	worker_mutex.unlock();
+
+	cvt::cvTile<short> inputTile;
+	cvt::cvTile<short> inputTileTwo;
+
+	/*
+	 * How many tiles are present that can be worked up to
+	 * */
+	worker_mutex.lock();
+	const size_t total_tiles = read_tiler.getCvTileCount();
+	worker_mutex.unlock();
+
+	/*
+	 * Process assigned tiles 
+	 *  */
+	for (size_t i = start_tile; i < total_tiles; i += num_workers) {
+		
+			/*
+			 * Pull assigned tiles from raw image
+			 * */
 			worker_mutex.lock();
 			inputTile = read_tiler.getCvTile<short>(i, buffer_radius);
 			inputTileTwo = read_tiler_two.getCvTile<short>(i, buffer_radius);
+			if (inputTile.getBandCount() == 0 || inputTileTwo.getBandCount() == 0 ) {
+				std::cout << "BAD TILE " << i << std::endl;
+				abort();
+			}
 			worker_mutex.unlock();
 
-			cvt::cvTile<float> *outputTile = NULL;
-			(*gpu_algorithm)(inputTile,inputTileTwo,(const cvt::cvTile<float> **)&outputTile);
+			/*
+			 * Run GPU Algorithm with assigned work tiles
+			 * */
+			cvt::cvTile<short> *outputTile = NULL;
+			if ( (*gpu_algorithm)(inputTile,inputTileTwo,(const cvt::cvTile<short> **)&outputTile) != cvt::ErrorCode::Ok) {
+				throw std::runtime_error("FAILED TO RUN ALG");
+			}	
+
 			if (!outputTile) {
 				throw std::runtime_error("FAILED TO GET DATA FROM DEVICE");
-				exit(1);
 			}
+			/*
+			 * Write assigned output tile
+			 * */
 			worker_mutex.lock();
-			write_tiler.putCvTile(*outputTile,i);
+			if (write_tiler.putCvTile(*outputTile,i) != cvt::NoError) {
+				std::cout << "FAILED TO WRITE TILE " << i << std::endl;
+				abort();
+			}
 			worker_mutex.unlock();
 			delete outputTile;
 		}
+
 
 }

@@ -152,8 +152,8 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 	}
 
 	// Invoke kernel with empirically chosen block size
-	unsigned short bW = 16;
-	unsigned short bH = 16;
+	unsigned short bW = 16; // 16
+	unsigned short bH = 16; // 16
 
 
 	if ((unsigned int) tile.getROI().x != bufferWidth_) {
@@ -405,12 +405,19 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 		cudaMemcpyHostToDevice,
 		this->stream
 	);
+
 	cudaError cuer = cudaGetLastError();
 	if (cuer != cudaSuccess) {
 		std::cout << "CUDA ERR = " << cuer << std::endl;
 		throw std::runtime_error("GPU WHS () FAILED TO MEMCPY RELATIVE COORDS ON TO DEVICE");
 	}
 	
+	cuer = cvt::gpu::load_relative_offsets(this->stream,this->relativeOffsets_.data(), this->relativeOffsets_.size()); 
+	if (cuer != cudaSuccess) {
+		std::cout << "CUDA ERR = " << cuer << std::endl;
+		throw std::runtime_error("GPU WHS TO CONSTANT MEMORY");
+	}
+
 	return this->lastError;
 }
 

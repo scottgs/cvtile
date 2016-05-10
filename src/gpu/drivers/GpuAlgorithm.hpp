@@ -151,6 +151,12 @@ class GpuAlgorithm{
 
 		virtual ErrorCode operator()(const cvt::cvTile<InputPixelType>& tile,
 													  const cvt::cvTile<OutputPixelType> ** outTile) = 0;
+
+	 virtual ErrorCode operator()(const cvt::cvTile<InputPixelType>& tile,
+	 													const cvt::cvTile<InputPixelType>& tileTwo,
+													  const cvt::cvTile<OutputPixelType> ** outTile);
+
+
 		const cv::Size2i getDataSize() const;
 
 		std::string errToString(const ErrorCode err) const;
@@ -462,7 +468,7 @@ ErrorCode GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBa
 	unsigned char* tileDataPtr = NULL;
 	int offsetY = 0;
 
-	cudaError cuer = cudaGetLastError();	
+	cudaError cuer;// = cudaGetLastError();	
 
 	if(usingTexture){
 		tileDataPtr = tile[0].data;
@@ -472,7 +478,7 @@ ErrorCode GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBa
 			cudaMemcpyHostToDevice,					
 			stream
 		);
-		cuer = cudaGetLastError();		
+		//cuer = cudaGetLastError();		
 	}	
 	else
 	{
@@ -586,6 +592,16 @@ const size_t GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, Outpu
 {
 	return outputDataSize;
 }
+
+// updated for now needs work
+template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
+ErrorCode GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::operator()(const cvt::cvTile<InputPixelType>& tile,
+	 													const cvt::cvTile<InputPixelType>& tileTwo,
+													  const cvt::cvTile<OutputPixelType> ** outTile) 
+{
+	return Ok;
+}
+
 
 } /* end gpu namespace */
 } /* end cvt namespace */

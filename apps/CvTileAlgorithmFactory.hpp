@@ -85,7 +85,7 @@ CvTileAlgorithmFactory<InputPixelType, InputBandCount, OutputPixelType, OutputBa
 		size_t filter_type = gpu_alg_params["filter-type"].as<size_t>();
 			
 		GpuWhs *whs = new GpuWhs(cuda_device_id,roi_width,roi_height,buffer_radius);		
-		std::shared_ptr<GpuWhs> whs_ptr(whs);	
+		std::shared_ptr<GpuWhs> whs_ptr(whs);
 		if( cvt::ErrorCode::Ok != whs_ptr->initializeDevice(static_cast<cvt::gpu::windowRadiusType>(filter_type))) {
 			return nullptr;
 		}

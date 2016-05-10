@@ -51,6 +51,8 @@ cudaError_t bind_texture(cudaArray* gpuInputData);
 template <typename TextureType, int TextureIndex>
 cudaError_t unbind_texture();
 
+cudaError_t load_relative_offsets(const cudaStream_t stream, int2* host_offsets, size_t num_offsets); 
+
 template< typename InputPixelType, typename OutputPixelType >
 void launch_simpleDataCopy(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream, InputPixelType * in_data, 
 						OutputPixelType * gpu_output_data, unsigned int outputWidth,  unsigned int outputHeight, unsigned int bandCount,
@@ -61,10 +63,16 @@ void launch_absDifference(const dim3 dimGrid, const dim3 dimBlock, unsigned int 
 						  OutputPixelType * outputData, const unsigned int roiWidth,
 						  const unsigned int roiHeight);
 
-template <typename InputPixelType, typename OutputPixelType>
+/*template <typename InputPixelType, typename OutputPixelType>
 void launch_window_histogram_statistics(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
 		   const cudaStream_t stream,  OutputPixelType * const outputData,
 		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets,
+		   const unsigned int numElements, unsigned int buffer);*/
+
+template <typename InputPixelType, typename OutputPixelType>
+void launch_window_histogram_statistics(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
+		   const cudaStream_t stream,  OutputPixelType * const outputData,
+		   const unsigned int roiWidth,  const unsigned int roiHeight,
 		   const unsigned int numElements, unsigned int buffer);
 
 template <typename InputPixelType, typename OutputPixelType>

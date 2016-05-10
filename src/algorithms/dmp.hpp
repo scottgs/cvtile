@@ -47,6 +47,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <stdexcept>
 #include <iostream>
 #include <sstream>
+#include <utility>
 
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/gpu/gpu.hpp>
@@ -220,7 +221,7 @@ cv::Mat cvt::algorithms::dilationByReconstructionDownhill(const cv::Mat& mask, c
 				throw std::runtime_error(msg.str()); // the marker must always be LTE the mask, by definition
 			}
 
-			valueLocationListMap[pixelValue].push_back( std::make_pair<int,int>(i,j) );
+			valueLocationListMap[pixelValue].push_back(std::pair<int,int>(i,j) );
 		}
 
 	// No valid pixels or values above floor?  Return the input as output
@@ -278,7 +279,7 @@ cv::Mat cvt::algorithms::dilationByReconstructionDownhill(const cv::Mat& mask, c
 			// a = (pre_y,x), b = (y,pre_x), c = (post_y,x), d = (y,post_x)
 
 			// Neighbor Pixel 'a'
-			const std::pair<int,int> a = std::make_pair<int,int>(pre_y,x);
+			const std::pair<int,int> a = std::pair<int,int>(pre_y,x);
 			const OperatingPixelType mask_a = mask.at<OperatingPixelType>(pre_y,x);
 			// if neighbor index is within bounds and not finalized
 			if ((finalizedPixels.find(a) == finalizedPixels.end()) && (pre_y >= 0) && (mask_a > 0))
@@ -302,7 +303,7 @@ cv::Mat cvt::algorithms::dilationByReconstructionDownhill(const cv::Mat& mask, c
 			}
 
 			// Neighbor Pixel 'b'
-			const std::pair<int,int> b = std::make_pair<int,int>(y,pre_x);
+			const std::pair<int,int> b = std::pair<int,int>(y,pre_x);
 			const OperatingPixelType mask_b = mask.at<OperatingPixelType>(y,pre_x);
 			if ((finalizedPixels.find(b) == finalizedPixels.end()) && (pre_x >= 0) && (mask_b > 0))
 			{
@@ -325,7 +326,7 @@ cv::Mat cvt::algorithms::dilationByReconstructionDownhill(const cv::Mat& mask, c
 			}
 
 			// Neighbor Pixel 'c'
-			const std::pair<int,int> c = std::make_pair<int,int>(post_y,x);
+			const std::pair<int,int> c = std::pair<int,int>(post_y,x);
 			const OperatingPixelType mask_c = mask.at<OperatingPixelType>(post_y,x);
 			if ((finalizedPixels.find(c) == finalizedPixels.end()) && (post_y < size.height) && (mask_c > 0))
 			{
@@ -348,7 +349,7 @@ cv::Mat cvt::algorithms::dilationByReconstructionDownhill(const cv::Mat& mask, c
 			}
 
 			// Neighbor Pixel 'd'
-			const std::pair<int,int> d = std::make_pair<int,int>(y,post_x);
+			const std::pair<int,int> d = std::pair<int,int>(y,post_x);
 			const OperatingPixelType mask_d = mask.at<OperatingPixelType>(y,post_x);
 			if ((finalizedPixels.find(d) == finalizedPixels.end()) && (post_x < size.width) && (mask_d > 0))
 			{
@@ -501,7 +502,7 @@ cv::Mat cvt::algorithms::erosionByReconstructionUphill(const cv::Mat& mask, cons
 				throw std::logic_error(msg.str()); // the marker must always be GTE the mask, by definition
 			}
 
-			valueLocationListMap[pixelValue].push_back( std::make_pair<int,int>(i,j) );
+			valueLocationListMap[pixelValue].push_back( std::pair<int,int>(i,j) );
 		}
 
 	// No valid pixels or values above floor?  Return the input as output
@@ -558,7 +559,7 @@ cv::Mat cvt::algorithms::erosionByReconstructionUphill(const cv::Mat& mask, cons
 			// a = (pre_y,x), b = (y,pre_x), c = (post_y,x), d = (y,post_x)
 
 			// Neighbor Pixel 'a'
-			const std::pair<int,int> a = std::make_pair<int,int>(pre_y,x);
+			const std::pair<int,int> a = std::pair<int,int>(pre_y,x);
 			const OperatingPixelType mask_a = mask.at<OperatingPixelType>(pre_y,x);
 			// if neighbor index is within bounds and not finalized
 			if ((finalizedPixels.find(a) == finalizedPixels.end()) && (pre_y >= 0) && (mask_a > 0))
@@ -582,7 +583,7 @@ cv::Mat cvt::algorithms::erosionByReconstructionUphill(const cv::Mat& mask, cons
 			}
 
 			// Neighbor Pixel 'b'
-			const std::pair<int,int> b = std::make_pair<int,int>(y,pre_x);
+			const std::pair<int,int> b = std::pair<int,int>(y,pre_x);
 			const OperatingPixelType mask_b = mask.at<OperatingPixelType>(y,pre_x);
 			if ((finalizedPixels.find(b) == finalizedPixels.end()) && (pre_x >= 0) && (mask_b > 0))
 			{
@@ -605,7 +606,7 @@ cv::Mat cvt::algorithms::erosionByReconstructionUphill(const cv::Mat& mask, cons
 			}
 
 			// Neighbor Pixel 'c'
-			const std::pair<int,int> c = std::make_pair<int,int>(post_y,x);
+			const std::pair<int,int> c = std::pair<int,int>(post_y,x);
 			const OperatingPixelType mask_c = mask.at<OperatingPixelType>(post_y,x);
 			if ((finalizedPixels.find(c) == finalizedPixels.end()) && (post_y < size.height) && (mask_c > 0))
 			{
@@ -628,7 +629,7 @@ cv::Mat cvt::algorithms::erosionByReconstructionUphill(const cv::Mat& mask, cons
 			}
 
 			// Neighbor Pixel 'd'
-			const std::pair<int,int> d = std::make_pair<int,int>(y,post_x);
+			const std::pair<int,int> d = std::pair<int,int>(y,post_x);
 			const OperatingPixelType mask_d = mask.at<OperatingPixelType>(y,post_x);
 			if ((finalizedPixels.find(d) == finalizedPixels.end()) && (post_x < size.width) && (mask_d > 0))
 			{
