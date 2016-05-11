@@ -205,7 +205,7 @@ class gpuWHSTestSuite : public CxxTest::TestSuite
 
 		void testWindowHistogramSingleBandImage () {
 			std::cout << std::endl << "GPU WHS VERIFICATION TEST" << std::endl;
-			int cuda_device_id = 0;
+			int cuda_device_id = 2;
 			//unsigned int window_size = 1;
 
 
