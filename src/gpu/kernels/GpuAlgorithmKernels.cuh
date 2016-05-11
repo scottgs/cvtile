@@ -611,7 +611,7 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 		short bin_idx = 0;
 		for (unsigned int i  = 0; i < relativeOffsetCount; ++i) {
 		
-			bin_idx = (short) ((fetchTexture<InputPixelType, 0>(xIndex + relativeOffsets[i].x, yIndex + relativeOffsets[i].y); - min) / bin_width);
+			bin_idx = (short) ((fetchTexture<InputPixelType, 0>(xIndex + relativeOffsets[i].x, yIndex + relativeOffsets[i].y) - min) / bin_width);
 		
 			if (bin_idx >= 0 && bin_idx < num_bins) {
 				histogram[bin_idx]++;
