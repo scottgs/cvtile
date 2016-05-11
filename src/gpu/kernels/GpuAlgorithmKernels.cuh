@@ -566,7 +566,7 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 		//init texture support; work in progress
 
 		InputPixelType pixel_temp = fetchTexture<InputPixelType, 0>(xIndex, yIndex);
-		InputPixelType min = pixel_temp
+		InputPixelType min = pixel_temp;
 		InputPixelType max = pixel_temp;
 		
 		//double values[1024];
