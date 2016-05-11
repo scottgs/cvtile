@@ -650,7 +650,7 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 		double std = 0;
 		for (unsigned int i = 0; i < relativeOffsetCount; ++i) {
 			pixel_temp = fetchTexture<InputPixelType, 0>(xIndex + relativeOffsets[i].x, yIndex + relativeOffsets[i].y);
-			variance = variance + ((double)pixel_temp * pixel_temp);
+			variance = variance + (pixel_temp * pixel_temp);
 
 		}
 		
