@@ -577,8 +577,11 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 			// Roll sum calculation into min/max search for obvious reasons
 			sum += pixel_temp;
 
-			max = pixel_temp > max ? pixel_temp : max;
-			min = pixel_temp < min ? pixel_temp : min;
+			if (pixel_temp > max) {
+				max = pixel_temp;
+			} else if (pixel_temp < min) {
+				min = pixel_temp;
+			}
 		}
 
 		mean = sum / relativeOffsetCount;
