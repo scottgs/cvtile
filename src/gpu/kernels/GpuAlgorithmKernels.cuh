@@ -673,7 +673,7 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 		double kurtosis = 0;
 
 		for (int i = 0; i < relativeOffsetCount; ++i) {
-			double pixel_difference = fetchTexture<InputPixelType, 0>(xIndex + relativeOffsets[i].x, yIndex + relativeOffsets[i].y) - mean;
+			pixel_difference = fetchTexture<InputPixelType, 0>(xIndex + relativeOffsets[i].x, yIndex + relativeOffsets[i].y) - mean;
 			double diff_cubed = pixel_difference * pixel_difference * pixel_difference;
 			skewness += diff_cubed;
 			kurtosis += diff_cubed * pixel_difference;
