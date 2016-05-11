@@ -554,7 +554,7 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
    const unsigned int xIndex = roiXidx + buffer;
    const unsigned int yIndex = roiYidx + buffer;
 	
-   if(roiYidx < roiHeight && roiXidx < roiWidth && xIndex < (roiWidth + 2*buffer) && yIndex < (roiHeight + 2*buffer)))
+   if(roiYidx < roiHeight && roiXidx < roiWidth && xIndex < (roiWidth + 2*buffer) && yIndex < (roiHeight + 2*buffer))
    {
 		// Output size is the ROI size
 		const unsigned int pixel_one_d = roiXidx + roiYidx * roiWidth; // xIndex + yIndex
