@@ -688,8 +688,8 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 
 	for (int i = 0; i < relativeOffsetCount; ++i) {
 		pixel_temp = fetchTexture<InputPixelType, 0>(xIndex + relativeOffsets[i].x, yIndex + relativeOffsets[i].y);
-		skewness = skewness + (((double)pixel_temp) * pixel_temp * pixel_temp);
-		kurtosis = kurtosis + (((double)pixel_temp) * pixel_temp * pixel_temp * pixel_temp); 
+		skewness = skewness + (pixel_temp * pixel_temp * pixel_temp);
+		kurtosis = kurtosis + (pixel_temp * pixel_temp * pixel_temp * pixel_temp); 
 	}
 	skewness = (double)skewness/(relativeOffsetCount * variance * std);
 	kurtosis = (double) kurtosis/(relativeOffsetCount * variance * variance);
