@@ -541,189 +541,186 @@ void launch_absDifference(const dim3 dimGrid, const dim3 dimBlock, const unsigne
 	absDiffernceTexture<InputPixelType,OutputPixelType><<<dimGrid, dimBlock, shmemSize, stream>>>(outputData, roiWidth, roiHeight);
 }
 
-template< typename InputPixelType, typename OutputPixelType>
-__global__ static
-void window_histogram_statistics(OutputPixelType * const  outputData, const unsigned int roiWidth,
-	    const unsigned int roiHeight, const unsigned int buffer)
+template <typename InputPixelType, typename OutputPixelType>
+__global__ static void window_histogram_statistics(OutputPixelType *const outputData, const unsigned int roiWidth,
+                                                   const unsigned int roiHeight, const unsigned int buffer)
 {
+    // Data index now buffered
+    // Removed/replaced to save registers
+    // const int width = roiWidth + buffer + buffer;
+    // const int height = roiHeight + buffer + buffer;
 
-   // Data index now buffered
-   // Removed/replaced to save registers
-   //const int width = roiWidth + buffer + buffer;
-   //const int height = roiHeight + buffer + buffer;
+    const unsigned int roiXidx = blockIdx.x * blockDim.x + threadIdx.x;
+    const unsigned int roiYidx = blockIdx.y * blockDim.y + threadIdx.y;
 
-   const unsigned int roiXidx = blockIdx.x * blockDim.x + threadIdx.x;
-   const unsigned int roiYidx = blockIdx.y * blockDim.y + threadIdx.y;
+    // Block indexing is within the ROI, add the left and top buffer size to get data index position
+    const unsigned int xIndex = roiXidx + buffer;
+    const unsigned int yIndex = roiYidx + buffer;
 
-   // Block indexing is within the ROI, add the left and top buffer size to get data index position
-   const unsigned int xIndex = roiXidx + buffer;
-   const unsigned int yIndex = roiYidx + buffer;
+    InputPixelType pixel_value;  // temp value for storing texture data when needed multiple times in a row
 
-   InputPixelType pixel_value; // temp value for storing texture data when needed multiple times in a row
-	
-   //if(roiYidx < roiHeight && roiXidx < roiWidth && xIndex < width && yIndex < height)
-   if(roiYidx < roiHeight && roiXidx < roiWidth && xIndex < (roiWidth + (buffer << 1)) && yIndex < (roiHeight + (buffer << 1))
-   {
-       // Output size is the ROI size
-       const unsigned int pixel_one_d    = roiXidx + roiYidx * roiWidth;  // xIndex + yIndex
-       const unsigned int outputBandSize = roiHeight * roiWidth;
+    // if(roiYidx < roiHeight && roiXidx < roiWidth && xIndex < width && yIndex < height)
+    if (roiYidx < roiHeight && roiXidx < roiWidth && xIndex < (roiWidth + (buffer << 1))
+        && yIndex < (roiHeight + (buffer << 1))) {
+        // Output size is the ROI size
+        const unsigned int pixel_one_d    = roiXidx + roiYidx * roiWidth;  // xIndex + yIndex
+        const unsigned int outputBandSize = roiHeight * roiWidth;
 
-       // Why waste registers if it's never used more than once per calculation
-       //int cur_y_index;
-       //int cur_x_index;
-       // Wasteful, but without an InputTypeMin or a way to specify that the 0,0 offset is first (and we skip it),
-       // nothing we can do
-       InputPixelType min = fetchTexture<InputPixelType, 0>(xIndex, yIndex);
-       InputPixelType max = fetchTexture<InputPixelType, 0>(xIndex, yIndex);
+        // Why waste registers if it's never used more than once per calculation
+        // int cur_y_index;
+        // int cur_x_index;
+        // Wasteful, but without an InputTypeMin or a way to specify that the 0,0 offset is first (and we skip it),
+        // nothing we can do
+        InputPixelType min = fetchTexture<InputPixelType, 0>(xIndex, yIndex);
+        InputPixelType max = fetchTexture<InputPixelType, 0>(xIndex, yIndex);
 
-       // Also find the sum and mean while looking for min/max
-       double sum  = 0;
-       double mean = 0;
+        // Also find the sum and mean while looking for min/max
+        double sum  = 0;
+        double mean = 0;
 
-       for (unsigned int i = 0; i < relativeOffsetCount; ++i) {
-           //cur_x_index = xIndex + relativeOffsets[i].x;
-           //cur_y_index = yIndex + relativeOffsets[i].y;
+        for (unsigned int i = 0; i < relativeOffsetCount; ++i) {
+            // cur_x_index = xIndex + relativeOffsets[i].x;
+            // cur_y_index = yIndex + relativeOffsets[i].y;
 
-           //pixel_value = fetchTexture<InputPixelType, 0>(cur_x_index, cur_y_index);
-           pixel_value = fetchTexture<InputPixelType, 0>(xIndex + relativeOffsets[i].x, yIndex + relativeOffsets[i].y);
+            // pixel_value = fetchTexture<InputPixelType, 0>(cur_x_index, cur_y_index);
+            pixel_value = fetchTexture<InputPixelType, 0>(xIndex + relativeOffsets[i].x, yIndex + relativeOffsets[i].y);
 
-           sum += pixel_value;
+            sum += pixel_value;
 
-           if (pixel_value > max) {
-               max = pixel_value;
-           }
-           if (pixel_value < min) {
-               min = pixel_value;
-           }
-       }
+            if (pixel_value > max) {
+                max = pixel_value;
+            }
+            if (pixel_value < min) {
+                min = pixel_value;
+            }
+        }
 
-       mean = sum / relativeOffsetCount;
+        mean = sum / relativeOffsetCount;
 
-       short num_bins = 128;
-       short histogram[128];
-       float pdf[128];
+        const short num_bins = 128;
+        short histogram[num_bins];
+        float pdf[num_bins];
 
-       for (unsigned int i = 0; i < num_bins; ++i) {
-           histogram[i] = 0;
-       }
-
-       /*
-       * Create histogram
-       */
-       // it may be worthwhile to make it the native int width for efficiency
-       short bin_width = (max - min) / num_bins;
-       if (bin_width < 1) {
-           bin_width = 1;
-       }
-
-       // why is this a short when we're capping it at 128?
-       short bin_idx = 0;
-       for (unsigned int i = 0; i < relativeOffsetCount; ++i) {
-           pixel_value = fetchTexture<InputPixelType, 0>(xIndex + relativeOffsets[i].x, yIndex + relativeOffsets[i].y);
-           bin_idx     = (short) ((pixel_value - min) / bin_width);
-
-           //if (bin_idx >= 0 && bin_idx < num_bins) {
-           if (!(bin_idx & ~127)) // 0xFFA0 = ~127
-               histogram[bin_idx]++;
-           } else
-               histogram[127]++;
-       }
-
-       /*
-        * Calculate the PDF array
+        /*
+        * Create histogram
         */
-       for (unsigned int i = 0; i < num_bins; ++i) {
-           pdf[i] = ((float) histogram[i]) / relativeOffsetCount;
-       }
+        // I would LOVE to remove this
+        for (unsigned int i = 0; i < num_bins; ++i) {
+            histogram[i] = 0;
+        }
 
-       /*
-        * Find Entropy
+        // it may be worthwhile to make it the native int width for efficiency
+        short bin_width = (max - min) / num_bins;
+        if (bin_width < 1) {
+            bin_width = 1;
+        }
+
+        // why is this a short when we're capping it at 128?
+        short bin_idx = 0;
+        for (unsigned int i = 0; i < relativeOffsetCount; ++i) {
+            pixel_value = fetchTexture<InputPixelType, 0>(xIndex + relativeOffsets[i].x, yIndex + relativeOffsets[i].y);
+            bin_idx     = (short) ((pixel_value - min) / bin_width);
+
+            // if (bin_idx >= 0 && bin_idx < num_bins) {
+            if (!(bin_idx & ~(num_bins - 1))) {  // Only when num_bins is power of 2. 0xFFA0 = ~127
+                histogram[bin_idx]++;
+            } else {
+                // what causes this to occur? I'd prefer to remove that case in general.
+                // Need a more in-depth logic analysis
+                histogram[(num_bins - 1)]++;
+            }
+        }
+
+        /*
+         * Calculate the PDF array and find Entropy
+         */
+        // Histogram is not used past this point. Suggest transforming hist to pdf to lower local memory
+        double entropy = 0;
+        for (short i = 0; i < num_bins; ++i) {
+            // if (pdf[i] != 0) {
+            // Use doubles? We maintain doubles internally everywhere but here
+            if ((pdf[i] = ((float) histogram[i]) / relativeOffsetCount)) {
+                entropy += (pdf[i] * log2(pdf[i]));
+            }
+        }
+
+        /*
+        // Normalized data only used once, skip calculation loop
+        // Normalize data with the mean
+        for (unsigned int i = 0; i < relativeOffsetCount; ++i) {
+            values[i] = values[i] - mean;
+        }
         */
-       double entropy = 0;
-       for (short i = 0; i < num_bins; ++i) {
-           if (pdf[i] != 0) {
-               entropy += (pdf[i] * log2(pdf[i]));
-           }
-       }
 
-       /*
-       // Normalize data with the mean
-       for (unsigned int i = 0; i < relativeOffsetCount; ++i) {
-           values[i] = values[i] - mean;
-       }
-       */
-
-       /*
-        * Find the variance
-        */
-       double variance = 0;
-       double std      = 0;
-       for (unsigned int i = 0; i < relativeOffsetCount; ++i) {
+        /*
+         * Find the variance
+         */
+        double variance = 0;
+        double std      = 0;
+        for (unsigned int i = 0; i < relativeOffsetCount; ++i) {
             pixel_value
                 = fetchTexture<InputPixelType, 0>(xIndex + relativeOffsets[i].x, yIndex + relativeOffsets[i].y) - mean;
-            variance = variance + (pixel_value * pixel_value);
-       }
+            variance += (pixel_value * pixel_value);
+        }
 
-       variance = (double) variance / (relativeOffsetCount);
-       std      = sqrtf(variance);
-
-
-
-       if (std == 0 || variance == 0) {
-           // band 0 = entropy
-           outputData[pixel_one_d] = 0;
-
-           // band 1 = mean
-           outputData[pixel_one_d + outputBandSize] = (OutputPixelType) mean;
-
-           // band 2 = variance
-           outputData[pixel_one_d + (outputBandSize * 2)] = 0;
-
-           // band 3 = skewness
-           outputData[pixel_one_d + (outputBandSize * 3)] = 0;
-
-           // band 4 = kurtosis
-           outputData[pixel_one_d + (outputBandSize * 4)] = 0;
-
-           return;
-       }
-       // ELSE
-
-       /*
-        * Find Skewness and Kurtosis
-        **/
-       double skewness = 0;
-       double kurtosis = 0;
-
-       for (int i = 0; i < relativeOffsetCount; ++i) {
-           // load and cube value into register
-           pixel_value = fetchTexture<InputPixelType, 0>(xIndex + relativeOffsets[i].x, yIndex + relativeOffsets[i].y);
-           double value_cubed = pixel_value * pixel_value * pixel_value;
-
-           skewness = skewness + value_cubed;
-           kurtosis = kurtosis + (value_cubed * pixel_value);
-       }
-       skewness = (double) skewness / (relativeOffsetCount * variance * std);
-       kurtosis = (double) kurtosis / (relativeOffsetCount * variance * variance);
-
-       // band 0 = entropy
-       outputData[pixel_one_d] = (OutputPixelType)(entropy * -1);
-       
-       // band 1 = mean
-		outputData[pixel_one_d + outputBandSize] = (OutputPixelType) mean;
-       
-       // band 2 = variance
-       outputData[pixel_one_d + (outputBandSize * 2)] = (OutputPixelType) variance;
-
-       // band 3 = skewness
-       outputData[pixel_one_d + (outputBandSize * 3)] = (OutputPixelType) skewness;
-
-       // band 4 = kurtosis
-       outputData[pixel_one_d + (outputBandSize * 4)] = (OutputPixelType) kurtosis;
+        variance = variance / relativeOffsetCount;
+        std      = sqrtf(variance);
 
 
-    } // END OF A VALID PIXEL POSITION
 
+        if (std == 0 || variance == 0) {
+            // band 0 = entropy
+            outputData[pixel_one_d] = 0;
+
+            // band 1 = mean
+            outputData[pixel_one_d + outputBandSize] = (OutputPixelType) mean;
+
+            // band 2 = variance
+            outputData[pixel_one_d + (outputBandSize * 2)] = 0;
+
+            // band 3 = skewness
+            outputData[pixel_one_d + (outputBandSize * 3)] = 0;
+
+            // band 4 = kurtosis
+            outputData[pixel_one_d + (outputBandSize * 4)] = 0;
+
+            return;
+        }
+        // ELSE
+
+        /*
+         * Find Skewness and Kurtosis
+         **/
+        double skewness = 0;
+        double kurtosis = 0;
+
+        for (int i = 0; i < relativeOffsetCount; ++i) {
+            // load and cube value into register
+            pixel_value = fetchTexture<InputPixelType, 0>(xIndex + relativeOffsets[i].x, yIndex + relativeOffsets[i].y);
+            double value_cubed = pixel_value * pixel_value * pixel_value;
+
+            skewness += value_cubed;
+            kurtosis += value_cubed * pixel_value;
+        }
+        skewness = skewness / (relativeOffsetCount * variance * std);
+        kurtosis = kurtosis / (relativeOffsetCount * variance * variance);
+
+        // band 0 = entropy
+        outputData[pixel_one_d] = (OutputPixelType)(entropy * -1);
+
+        // band 1 = mean
+        outputData[pixel_one_d + outputBandSize] = (OutputPixelType) mean;
+
+        // band 2 = variance
+        outputData[pixel_one_d + (outputBandSize * 2)] = (OutputPixelType) variance;
+
+        // band 3 = skewness
+        outputData[pixel_one_d + (outputBandSize * 3)] = (OutputPixelType) skewness;
+
+        // band 4 = kurtosis
+        outputData[pixel_one_d + (outputBandSize * 4)] = (OutputPixelType) kurtosis;
+
+    }  // END OF A VALID PIXEL POSITION
 }
 
 template< typename InputPixelType, typename OutputPixelType >
