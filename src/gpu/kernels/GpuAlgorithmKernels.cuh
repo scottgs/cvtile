@@ -579,7 +579,7 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 			if (pixel_temp > max) {
 				max = pixel_temp;
 			}
-			else (pixel_temp < min) {
+			else if (pixel_temp < min) {
 				min = pixel_temp;
 			}
 		}
