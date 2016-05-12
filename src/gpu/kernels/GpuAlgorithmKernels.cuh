@@ -662,7 +662,7 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 		for (short i = 0; i < num_bins; ++i) {
 			// double?
 			float pdf = ((float) histogram[i]) / relativeOffsetCount;
-			entropy = pdf == 0.0f ? entropy : (entropy + (pdf * log2(pdf)));
+			entropy += pdf == 0.0f ? 0.0 : (pdf * log2(pdf));
 		}
 	
 		// Find Skewness & Kurtosis
