@@ -586,7 +586,7 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 		// Create histogram
 		const short num_bins = 128;
 		short histogram[num_bins];
-		//float pdf[num_bins];
+		float pdf[num_bins];
 
 		// This loop is the worst and hurts my soul
 		for (unsigned int i = 0; i < num_bins; ++i) {
@@ -652,18 +652,21 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 		std = sqrt(variance);
 
 		// Calculate the PDF array
-		//for (unsigned int i = 0; i < num_bins; ++i) {
-		//	pdf[i] = ((float) histogram[i]) / relativeOffsetCount;
-		//}
+		for (unsigned int i = 0; i < num_bins; ++i) {
+			pdf[i] = ((float) histogram[i]) / relativeOffsetCount;
+		}
 		// PDF isn't used outside entropy, calculating it when needed.
 		 
 		// Find Entropy
 		double entropy = 0.0;
 		for (short i = 0; i < num_bins; ++i) {
 			// double?
-			float pdf = ((float) histogram[i]) / relativeOffsetCount;
-			entropy += pdf == 0.0f ? 0.0 : (pdf * log2(pdf));
-		}
+			//float pdf = ((float) histogram[i]) / relativeOffsetCount;
+			//entropy += pdf == 0.0f ? 0.0 : (pdf * log2(pdf));
+            if (pdf[i] != 0.0f) {
+                entropy += pdf * log2(pdf);
+            }
+        }
 	
 		// Find Skewness & Kurtosis
 		
