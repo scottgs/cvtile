@@ -664,7 +664,7 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 			//float pdf = ((float) histogram[i]) / relativeOffsetCount;
 			//entropy += pdf == 0.0f ? 0.0 : (pdf * log2(pdf));
             if (pdf[i] != 0.0f) {
-                entropy += pdf * log2(pdf);
+                entropy += pdf[i] * log2(pdf[i]);
             }
         }
 	
