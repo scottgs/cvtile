@@ -546,6 +546,19 @@ __global__ static
 void window_histogram_statistics(OutputPixelType * const  outputData, const unsigned int roiWidth,
 	    const unsigned int roiHeight, const unsigned int buffer)
 {
+	extern __shared__ int2 shm_relativeOffsets[];
+	size_t global_thread_id = blockDim.x * threadIdx.y + threadIdx.x;
+	if (global_thread_id < 32) {
+		
+		for (unsigned int i = global_thread_id; i < relativeOffsetCount; i += 32) {
+			shm_relativeOffsets[i].x = relativeOffsets[i].x;
+			shm_relativeOffsets[i].y = relativeOffsets[i].y;
+		}
+
+	}
+
+	__syncthreads();
+
 
    const unsigned int roiXidx = blockIdx.x * blockDim.x + threadIdx.x;
    const unsigned int roiYidx = blockIdx.y * blockDim.y + threadIdx.y;
@@ -572,7 +585,7 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 		
 		for(unsigned int i = 0; i < relativeOffsetCount; ++i)
 		{
-			pixel_temp = fetchTexture<InputPixelType, 0>(xIndex + relativeOffsets[i].x, yIndex + relativeOffsets[i].y);
+			pixel_temp = fetchTexture<InputPixelType, 0>(xIndex + shm_relativeOffsets[i].x, yIndex + shm_relativeOffsets[i].y);
 
 			// Roll sum calculation into min/max search for obvious reasons
 			sum += pixel_temp;
@@ -609,7 +622,7 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 		
 		for (unsigned int i  = 0; i < relativeOffsetCount; ++i) {
 		
-			pixel_temp = fetchTexture<InputPixelType, 0>(xIndex + relativeOffsets[i].x, yIndex + relativeOffsets[i].y);
+			pixel_temp = fetchTexture<InputPixelType, 0>(xIndex + shm_relativeOffsets[i].x, yIndex + shm_relativeOffsets[i].y);
 			// folding in variance calculation since we're already iterating through the data
 			// and there's no other data requirements
 			pixel_difference = pixel_temp - mean;
@@ -671,7 +684,7 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 		double kurtosis = 0;
 
 		for (int i = 0; i < relativeOffsetCount; ++i) {
-			pixel_difference = fetchTexture<InputPixelType, 0>(xIndex + relativeOffsets[i].x, yIndex + relativeOffsets[i].y) - mean;
+			pixel_difference = fetchTexture<InputPixelType, 0>(xIndex + shm_relativeOffsets[i].x, yIndex + shm_relativeOffsets[i].y) - mean;
 			double diff_cubed = pixel_difference * pixel_difference * pixel_difference;
 			skewness += diff_cubed;
 			kurtosis += diff_cubed * pixel_difference;
