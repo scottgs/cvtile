@@ -610,8 +610,13 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 		for (unsigned int i  = 0; i < relativeOffsetCount; ++i) {
 		
 			pixel_temp = fetchTexture<InputPixelType, 0>(xIndex + relativeOffsets[i].x, yIndex + relativeOffsets[i].y);
-			short bin_idx =  (pixel_temp - min) / bin_width;
+			// folding in variance calculation since we're already iterating through the data
+			// and there's no other data requirements
+			pixel_difference = pixel_temp - mean;
+			variance += pixel_difference * pixel_difference;
 			
+			short bin_idx =  (pixel_temp - min) / bin_width;
+
 			// I'm thinking these checks are not needed since we've already calibrated min/max/width properly
 			// But once we look into negatives more, we may need something. IDK.
 			if (bin_idx >= 0 && bin_idx < num_bins) {
@@ -620,13 +625,8 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 			else{
 				histogram[127]++;
 			}
-
-			// folding in variance calculation since we're already iterating through the data
-			// and there's no other data requirements
-			pixel_difference = pixel_temp - mean;
-			variance += pixel_difference * pixel_difference;
-		
 		}
+		
 		variance /= relativeOffsetCount;
 
 		// No point in continuting if variance is zero
