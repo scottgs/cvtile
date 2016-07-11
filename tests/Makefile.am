@@ -5,7 +5,8 @@ AM_CPPFLAGS	=	$(OPENCV_CFLAGS) -std=c++0x
 
 #the source files used to build the runner target
 runner_SOURCES	=	runner.cpp \
-				gpuWHSTestSuite.cpp #\
+				gpuWHSTestSuite.cpp 
+#\
 #				CvTileTestSuite.cpp \ 
 #				TilerTestSuite.cpp \
 #				gpuTestSuite.cpp \

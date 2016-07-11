@@ -23,6 +23,7 @@
 #include "../src/gpu/drivers/GpuAbsoluteDifference.hpp"
 
 #define SHOW_OUTPUT 0
+#define CUDA_DEVICE 2
 
 class gpuAbsoluteDifferenceTestSuite : public CxxTest::TestSuite
 {
@@ -36,7 +37,7 @@ class gpuAbsoluteDifferenceTestSuite : public CxxTest::TestSuite
 
 		void testAbsSimplePixelVerification() {	
 			std::cout << std::endl << "GPU ABS DIFF VERIFICATION TEST" << std::endl;
-			int cuda_device_id = 0;
+			int cuda_device_id = CUDA_DEVICE;
 			cvt::Tiler read_tiler;
 
 			cv::Size2i tSize(256,256);
@@ -70,7 +71,7 @@ class gpuAbsoluteDifferenceTestSuite : public CxxTest::TestSuite
 
 		void testAbsDiffFullPixelVerification () {
 			std::cout << std::endl << "GPU ABS DIFF VERIFICATION TEST" << std::endl;
-			int cuda_device_id = 0;
+			int cuda_device_id = CUDA_DEVICE;
 			cvt::Tiler read_tiler;
 			cvt::Tiler read_tiler2;
 			cv::Size2i tSize(256,256);

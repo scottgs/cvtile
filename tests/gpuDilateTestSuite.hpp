@@ -61,6 +61,9 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #define SHOW_OUTPUT 0
 
+#define CUDA_DEVICE 2
+
+
 class gpuDilateTestSuite : public CxxTest::TestSuite
 {
 	public:
@@ -83,7 +86,7 @@ class gpuDilateTestSuite : public CxxTest::TestSuite
 
 		void testDilateFullPixelVerification () {
 			std::cout << std::endl << "GPU DILATE VERIFICATION TEST" << std::endl;
-			int cuda_device_id = 0;
+			int cuda_device_id = CUDA_DEVICE;
 			cvt::Tiler read_tiler;
 
 			cv::Size2i tSize(256,256);
