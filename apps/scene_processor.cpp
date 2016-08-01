@@ -6,8 +6,8 @@
 #include <mutex>
 #include "AppModuleFactory.hpp"
 #include "CvTileAlgorithmFactory.hpp"
-#include <cvtile/cvtile.hpp>
-#include <cvtile/gpu/gpu.hpp>
+#include "../src/cvtile.hpp"
+#include "../src/gpu/gpu.hpp"
 
 namespace po = boost::program_options;
 using namespace std;
