@@ -1,7 +1,7 @@
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string.hpp>
 #include <memory>
-#include <cvtile/gpu/gpu.hpp>
+#include "../src/gpu/gpu.hpp"
 
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
