@@ -1,31 +1,13 @@
 : BUILD PREREQUISITES:
 
-Update create symbolic links for the correct python version
-and CUDA hardware SM compute level.
+- Library requires an Nvidia GPU with compute capability of 3.5 or higher.
+Compute capability of your device can be found on Nvidia's CUDA Developer
+site: https://developer.nvidia.com/cuda-gpus
 
-:: Python version dependent cudalt.py script
-Link, or write and link, example:
-ln -s cudalt-2.7.py cudalt.py
-        or
-ln -s cudalt-3.2.py cudalt.py
+- Alternatively, if the CUDA Samples are installed, you may also find it by
+running deviceQuery and finding the following line:
+        --> CUDA Capability Major/Minor version number
 
-
-:: CUDA Makefile include:
-Various Nvidia cards have differing SM compute levels.  For this
-reason, a cuda.<sm>.mk file is provided for each relevant SM.
-
-You must create a symlink to the proper Make include file or you
-will get the error:
-----------------------------------------------------------------------
-automake-1.13: error: cannot open < cuda.mk: No such file or directory
-autoreconf-2.68: automake failed with exit status: 1
-----------------------------------------------------------------------
-
-For example, on a Kepler 
-ln -s cuda.30.mk cuda.mk
-
-For Fermi, use 
-ln -s cuda.20.mk cuda.mk
 
 : AUTOTOOLS BUILD & INSTALL
 autoreconf -ivf && ./configure && make

@@ -5,7 +5,7 @@ AM_CPPFLAGS	=	$(OPENCV_CFLAGS) -std=c++0x
 
 #the source files used to build the runner target
 runner_SOURCES	=	runner.cpp \
-				CvTileTestSuite.cpp \ 
+				CvTileTestSuite.cpp \
 				TilerTestSuite.cpp \
 				gpuTestSuite.cpp \
 				gpuWHSTestSuite.cpp \
@@ -31,11 +31,11 @@ check: $(check_PROGRAMS)
 
 # compile all of the generated source code files
 .cpp.o:
-	g++ -g -std=c++0x -Wall $(CUDA_CFLAGS) \ 
+	g++ -g -std=c++0x -Wall $(CUDA_CFLAGS) \
 	-I/usr/local/cxxtest/include/ -I../src/ -c -o $@ $<
 
 # How to generate the test runner (this is the scaffolding that makes things go)
-runner.cpp: 
+runner.cpp:
 	cxxtestgen.pl --error-printer --root -o $@
 
 # turn your test files (the headers) into source code

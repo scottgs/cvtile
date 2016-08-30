@@ -1,8 +1,4 @@
-# Ignore project specific symlinks
-cuda.mk
-cudalt.py
-
-#vim + tools
+# vim + tools
 *.swp
 *.swo
 tags
@@ -33,6 +29,7 @@ tags
 
 # Executables
 *.exe
+*.msi
 *.out
 *.app
 
@@ -44,6 +41,7 @@ tests/test_images/testingWindowHistogramStatisticsOutFile.tif
 
 # Autotools
 autom4te.cache/
+m4/
 config/
 .deps/
 .libs/
