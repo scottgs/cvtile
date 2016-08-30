@@ -62,7 +62,7 @@ AC_SUBST(CUDA_LDFLAGS)
 AC_SUBST(NVCC)
 
 # Global CPP Flags
-AM_CPPFLAGS="-Wall -Wextra -O3 -ffast-math -msse3 -march=native -mtune=native"
+AM_CPPFLAGS="-Werror -Wall -Wextra -O3 -ffast-math -msse3 -march=native -mtune=native"
 AC_SUBST([AM_CPPFLAGS])
 CFLAGS=" "
 AC_SUBST([CFLAGS])

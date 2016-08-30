@@ -2,8 +2,5 @@
 2) No more gcc extensions
 3) Consider not running tests unless flag is added
 4) Remove CGI depends/incorrect references
-5) Cuda dynamic object lookup shouldn't include cuda version name (will require user to symlink their cudart)
-6) Get rid of all warnings
-7) Add -Werror && other warning flags (highest level of warnings possible)
-8) Add support for git modules so app is properly bundled together as one standalone product (add boost, opencv, gdal)
-9) Add debug build supprt (for CUDA too)
+5) Add support for git modules so app is properly bundled together as one standalone product (add boost, opencv, gdal)
+6) Add debug build supprt (for CUDA too)

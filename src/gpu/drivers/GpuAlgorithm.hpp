@@ -50,7 +50,7 @@ POSSIBILITY OF SUCH DAMAGE.
 // STL INCLUDES    //
 /////////////////////
 
-#include <typeinfo> 
+#include <typeinfo>
 
 /////////////////////
 // OpenCV INCLUDES //
@@ -62,11 +62,11 @@ POSSIBILITY OF SUCH DAMAGE.
 
 namespace cvt {
 
-/** @brief Return status values 
+/** @brief Return status values
  *
  *   The first position indicates the class of error while
  *   all subsequent portions specify the precise errors that occurred
- * 
+ *
  *   Note that the cudaError enum names are used as error specifers where necessary
  *   and that they are a 1 to 1 mapping with their counterparts in CUDA.
  */
@@ -95,7 +95,7 @@ enum ErrorCode{
 	InitFailcuOutArrayMemErrorcudaErrorMemoryAllocation,
 	/** @brief Failed to free gpuInputDataArray cudaArray */
 	DestructFailcuInArraycudaErrorInvalidValue,
-	DestructFailcuInArraycudaErrorInitializationError,	
+	DestructFailcuInArraycudaErrorInitializationError,
 	/** @brief Failed to free gpuOutData cuda linear memory */
 	DestructFailcuOutArraycudaErrorInvalidValue,
 	DestructFailcuOutArraycudaErrorInitializationError,
@@ -104,13 +104,13 @@ enum ErrorCode{
 	/** @brief Tile not copied to device due to **/
 	TileToDevicecudaErrorInvalidDevicePointer,
 	/** @brief Tile not copied to device due to **/
-	TileToDevicecudaErrorInvalidMemcpyDirection, 
+	TileToDevicecudaErrorInvalidMemcpyDirection,
 	/** @brief Tile not copied to device due to **/
 	TileToDevicecudaErrorInvalidValue,
 	/** @brief Tile not copied to device due to **/
 	TileFromDevicecudaErrorInvalidDevicePointer,
 	/** @brief Tile not copied to device due to **/
-	TileFromDevicecudaErrorInvalidMemcpyDirection, 
+	TileFromDevicecudaErrorInvalidMemcpyDirection,
 	/** @brief Tile not copied to device due to **/
 	TileFromDevicecudaErrorInvalidValue,
 
@@ -125,7 +125,7 @@ namespace gpu {
 /** @brief Generic GPU algorithm parent class that initializes the card for CV tiles
 		 *    Returns an error if the creation fails.
 		 *
-		 *  @templateparam 
+		 *  @templateparam
 		 *  @templateparam driverName GDAL driver name to use for file creation.
 		 *  @templateparam rasterSize Size of the image to create.
 		 *  @templateparam nBands  Number of bands to create.
@@ -138,9 +138,9 @@ class GpuAlgorithm{
 
 	///////////////////////
 	// MEMBER FUNCTIONS //
-	//////////////////////	
+	//////////////////////
 
-		explicit GpuAlgorithm(unsigned int cudaDeviceId, unsigned int dataWidth, 
+		explicit GpuAlgorithm(unsigned int cudaDeviceId, unsigned int dataWidth,
 							 unsigned int dataHeight );
 
 		virtual ~GpuAlgorithm();
@@ -163,13 +163,13 @@ class GpuAlgorithm{
 
 		const GPUProperties getProperties() const;
 
-		const size_t getInputBytesToTransfer() const;
+		size_t getInputBytesToTransfer() const;
 
-		const bool getUsingTexture() const;
+		bool getUsingTexture() const;
 
-		const cudaChannelFormatKind getChannelType() const;
+		cudaChannelFormatKind getChannelType() const;
 
-		const size_t getOutputDataSize() const;
+		size_t getOutputDataSize() const;
 
 	protected:
 
@@ -186,7 +186,7 @@ class GpuAlgorithm{
 	private:
 
 		//ErrorCode setGpuDevice();
-	
+
 
 	//////////////////////
 	// MEMBER VARIABLES //
@@ -217,20 +217,20 @@ class GpuAlgorithm{
 		///////////////////////
 
 		/* Used for Band Counts 1-4 */
-		cudaArray * gpuInputDataArray; 
+		cudaArray * gpuInputDataArray;
 
 		/* Used for Band Counts > 4 */
 		InputPixelType * gpuInputDataGlobal;
 
 		/* Mask that will point to correct Input Data */
 		OutputPixelType * gpuOutputData;
-		
+
 		void * gpuInput;
 
 		size_t bytesToTransfer;
 
 		size_t outputDataSize;
-	
+
 		//////////////////////////////
 		// ERROR STATE/ LOGGING		//
 		//////////////////////////////
@@ -241,14 +241,14 @@ class GpuAlgorithm{
 
 		bool usingTexture;
 
-	
+
 	private:
 
 };
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
-GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::GpuAlgorithm(unsigned int cudaDeviceId, unsigned int dataWidth, 
-						   unsigned int dataHeight ) 
+GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::GpuAlgorithm(unsigned int cudaDeviceId, unsigned int dataWidth,
+						   unsigned int dataHeight )
 						   : dataSize(dataWidth, dataHeight),
 						   	 deviceID(cudaDeviceId), properties(cudaDeviceId),
 						   	 gpuInputDataArray(NULL), gpuInputDataGlobal(NULL), gpuOutputData(NULL),
@@ -269,9 +269,9 @@ GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::
 	////////////////////////////////////////
 	// FREE CUDA ARRAY USED FOR GPU INPUT //
 	////////////////////////////////////////
-	
+
 	cudaFreeArray(gpuInputDataArray);
-	
+
 	cudaError cuer = cudaGetLastError();
 	if(cuer == cudaErrorInvalidValue)
 		lastError = DestructFailcuInArraycudaErrorInvalidValue;
@@ -304,13 +304,13 @@ ErrorCode GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBa
 	lastError = setGpuDevice();
 	if(lastError)
 		return lastError;
-	
+
 	if (properties.getMajorCompute() < 1)
 	{
 		lastError = InitFailNoCUDA;
 		return lastError;
 	}
-	
+
 	///////////////////////////////////////////
 	// VERIFY THAT GPU HAS SUFFICIENT MEMORY //
    	///////////////////////////////////////////
@@ -322,7 +322,7 @@ ErrorCode GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBa
 	}
 
 	//TO-DO Check for sufficient texture memory
-	
+
 	cudaStreamCreate(&stream);
 	cudaError cuer = cudaGetLastError();
 	if(cuer != cudaSuccess){
@@ -335,22 +335,22 @@ ErrorCode GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBa
 	size_t bitDepth = 0;
 	cudaChannelFormatDesc inputDescriptor;
 
-	if(inTypeIdentifier == "a" || 
-	   inTypeIdentifier == "s" || 
+	if(inTypeIdentifier == "a" ||
+	   inTypeIdentifier == "s" ||
 	   inTypeIdentifier == "i" ||
 	   inTypeIdentifier == "l")
 	{
 		channelType = cudaChannelFormatKindSigned;
 	}
-	else if(inTypeIdentifier == "h" || 
-			inTypeIdentifier == "t" || 
-			inTypeIdentifier == "j" || 
+	else if(inTypeIdentifier == "h" ||
+			inTypeIdentifier == "t" ||
+			inTypeIdentifier == "j" ||
 			inTypeIdentifier == "m")
 	{
 		channelType = cudaChannelFormatKindUnsigned;
 	}
-	else if(inTypeIdentifier == "f" || 
-			inTypeIdentifier == "d") 
+	else if(inTypeIdentifier == "f" ||
+			inTypeIdentifier == "d")
 	{
 		channelType = cudaChannelFormatKindFloat;
 	}
@@ -380,8 +380,8 @@ ErrorCode GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBa
 	if(cuer != cudaSuccess){
 		lastError = CudaError;
 		return lastError;
-	}	
-	
+	}
+
 	//////////////////////////////////////////////////////////
 	// ALLOCATE MEMORY FOR GPU INPUT AND OUTPUT DATA (TILE) //
 	/////////////////////////////////////////////////////////
@@ -389,9 +389,9 @@ ErrorCode GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBa
 	if(InputBandCount <= 1 && InputBandCount != 0){
 	/* Gpu Input Data */
 		cudaMallocArray(
-						(cudaArray**)&gpuInputDataArray,   
-						 &inputDescriptor, 
-						 dataSize.width,  
+						(cudaArray**)&gpuInputDataArray,
+						 &inputDescriptor,
+						 dataSize.width,
 						 dataSize.height
 						);
 		gpuInput = gpuInputDataArray;
@@ -428,7 +428,7 @@ ErrorCode GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBa
 	lastError = allocateAdditionalGpuMemory();
 
 	return lastError;
-						
+
 }
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
@@ -436,7 +436,7 @@ ErrorCode GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBa
 {
 	cudaSetDevice(deviceID);
 	cudaError cuer = cudaGetLastError();
-	
+
 	if(cuer == cudaErrorInvalidDevice)
 		lastError = InitFailcudaErrorInvalidDevice;
 	else if( cuer == cudaErrorDeviceAlreadyInUse)
@@ -468,25 +468,25 @@ ErrorCode GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBa
 	unsigned char* tileDataPtr = NULL;
 	int offsetY = 0;
 
-	cudaError cuer;// = cudaGetLastError();	
+	cudaError cuer;// = cudaGetLastError();
 
 	if(usingTexture){
 		tileDataPtr = tile[0].data;
-		cudaMemcpyToArrayAsync(gpuInputDataArray,0, 0,  					
-			tileDataPtr,							
-			sizeof(InputPixelType) * tileArea,		
-			cudaMemcpyHostToDevice,					
+		cudaMemcpyToArrayAsync(gpuInputDataArray,0, 0,
+			tileDataPtr,
+			sizeof(InputPixelType) * tileArea,
+			cudaMemcpyHostToDevice,
 			stream
 		);
-		//cuer = cudaGetLastError();		
-	}	
+		//cuer = cudaGetLastError();
+	}
 	else
 	{
 		for(int currentBand = 0; currentBand < InputBandCount; ++currentBand)
 		{
 			tileDataPtr = tile[currentBand].data;
 			cudaMemcpyAsync(
-				(void *)(((unsigned char*)gpuInputDataGlobal) + offsetY), 
+				(void *)(((unsigned char*)gpuInputDataGlobal) + offsetY),
 				(void*) tileDataPtr,
 				(size_t)tileArea * sizeof(InputPixelType),
 				cudaMemcpyHostToDevice
@@ -494,7 +494,7 @@ ErrorCode GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBa
 			offsetY += tileArea * sizeof(InputPixelType);
 			cuer = cudaGetLastError();
 			if(cuer == cudaErrorInvalidValue)
-				lastError = TileToDevicecudaErrorInvalidValue;	
+				lastError = TileToDevicecudaErrorInvalidValue;
 			else if(cuer == cudaErrorInvalidDevicePointer)
 				lastError = TileToDevicecudaErrorInvalidDevicePointer;
 			else if(cuer == cudaErrorInvalidMemcpyDirection)
@@ -506,7 +506,7 @@ ErrorCode GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBa
 
 	cuer = cudaGetLastError();
 	if(cuer == cudaErrorInvalidValue)
-		lastError = TileToDevicecudaErrorInvalidValue;	
+		lastError = TileToDevicecudaErrorInvalidValue;
 	else if(cuer == cudaErrorInvalidDevicePointer)
 		lastError = TileToDevicecudaErrorInvalidDevicePointer;
 	else if(cuer == cudaErrorInvalidMemcpyDirection)
@@ -526,12 +526,12 @@ ErrorCode GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBa
 	data.resize(bytes/sizeof(OutputPixelType));
 
 	cudaMemcpyAsync(
-			&(data[0]),						
-			gpuOutputData,					
-			bytes,								
+			&(data[0]),
+			gpuOutputData,
+			bytes,
 			cudaMemcpyDeviceToHost,
 			this->stream
-			);		
+			);
 
 	cudaError cuer = cudaGetLastError();
 	if(cuer == cudaErrorInvalidValue)
@@ -570,34 +570,34 @@ const GPUProperties GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType
 }
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
-const size_t GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::getInputBytesToTransfer() const
+size_t GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::getInputBytesToTransfer() const
 {
 	return bytesToTransfer;
 }
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
-const bool GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::getUsingTexture() const
+bool GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::getUsingTexture() const
 {
 	return usingTexture;
 }
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
-const cudaChannelFormatKind GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::getChannelType() const
+cudaChannelFormatKind GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::getChannelType() const
 {
 	return channelType;
 }
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
-const size_t GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::getOutputDataSize() const
+size_t GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::getOutputDataSize() const
 {
 	return outputDataSize;
 }
 
-// updated for now needs work
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
-ErrorCode GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::operator()(const cvt::cvTile<InputPixelType>& tile,
-	 													const cvt::cvTile<InputPixelType>& tileTwo,
-													  const cvt::cvTile<OutputPixelType> ** outTile) 
+ErrorCode GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::operator()(
+														__attribute__((unused)) const cvt::cvTile<InputPixelType>& tile,
+	 													__attribute__((unused)) const cvt::cvTile<InputPixelType>& tileTwo,
+													  __attribute__((unused)) const cvt::cvTile<OutputPixelType> ** outTile)
 {
 	return Ok;
 }

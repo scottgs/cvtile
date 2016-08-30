@@ -1,21 +1,15 @@
-: BUILD PREREQUISITES:
-
-- Library requires an Nvidia GPU with compute capability of 3.5 or higher.
+: BUILD PREREQUISITES
+Library requires an Nvidia GPU with compute capability of 3.0 or higher.
 Compute capability of your device can be found on Nvidia's CUDA Developer
-site: https://developer.nvidia.com/cuda-gpus
-
-- Alternatively, if the CUDA Samples are installed, you may also find it by
+site: https://developer.nvidia.com/cuda-gpus.
+Alternatively, if the CUDA Samples are installed, you may also find it by
 running deviceQuery and finding the following line:
-        --> CUDA Capability Major/Minor version number
-
+--> CUDA Capability Major/Minor version number
 
 : AUTOTOOLS BUILD & INSTALL
 autoreconf -ivf && ./configure && make
 sudo make install
 
-
-THANKS:
-
+: THANKS
 Autotools + CUDA derived from ClusterChimps
 www.clusterchimps.org
-

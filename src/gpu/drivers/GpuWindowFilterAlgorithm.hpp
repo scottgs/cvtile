@@ -62,7 +62,7 @@ class GpuWindowFilterAlgorithm : public GpuAlgorithm<InputPixelType, InputBandCo
 {
 
 	public:
-	
+
 	 explicit GpuWindowFilterAlgorithm(unsigned int cudaDeviceId, size_t roiDataWidth,
 							 size_t roiDataHeight, ssize_t windowRadius);
 
@@ -78,7 +78,7 @@ class GpuWindowFilterAlgorithm : public GpuAlgorithm<InputPixelType, InputBandCo
 	ErrorCode allocateAdditionalGpuMemory();
 	virtual ErrorCode launchKernel(unsigned bw, unsigned bh);
 	void computeRelativeOffsets();
-	ErrorCode transferRelativeOffsetsToDevice(); 
+	ErrorCode transferRelativeOffsetsToDevice();
 	ErrorCode copyTileFromDevice(const cvt::cvTile<OutputPixelType> ** tilePtr);
 
 	/**
@@ -90,7 +90,7 @@ class GpuWindowFilterAlgorithm : public GpuAlgorithm<InputPixelType, InputBandCo
 	enum windowRadiusType type;
 	/***************************
 	 *  NOTE: Any class that extends the window filter class can not have an roi that
-	 *  is equal to the whole image. You will need a buffer. 
+	 *  is equal to the whole image. You will need a buffer.
 	 *
 	 **************************/
 	size_t roiWidth_;
@@ -101,11 +101,11 @@ class GpuWindowFilterAlgorithm : public GpuAlgorithm<InputPixelType, InputBandCo
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
 GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::GpuWindowFilterAlgorithm(
-	unsigned int cudaDeviceId, size_t roiDataWidth, 
-	size_t roiDataHeight, ssize_t windowRadius)	
+	unsigned int cudaDeviceId, size_t roiDataWidth,
+	size_t roiDataHeight, ssize_t windowRadius)
 	: cvt::gpu::GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>(
-	cudaDeviceId, roiDataWidth + windowRadius * 2, roiDataHeight + windowRadius * 2), 
-	windowRadius_(windowRadius), roiSize_(roiDataWidth,roiDataHeight), bufferWidth_(windowRadius) 
+	cudaDeviceId, roiDataWidth + windowRadius * 2, roiDataHeight + windowRadius * 2),
+	windowRadius_(windowRadius), roiSize_(roiDataWidth,roiDataHeight), bufferWidth_(windowRadius)
 {
 	;
 }
@@ -115,7 +115,7 @@ GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, Output
 	////////////////////////////////////////
 	// FREE CUDA ARRAYS USED FOR GPU INPUT //
 	////////////////////////////////////////
-	
+
 	cudaFree(relativeOffsetsGpu_);
 
 	cudaError cuer3 = cudaGetLastError();
@@ -138,7 +138,7 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 	if (tileSize != this->dataSize)
 	{
 		std::stringstream ss;
-		ss << tileSize << " expected of " << this->dataSize << std::endl; 
+		ss << tileSize << " expected of " << this->dataSize << std::endl;
 		throw std::runtime_error(ss.str());
 	}
 
@@ -167,13 +167,13 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 		std::runtime_error("Failed copy off tile from device");
 	}
 	return Ok;
-}	
+}
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
 ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::initializeDevice(enum windowRadiusType type)
 {
 	/* Initialize additional argument then allow parent to init card */
-	//this->type = type;
+	this->type = type;
 	//GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::initializeDevice();
 
 	//TO-DO Error Check Template Params for Type/Bounds
@@ -181,13 +181,13 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 	this->lastError = this->setGpuDevice();
 	if(this->lastError)
 		return this->lastError;
-	
+
 	if (this->properties.getMajorCompute() < 1)
 	{
 		this->lastError = InitFailNoCUDA;
 		return this->lastError;
 	}
-	
+
 	///////////////////////////////////////////
 	// VERIFY THAT GPU HAS SUFFICIENT MEMORY //
    	///////////////////////////////////////////
@@ -199,7 +199,7 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 	}
 
 	//TO-DO Check for sufficient texture memory
-	
+
 	cudaStreamCreate(&this->stream);
 	cudaError cuer = cudaGetLastError();
 	if(cuer != cudaSuccess){
@@ -212,22 +212,22 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 	size_t bitDepth = 0;
 	cudaChannelFormatDesc inputDescriptor;
 
-	if(inTypeIdentifier == "a" || 
-	   inTypeIdentifier == "s" || 
+	if(inTypeIdentifier == "a" ||
+	   inTypeIdentifier == "s" ||
 	   inTypeIdentifier == "i" ||
 	   inTypeIdentifier == "l")
 	{
 		this->channelType = cudaChannelFormatKindSigned;
 	}
-	else if(inTypeIdentifier == "h" || 
-			inTypeIdentifier == "t" || 
-			inTypeIdentifier == "j" || 
+	else if(inTypeIdentifier == "h" ||
+			inTypeIdentifier == "t" ||
+			inTypeIdentifier == "j" ||
 			inTypeIdentifier == "m")
 	{
 		this->channelType = cudaChannelFormatKindUnsigned;
 	}
-	else if(inTypeIdentifier == "f" || 
-			inTypeIdentifier == "d") 
+	else if(inTypeIdentifier == "f" ||
+			inTypeIdentifier == "d")
 	{
 		this->channelType = cudaChannelFormatKindFloat;
 	}
@@ -257,8 +257,8 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 	if(cuer != cudaSuccess){
 		this->lastError = CudaError;
 		return this->lastError;
-	}	
-	
+	}
+
 	//////////////////////////////////////////////////////////
 	// ALLOCATE MEMORY FOR GPU INPUT AND OUTPUT DATA (TILE) //
 	/////////////////////////////////////////////////////////
@@ -266,9 +266,9 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 	if(InputBandCount <= 1 && InputBandCount != 0){
 	/* Gpu Input Data */
 		cudaMallocArray(
-						(cudaArray**)&this->gpuInputDataArray,   
-						 &inputDescriptor, 
-						 this->dataSize.width,  
+						(cudaArray**)&this->gpuInputDataArray,
+						 &inputDescriptor,
+						 this->dataSize.width,
 						 this->dataSize.height
 						);
 		this->gpuInput = this->gpuInputDataArray;
@@ -305,7 +305,7 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 	this->lastError = allocateAdditionalGpuMemory();
 
 	/* Transfer offsets to card */
-	transferRelativeOffsetsToDevice();	
+	transferRelativeOffsetsToDevice();
 
 	return this->lastError;
 }
@@ -319,12 +319,12 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 	data.resize(bytes/sizeof(OutputPixelType));
 
 	cudaMemcpyAsync(
-			&(data[0]),						
-			this->gpuOutputData,					
-			bytes,								
+			&(data[0]),
+			this->gpuOutputData,
+			bytes,
 			cudaMemcpyDeviceToHost,
 			this->stream
-			);		
+			);
 
 	cudaError cuer = cudaGetLastError();
 	if(cuer == cudaErrorInvalidValue)
@@ -350,9 +350,10 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 	return this->lastError;
 }
 
-
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
-ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(unsigned bw, unsigned bh) {
+ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(
+	__attribute__((unused)) unsigned bw,
+	__attribute__((unused)) unsigned bh) {
 	return Ok; // NEED TO ADD DEFAULT KERNEL FOR FILTER
 }
 
@@ -361,7 +362,7 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 {
 	computeRelativeOffsets();
 	cudaMalloc((void**)&relativeOffsetsGpu_, sizeof(int2) * relativeOffsets_.size());
-	cudaError cuer = cudaGetLastError(); 
+	cudaError cuer = cudaGetLastError();
 	if (cuer != cudaSuccess) {
 		throw std::runtime_error("GPU WHS () FAILURE TO ALLOCATE MEMORY FOR RELATIVE COORDS");
 	}
@@ -373,7 +374,7 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 }
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
-void GpuWindowFilterAlgorithm<InputPixelType,InputBandCount, OutputPixelType, OutputBandCount>::computeRelativeOffsets() 
+void GpuWindowFilterAlgorithm<InputPixelType,InputBandCount, OutputPixelType, OutputBandCount>::computeRelativeOffsets()
 {
 	if (type == CIRCLE) {
 		const size_t radius_squared = windowRadius_ * windowRadius_;
@@ -388,7 +389,7 @@ void GpuWindowFilterAlgorithm<InputPixelType,InputBandCount, OutputPixelType, Ou
 	else {
 		for (ssize_t i = 0 - windowRadius_; i <= windowRadius_; ++i) {
 			for (ssize_t j = 0 - windowRadius_; j <= windowRadius_; ++j) {
-				relativeOffsets_.push_back(make_int2(i,j));	
+				relativeOffsets_.push_back(make_int2(i,j));
 			}
 		}
 
@@ -396,7 +397,7 @@ void GpuWindowFilterAlgorithm<InputPixelType,InputBandCount, OutputPixelType, Ou
 }
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
-ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::transferRelativeOffsetsToDevice() 
+ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::transferRelativeOffsetsToDevice()
 {
 	cudaMemcpyAsync(
 		relativeOffsetsGpu_,
@@ -411,8 +412,8 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 		std::cout << "CUDA ERR = " << cuer << std::endl;
 		throw std::runtime_error("GPU WHS () FAILED TO MEMCPY RELATIVE COORDS ON TO DEVICE");
 	}
-	
-	//cuer = cvt::gpu::load_relative_offsets(this->stream,this->relativeOffsets_.data(), this->relativeOffsets_.size()); 
+
+	//cuer = cvt::gpu::load_relative_offsets(this->stream,this->relativeOffsets_.data(), this->relativeOffsets_.size());
 	//if (cuer != cudaSuccess) {
 	//	std::cout << "CUDA ERR = " << cuer << std::endl;
 	//	throw std::runtime_error("GPU WHS TO CONSTANT MEMORY");
