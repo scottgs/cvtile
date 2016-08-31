@@ -36,10 +36,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef _GPU_ABSOLUTE_DIFFERENCE_ALGORITHM_
 #define _GPU_ABSOLUTE_DIFFERENCE_ALGORITHM_
 
-#include "../../Cuda4or5.h"
-#include "../kernels/GpuAlgorithmKernels.hpp"
 #include "GpuBinaryImageAlgorithm.hpp"
-#include <vector>
 
 namespace cvt {
 
@@ -64,8 +61,8 @@ protected:
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
 GpuAbsoluteDifference<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::GpuAbsoluteDifference(
-	unsigned int cudaDeviceId, size_t unbufferedDataWidth, 
-	size_t unbufferedDataHeight) : 
+	unsigned int cudaDeviceId, size_t unbufferedDataWidth,
+	size_t unbufferedDataHeight) :
 	cvt::gpu::GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>(
 	cudaDeviceId, unbufferedDataWidth,unbufferedDataHeight)
 {
@@ -75,8 +72,8 @@ GpuAbsoluteDifference<InputPixelType, InputBandCount, OutputPixelType, OutputBan
 
 
 template< typename inputpixeltype, int inputbandcount, typename outputpixeltype, int outputbandcount >
-GpuAbsoluteDifference<inputpixeltype, inputbandcount, outputpixeltype, outputbandcount>::~GpuAbsoluteDifference() 
-{	
+GpuAbsoluteDifference<inputpixeltype, inputbandcount, outputpixeltype, outputbandcount>::~GpuAbsoluteDifference()
+{
 	;
 }
 
@@ -95,7 +92,7 @@ ErrorCode GpuAbsoluteDifference<InputPixelType, InputBandCount, OutputPixelType,
  	cvt::gpu::launch_absDifference<InputPixelType,OutputPixelType>(dimGrid, dimBlock, 0,
 	   this->stream, (OutputPixelType *)this->gpuOutputData,
 	   this->dataSize.width, this->dataSize.height);
-	
+
 	cudaError cuer;
 	cuer = cudaGetLastError();
 	if (cuer != cudaSuccess) {

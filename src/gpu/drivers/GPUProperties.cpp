@@ -35,19 +35,17 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "GPUProperties.hpp"
 
-//#include <cgi/logger/logger.hpp>
-
 namespace cvt {
 namespace gpu {
 
 GPUProperties::GPUProperties(int gpu_id)
 {
 	cudaGetDeviceProperties(&_props, gpu_id);
-	
+
 	std::stringstream comp_stream;
 
 	comp_stream << _props.major << "." << _props.minor;
-	
+
 	compute = atof(comp_stream.str().c_str());
 }
 
@@ -185,16 +183,16 @@ std::ostream& operator<<(std::ostream& os, const cvt::gpu::GPUProperties& p) {
 ///
 /// This function looks for the most powerful GPUs
 ///
-std::vector<int> getGpuDeviceIds(int min_major , int min_minor ) 
+std::vector<int> getGpuDeviceIds(int min_major , int min_minor )
 {
 	std::vector<int> gpuDeviceIds;
 
 	//Get the number of GPU's
 	int raw_number_of_gpu_devices;
 	cudaGetDeviceCount(&raw_number_of_gpu_devices);
-	
+
 	//Return false if there are no GPUs
-	if (raw_number_of_gpu_devices == 0) 
+	if (raw_number_of_gpu_devices == 0)
 	{
 //		cgi::log::MetaLogStream::instance() << cgi::log::Priority::WARN << "cgi::gpu::getGpuDeviceIds"
 //		<< "No raw GPU devices found" << cgi::log::flush;
@@ -214,13 +212,13 @@ std::vector<int> getGpuDeviceIds(int min_major , int min_minor )
 	}
 
 	//Filter out non CUDA capabale GPU devices
-	for (int i=0; i<raw_number_of_gpu_devices; i++) 
+	for (int i=0; i<raw_number_of_gpu_devices; i++)
 	{
 		cudaDeviceProp deviceProp;
 		cudaGetDeviceProperties(&deviceProp, i);
 
 		//If the device is Cuda Capable, it will have a major >= 1
-		if (deviceProp.major >= 1 && deviceProp.major >= min_major) 
+		if (deviceProp.major >= 1 && deviceProp.major >= min_major)
 		{
 			if (deviceProp.major > min_major || deviceProp.minor >= min_minor)
 			{

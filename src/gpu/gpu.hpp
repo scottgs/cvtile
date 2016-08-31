@@ -38,10 +38,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #define CVTILE_GPU_H
 
 #include "drivers/GPUProperties.hpp"
-
 #include "drivers/GpuAlgorithm.hpp"
 #include "drivers/GpuWindowFilterAlgorithm.hpp"
-
 #include "drivers/GpuDilate.hpp"
 #include "drivers/GpuErode.hpp"
 #include "drivers/GpuWHS.hpp"

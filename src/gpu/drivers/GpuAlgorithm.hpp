@@ -36,28 +36,9 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef CGI_GPU_DRIVERS_GPU_ALGORITHM
 #define CGI_GPU_DRIVERS_GPU_ALGORITHM
 
-
-/////////////////////
-// LOCAL INCLUDES  //
-/////////////////////
-
-#include "../../Cuda4or5.h"
+#include <typeinfo>
 #include "../../base/cvTile.hpp"
 #include "GPUProperties.hpp"
-//#include "GpuPixelCutter.hpp"
-
-/////////////////////
-// STL INCLUDES    //
-/////////////////////
-
-#include <typeinfo>
-
-/////////////////////
-// OpenCV INCLUDES //
-/////////////////////
-
-#include <opencv2/opencv.hpp>
-#include <opencv2/highgui/highgui.hpp>
 
 
 namespace cvt {

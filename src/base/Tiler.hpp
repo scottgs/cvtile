@@ -37,17 +37,11 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef Tiler_H_
 #define Tiler_H_
 
-#include <string>
-#include <sstream>
-#include <map>
-#include <vector>
 #include <boost/lexical_cast.hpp>
 #include <boost/thread/mutex.hpp>
-#include <gdal_priv.h>
 #include <vrtdataset.h>
 #include <ogr_spatialref.h>
-//#include <cgi/core/exceptions/exceptions.hpp>
-
+#include <sstream>
 #include "cvTile.hpp"
 #include "cvTileGdalExtensions.hpp"
 
@@ -272,7 +266,7 @@ class Tiler
 		 */
 		ErrorType getProjectionReference(std::string& projRef) const;
 
-		
+
 		/** @brief Copies (limited) metadata from the reference image.
                  *
                  *  @param referenceMosaic  Reference image from which to copy
@@ -863,7 +857,7 @@ void Tiler::setCvTileMetadata(int cvTileIndex, int cvTileBufferWidth, cvTile<T>&
 
 	const cv::Point2i two_d_idxs = this->getCvTileIndex2D(cvTileIndex);
 	const cv::Size2i tile_size = this->getCvTileSize();
-				
+
 
 	const int ul_x_pixel = two_d_idxs.x * tile_size.width;
 	const int ul_y_pixel = two_d_idxs.y * tile_size.height;

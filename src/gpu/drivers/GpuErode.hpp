@@ -36,10 +36,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef _GPU_ERODE_ALGORITHM_
 #define _GPU_ERODE_ALGORITHM_
 
-#include "../../Cuda4or5.h"
-#include "../kernels/GpuAlgorithmKernels.hpp"
 #include "GpuWindowFilterAlgorithm.hpp"
-#include <vector>
 
 namespace cvt {
 
@@ -64,8 +61,8 @@ protected:
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
 GpuErode<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::GpuErode(
-	unsigned int cudaDeviceId, size_t unbufferedDataWidth, 
-	size_t unbufferedDataHeight, ssize_t windowRadius) : 
+	unsigned int cudaDeviceId, size_t unbufferedDataWidth,
+	size_t unbufferedDataHeight, ssize_t windowRadius) :
 	cvt::gpu::GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>(
 	cudaDeviceId, unbufferedDataWidth,unbufferedDataHeight, windowRadius)
 {
@@ -75,8 +72,8 @@ GpuErode<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::GpuE
 
 
 template< typename inputpixeltype, int inputbandcount, typename outputpixeltype, int outputbandcount >
-GpuErode<inputpixeltype, inputbandcount, outputpixeltype, outputbandcount>::~GpuErode() 
-{	
+GpuErode<inputpixeltype, inputbandcount, outputpixeltype, outputbandcount>::~GpuErode()
+{
 	;
 }
 
@@ -110,7 +107,7 @@ ErrorCode GpuErode<InputPixelType, InputBandCount, OutputPixelType, OutputBandCo
 	 cvt::gpu::launch_erode<InputPixelType, OutputPixelType>(dimGrid, dimBlock, 0, this->stream,(OutputPixelType *)this->gpuOutputData,
 	   this->roiSize_.width,this->roiSize_.height, this->relativeOffsetsGpu_,
 	   this->relativeOffsets_.size(),this->bufferWidth_);
-	 
+
 	cuer = cudaGetLastError();
 	if (cuer != cudaSuccess) {
 		std::cout << "CUDA ERROR = " << cuer << std::endl;

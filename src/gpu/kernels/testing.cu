@@ -33,16 +33,16 @@ POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************
 */
 
-
+// TODO: Check into what this is for, and if it's still needed.
 
 // ==========================================================
 //      Test Kernel For Mike
 // ==========================================================
 
-__global__ 
-void test_kernel(unsigned char *outputData, unsigned int outputWidth,  unsigned int outputHeight) 
+__global__
+void test_kernel(unsigned char *outputData, unsigned int outputWidth,  unsigned int outputHeight)
 {
-	
+
 	//Get the current xIndex and yIndex of the image
 	int xIndex = blockIdx.x * blockDim.x + threadIdx.x;
 	int yIndex = blockIdx.y * blockDim.y + threadIdx.y;
@@ -65,7 +65,7 @@ void test_kernel(unsigned char *outputData, unsigned int outputWidth,  unsigned 
 }
 
 
-void launch_test(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream, 
+void launch_test(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream,
 						unsigned char *outputData, unsigned int outputWidth,  unsigned int outputHeight)
 {
 	test_kernel<<<dimGrid, dimBlock, shmemSize, stream>>>(outputData,outputWidth,outputHeight);

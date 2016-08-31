@@ -1,11 +1,11 @@
 #ifndef APP_MODULE_FACTORY_
 #define APP_MODULE_FACTORY_
 
-#include <string>
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string.hpp>
 #include <iostream>
 #include <fstream>
+#include <string>
 
 class AppModuleFactory {
 

@@ -36,13 +36,9 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef _GPU_WINDOW_HISTOGRAM_STATISTICS_ALGORITHM_
 #define _GPU_WINDOW_HISTOGRAM_STATISTICS_ALGORITHM_
 
-#include "../../Cuda4or5.h"
-#include "../kernels/GpuAlgorithmKernels.hpp"
 #include "GpuWindowFilterAlgorithm.hpp"
-#include <vector>
 
 namespace cvt {
-
 namespace gpu {
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
@@ -64,8 +60,8 @@ protected:
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
 GpuWHS<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::GpuWHS(
-	unsigned int cudaDeviceId, size_t unbufferedDataWidth, 
-	size_t unbufferedDataHeight, ssize_t windowRadius) : 
+	unsigned int cudaDeviceId, size_t unbufferedDataWidth,
+	size_t unbufferedDataHeight, ssize_t windowRadius) :
 	cvt::gpu::GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>(
 	cudaDeviceId, unbufferedDataWidth,unbufferedDataHeight, windowRadius)
 {
@@ -75,8 +71,8 @@ GpuWHS<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::GpuWHS
 
 
 template< typename inputpixeltype, int inputbandcount, typename outputpixeltype, int outputbandcount >
-GpuWHS<inputpixeltype, inputbandcount, outputpixeltype, outputbandcount>::~GpuWHS() 
-{	
+GpuWHS<inputpixeltype, inputbandcount, outputpixeltype, outputbandcount>::~GpuWHS()
+{
 	;
 }
 
@@ -93,17 +89,17 @@ ErrorCode GpuWHS<InputPixelType, InputBandCount, OutputPixelType, OutputBandCoun
 	{
 		return CudaError; // needs to be changed
 	}
- // error check size	
+ // error check size
 	//cudaMemcpyToSymbol(relativeOffsets, this->relativeOffsets_.data(), sizeof(int2) * this->relativeOffsets_.size() );
 	 //TODO: Use this line when updating to use shared memory
 	 //const unsigned int shmem_bytes = neighbor_coordinates_.size() * sizeof(double) * blockWidth * blockHeight;
 	 //
-	 //	
+	 //
 	 //
 	 //std::cout << "width=" << newWidth <<" height=" << newHeight << std::endl;
 	cvt::gpu::launch_window_histogram_statistics<InputPixelType, OutputPixelType>(dimGrid, dimBlock, 0, this->stream,(OutputPixelType *)this->gpuOutputData,this->roiSize_.width,this->roiSize_.height,this->relativeOffsetsGpu_, this->relativeOffsets_.size(),this->bufferWidth_);
-	
-	// check for kernel launch success	
+
+	// check for kernel launch success
 	cuer = cudaGetLastError();
 	if (cuer != cudaSuccess) {
 		std::cout << "CUDA ERROR = " << cuer << std::endl;

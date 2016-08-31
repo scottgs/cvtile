@@ -36,20 +36,11 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef GPU_WINDOW_FITLER_ALGORITHM_
 #define GPU_WINDOW_FITLER_ALGORITHM_
 
-#include "../../Cuda4or5.h"
 #include "GpuAlgorithm.hpp"
 #include "../kernels/GpuAlgorithmKernels.hpp"
-#include <vector>
-#include <sstream>
-
-
-
-#include <iostream>
 
 namespace cvt {
-
 namespace gpu {
-
 
 enum windowRadiusType{
 	SQUARE,

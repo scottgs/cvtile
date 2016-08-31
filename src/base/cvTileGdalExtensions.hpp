@@ -1,9 +1,9 @@
 #ifndef GDALEXT_TRAITS_GDAL_TRAITS_HPP_
 #define GDALEXT_TRAITS_GDAL_TRAITS_HPP_
 
-#include <complex>
-#include <stdint.h>
 #include <gdal_priv.h>
+#include <complex>
+#include <cstdint>
 
 namespace gdalext {
 namespace traits {

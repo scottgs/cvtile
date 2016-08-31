@@ -36,16 +36,11 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef GPU_BINARY_IMAGE_ALGORITHM_
 #define GPU_BINARY_IMAGE_ALGORITHM_
 
-#include "../../Cuda4or5.h"
 #include "GpuAlgorithm.hpp"
 #include "../kernels/GpuAlgorithmKernels.hpp"
-#include <vector>
-#include <sstream>
 
 namespace cvt {
-
 namespace gpu {
-
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
 class GpuBinaryImageAlgorithm : public GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>
