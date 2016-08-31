@@ -36,17 +36,30 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef _GPU_DRIVERS_PROPERTIES_
 #define _GPU_DRIVERS_PROPERTIES_
 
-//C++ Variables
 #include <iostream>
 #include <vector>
 #include <string>
 #include <sstream>
+#include <cstdlib>
 
-//Needed for atof
-#include <stdlib.h>
-
-//CUDA SDK
-#include <cuda_runtime_api.h>
+// CUDA Headers
+#include <cuda_runtime.h>
+// TODO: It's questionable if these extra CUDA includes are even necessary.
+// The CUDART API sets MACRO CUDART_VERSION
+#if CUDART_VERSION >= 7000
+	//#pragma message("Using CUDA Toolkit 7 or higher")
+	#include <cuda.h>
+	// #include <help_cuda.h>
+#elif CUDART_VERSION >= 5000
+	#pragma message("Using CUDA Toolkit 5")
+	#include <helper_functions.h>
+// CUDA Toolkit 4.2 is minimum supported for compute_30 compatibility.
+#elif CUDART_VERSION >= 4200
+	#pragma message("Using CUDA Toolkit 4")
+	#include <sdkHelper.h>
+	#include <shrQATest.h>
+	#include <shrUtils.h>
+#endif
 
 
 namespace cvt {
@@ -55,7 +68,7 @@ namespace gpu {
 /// CUDA Device Properties
 /// Wraps away the cudaDeviceProp structure
 class GPUProperties {
-	
+
 public:
 
 	///Constructor/Destructor
@@ -517,6 +530,6 @@ std::vector<int> getGpuDeviceIds(int min_major = 1, int min_minor = 0);
 }; // END cgi::gpu namespace
 }; // END cgi namespace
 
-//std::ostream& operator<<(std::ostream& os, const vmr::gpu::GPUProperties& p); 
+//std::ostream& operator<<(std::ostream& os, const vmr::gpu::GPUProperties& p);
 
 #endif /* CGI_GPU_DRIVERS_PROPERTIES */

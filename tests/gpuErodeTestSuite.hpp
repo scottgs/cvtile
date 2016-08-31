@@ -36,30 +36,25 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef _gpu_ERODE_TEST_SUITE_H_
 #define _gpu_ERODE_TEST_SUITE_H_
 
+#include <boost/filesystem.hpp>
 #include <cxxtest/TestSuite.h>
 #include <algorithm>
-#include <cstring>
-#include <cstdio>
-#include <cmath>
 #include <iostream>
 #include <chrono>
 #include <numeric>
-
+#include <cstring>
+#include <cstdio>
+#include "../src/base/cvTile.hpp"
+#include "../src/base/Tiler.hpp"
+#include "../src/gpu/drivers/GpuErode.hpp"
+#include "../src/gpu/drivers/GpuWindowFilterAlgorithm.hpp"
 
 #ifdef HAVE_CGI
 	#include "../src/base/cvTileConversion.hpp"
 #endif
 
-#include "../src/base/cvTile.hpp"
-#include "../src/base/Tiler.hpp"
-#include <boost/filesystem.hpp>
-
-
-#include "../src/gpu/drivers/GpuErode.hpp"
-#include "../src/gpu/drivers/GpuWindowFilterAlgorithm.hpp"
-
-
 #define SHOW_OUTPUT 0
+
 
 class gpuErodeTestSuite : public CxxTest::TestSuite
 {
@@ -72,7 +67,7 @@ class gpuErodeTestSuite : public CxxTest::TestSuite
 		{;}
 
 		short erode_window_data (std::vector<short>& data) {
-			short min = data[0]; 
+			short min = data[0];
 			for (size_t i = 0; i < data.size(); ++i) {
 				if (min > data[i]) {
 					min = data[i];
@@ -82,7 +77,7 @@ class gpuErodeTestSuite : public CxxTest::TestSuite
 		}
 
 		unsigned short erode_window_data (std::vector<unsigned short>& data) {
-			short min = data[0]; 
+			short min = data[0];
 			for (size_t i = 0; i < data.size(); ++i) {
 				if (min > data[i]) {
 					min = data[i];
@@ -104,7 +99,7 @@ class gpuErodeTestSuite : public CxxTest::TestSuite
 			cvt::cvTile<short> inputTile;
 
 			/* Loop through all the tiles in the image */
-			for (int window = 1; window <= 11; window++) {	
+			for (int window = 1; window <= 11; window++) {
 					inputTile = read_tiler.getCvTile<short>(4, window);
 					cvt::gpu::GpuErode<short,1,short,1> erode(cuda_device_id,
 					inputTile.getROI().width,inputTile.getROI().height,window);
@@ -117,12 +112,12 @@ class gpuErodeTestSuite : public CxxTest::TestSuite
 						std::cout << "HERE" <<std::endl;
 						exit(1);
 					}
-					TS_ASSERT_EQUALS(outputTile->getBandCount(),1);	
+					TS_ASSERT_EQUALS(outputTile->getBandCount(),1);
 					/*Calculate Window Histogram Statistics for each pixel*/
 					//TODO remove dims if it is not used.
 					//cv::Size2i dims = inputTile.getSize();
 					cv::Rect roiDims = inputTile.getROI();
-					
+
 					const int outArea = roiDims.width * roiDims.height;
 					std::vector<short> results;
 					results.resize(outArea);
@@ -143,20 +138,20 @@ class gpuErodeTestSuite : public CxxTest::TestSuite
 						results[r] = erode_window_data(data);
 
 					}
-					
+
 					for (size_t s = 0; s < results.size(); ++s) {
 						const size_t row = s / roiDims.height;
 						const size_t col = s % roiDims.width;
-	
+
 						TS_ASSERT_EQUALS(results[s],(*outputTile)[0].at<short>(row,col));
 					}
 					//return;
 					delete outputTile;
-					
+
 
 			}
 			read_tiler.close();
-		
+
 		}
 
 		void testUnsignedErodeFullPixelVerification () {
@@ -172,7 +167,7 @@ class gpuErodeTestSuite : public CxxTest::TestSuite
 			cvt::cvTile<unsigned char> inputTile;
 
 			/* Loop through all the tiles in the image */
-			for (int window = 0; window <= 11; window++) {	
+			for (int window = 0; window <= 11; window++) {
 					inputTile = read_tiler.getCvTile<unsigned char>(4, window);
 					cvt::gpu::GpuErode<unsigned char,1,unsigned char,1> erode(cuda_device_id,
 					inputTile.getROI().width,inputTile.getROI().height,window);
@@ -185,13 +180,13 @@ class gpuErodeTestSuite : public CxxTest::TestSuite
 						std::cout << "HERE" <<std::endl;
 						exit(1);
 					}
-					TS_ASSERT_EQUALS(outputTile->getBandCount(),1);	
+					TS_ASSERT_EQUALS(outputTile->getBandCount(),1);
 					/*Calculate Window Histogram Statistics for each pixel*/
 
 					//TODO remove dims if it is not used.
 					//cv::Size2i dims = inputTile.getSize();
 					cv::Rect roiDims = inputTile.getROI();
-					
+
 					const int outArea = roiDims.width * roiDims.height;
 					std::vector<unsigned char> results;
 					results.resize(outArea);
@@ -212,20 +207,20 @@ class gpuErodeTestSuite : public CxxTest::TestSuite
 						results[r] = erode_window_data(data);
 
 					}
-					
+
 					for (size_t s = 0; s < results.size(); ++s) {
 						const size_t row = s / roiDims.height;
 						const size_t col = s % roiDims.width;
-	
+
 						TS_ASSERT_EQUALS(results[s],(*outputTile)[0].at<unsigned char>(row,col));
 					}
 					//return;
 					delete outputTile;
-					
+
 
 			}
 			read_tiler.close();
-		
+
 		}
 
 };

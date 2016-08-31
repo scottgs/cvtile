@@ -3,6 +3,7 @@ AC_PREREQ(2.63)
 AC_INIT([libcvtile], [1.0], [grantscott@missouri.edu])
 AC_CONFIG_SRCDIR([src/base/cvTile.hpp])
 AC_CONFIG_AUX_DIR(config)
+AC_CONFIG_MACRO_DIRS([m4])
 AM_INIT_AUTOMAKE
 
 # Checks for programs.
@@ -35,7 +36,7 @@ else
   SUFFIX=""
 fi
 
-# -- These are capture as CUDA_CFLAGS, 
+# -- These are capture as CUDA_CFLAGS,
 # AM_CPPFLAGS="-I/opt/cuda/sdk/shared/inc/ -I/opt/cuda/sdk/C/common/inc/"
 #   CUDART 5 = /opt/cuda/sdk/common/inc/
 # Setup CUDA paths
@@ -61,7 +62,7 @@ AC_SUBST(CUDA_LDFLAGS)
 AC_SUBST(NVCC)
 
 # Global CPP Flags
-AM_CPPFLAGS="-Wall -Wextra -O3 -ffast-math -msse3 -march=native -mtune=native"
+AM_CPPFLAGS="-Werror -Wall -Wextra -O3 -ffast-math -msse3 -march=native -mtune=native"
 AC_SUBST([AM_CPPFLAGS])
 CFLAGS=" "
 AC_SUBST([CFLAGS])

@@ -36,30 +36,25 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef _gpu_WINDOW_HISTOGRAM_SUITE_H_
 #define _gpu_WINDOW_HISTOGRAM_SUITE_H_
 
+#include <boost/filesystem.hpp>
 #include <cxxtest/TestSuite.h>
 #include <algorithm>
-#include <cstring>
-#include <cstdio>
-#include <cmath>
 #include <iostream>
 #include <chrono>
-
+#include <cstring>
+#include <cstdio>
+#include "../src/base/cvTile.hpp"
+#include "../src/base/Tiler.hpp"
+#include "../src/gpu/drivers/GpuWHS.hpp"
+#include "../src/gpu/drivers/GpuWindowFilterAlgorithm.hpp"
 
 #ifdef HAVE_CGI
 	#include "../src/base/cvTileConversion.hpp"
 	#include <ext/numeric>
 #endif
 
-#include "../src/base/cvTile.hpp"
-#include "../src/base/Tiler.hpp"
-#include <boost/filesystem.hpp>
-
-
-#include "../src/gpu/drivers/GpuWHS.hpp"
-#include "../src/gpu/drivers/GpuWindowFilterAlgorithm.hpp"
-
-
 #define TIMING_ON 0
+
 
 struct Stats {
 	float mean;
@@ -87,7 +82,7 @@ class gpuWHSTestSuite : public CxxTest::TestSuite
 				std::cout << data[i] << " ";
 			}
 			std::cout << std::endl;*/
-			
+
 			double total = 0;
 			short min = data[0];
 			short max = data[0];
@@ -104,7 +99,7 @@ class gpuWHSTestSuite : public CxxTest::TestSuite
 					min = data[i];
 				}
 			}
-			
+
 
 			short num_bins = 128;
 			//std::cout << "num bins = " << num_bins << std::endl;
@@ -119,7 +114,7 @@ class gpuWHSTestSuite : public CxxTest::TestSuite
 			memset(hist,0,sizeof(short) * num_bins);
 
 			float pdf[num_bins];
-			
+
 			short bin_idx = 0;
 			/* Histogram Calculation */
 			for (unsigned int j = 0; j < dataSize; ++j) {
@@ -137,7 +132,7 @@ class gpuWHSTestSuite : public CxxTest::TestSuite
 			}
 
 
-			
+
 			/*calculate mean*/
 			double mean  = (double) total/dataSize;
 
@@ -145,11 +140,11 @@ class gpuWHSTestSuite : public CxxTest::TestSuite
 			double var = 0;
 			for (unsigned int i = 0; i < dataSize; ++i) {
 				const double res = data[i] - mean;
-				var = var + (res * res); 
+				var = var + (res * res);
 			}
 			var = (double) var/(dataSize);
 			/*calculate std */
-			
+
 			double std = sqrtf(var);
 			double skewness = 0;
 
@@ -200,7 +195,7 @@ class gpuWHSTestSuite : public CxxTest::TestSuite
 			stats->variance = (float) var;
 			stats->skewness = (float) skewness;
 			stats->kurtosis = (float) kurtosis;
-		
+
 		}
 
 		void testWindowHistogramSingleBandImage () {
@@ -219,10 +214,10 @@ class gpuWHSTestSuite : public CxxTest::TestSuite
 
 			cvt::cvTile<short> inputTile;
 			//cvt::cvTile<float> *outputTile;
-			
+
 
 			/* Loop through all the tiles in the image */
-			for (int window = 1; window <= 11; window++) {	
+			for (int window = 1; window <= 11; window++) {
 					inputTile = read_tiler.getCvTile<short>(4, window);
 					cvt::gpu::GpuWHS<short,1,float,5> whs(cuda_device_id,
 					inputTile.getROI().width,inputTile.getROI().height,window);
@@ -235,12 +230,12 @@ class gpuWHSTestSuite : public CxxTest::TestSuite
 						std::cout << "HERE" <<std::endl;
 						exit(1);
 					}
-					TS_ASSERT_EQUALS(outputTile->getBandCount(),5);	
+					TS_ASSERT_EQUALS(outputTile->getBandCount(),5);
 					/*Calculate Window Histogram Statistics for each pixel*/
 					//TODO remove dims if it is not used.
 					//cv::Size2i dims = inputTile.getSize();
 					cv::Rect roiDims = inputTile.getROI();
-					
+
 					const int outArea = roiDims.width * roiDims.height;
 					std::vector<Stats> stats;
 					stats.resize(outArea);
@@ -258,10 +253,10 @@ class gpuWHSTestSuite : public CxxTest::TestSuite
 							}
 
 						}
-						
+
 						calcStatisitics(&stats[r], data.data(),32, data.size());
 					}
-					//return;	
+					//return;
 					for (size_t s = 0; s < stats.size(); ++s) {
 						const size_t row = s / roiDims.width;
 						const size_t col = s % roiDims.height;
@@ -273,12 +268,12 @@ class gpuWHSTestSuite : public CxxTest::TestSuite
 
 					}
 					delete outputTile;
-					
+
 
 			}
 			read_tiler.close();
 
-		
+
 		}
 };
 

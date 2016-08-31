@@ -36,23 +36,18 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef GPU_BINARY_IMAGE_ALGORITHM_
 #define GPU_BINARY_IMAGE_ALGORITHM_
 
-#include "../../Cuda4or5.h"
 #include "GpuAlgorithm.hpp"
 #include "../kernels/GpuAlgorithmKernels.hpp"
-#include <vector>
-#include <sstream>
 
 namespace cvt {
-
 namespace gpu {
-
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
 class GpuBinaryImageAlgorithm : public GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>
 {
 
 	public:
-	
+
 	 explicit GpuBinaryImageAlgorithm(unsigned int cudaDeviceId, size_t unbufferedDataWidth,
 							 size_t unbufferedDataHeight);
 
@@ -79,10 +74,10 @@ class GpuBinaryImageAlgorithm : public GpuAlgorithm<InputPixelType, InputBandCou
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
 GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::GpuBinaryImageAlgorithm(
-	unsigned int cudaDeviceId, size_t unbufferedDataWidth, 
-	size_t unbufferedDataHeight) 	
+	unsigned int cudaDeviceId, size_t unbufferedDataWidth,
+	size_t unbufferedDataHeight)
 	: cvt::gpu::GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>(
-	cudaDeviceId, unbufferedDataWidth,unbufferedDataHeight) 
+	cudaDeviceId, unbufferedDataWidth,unbufferedDataHeight)
 {
 	bufferWidth_ = 0;
 }
@@ -92,7 +87,7 @@ GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputB
 	////////////////////////////////////////
 	// FREE CUDA ARRAYS USED FOR GPU INPUT //
 	////////////////////////////////////////
-	
+
 	cudaFree(gpuInputDataArrayTwo_);
 
 	cudaError cuer = cudaGetLastError();
@@ -105,10 +100,11 @@ GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputB
 }
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
-ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::operator()(const cvt::cvTile<InputPixelType>& tile,
-					const cvt::cvTile<OutputPixelType> ** outTile) {
-					
-	return Ok;					
+ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::operator()(
+					__attribute__((unused)) const cvt::cvTile<InputPixelType>& tile,
+					__attribute__((unused)) const cvt::cvTile<OutputPixelType> ** outTile) {
+
+	return Ok;
 }
 
 
@@ -117,14 +113,14 @@ template< typename InputPixelType, int InputBandCount, typename OutputPixelType,
 ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::operator()(const cvt::cvTile<InputPixelType>& tile,
 					const cvt::cvTile<InputPixelType> &tile2,const cvt::cvTile<OutputPixelType> ** outTile)
 {
-		//TO-DO Error Check Template Params for Type/Bounds
+	//TO-DO Error Check Template Params for Type/Bounds
 
 	const cv::Size2i tileSize = tile.getSize();
-	
+
 	if (tileSize != this->dataSize)
 	{
 		std::stringstream ss;
-		ss << tileSize << " expected of " << this->dataSize << std::endl; 
+		ss << tileSize << " expected of " << this->dataSize << std::endl;
 		throw std::runtime_error(ss.str());
 	}
 
@@ -144,22 +140,22 @@ ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelTyp
 	size_t bitDepth = 0;
 	cudaChannelFormatDesc inputDescriptor;
 
-	if(inTypeIdentifier == "a" || 
-	   inTypeIdentifier == "s" || 
+	if(inTypeIdentifier == "a" ||
+	   inTypeIdentifier == "s" ||
 	   inTypeIdentifier == "i" ||
 	   inTypeIdentifier == "l")
 	{
 		this->channelType = cudaChannelFormatKindSigned;
 	}
-	else if(inTypeIdentifier == "h" || 
-			inTypeIdentifier == "t" || 
-			inTypeIdentifier == "j" || 
+	else if(inTypeIdentifier == "h" ||
+			inTypeIdentifier == "t" ||
+			inTypeIdentifier == "j" ||
 			inTypeIdentifier == "m")
 	{
 		this->channelType = cudaChannelFormatKindUnsigned;
 	}
-	else if(inTypeIdentifier == "f" || 
-			inTypeIdentifier == "d") 
+	else if(inTypeIdentifier == "f" ||
+			inTypeIdentifier == "d")
 	{
 		this->channelType = cudaChannelFormatKindFloat;
 	}
@@ -174,7 +170,7 @@ ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelTyp
 	cudaError cuer;
 	inputDescriptor = cudaCreateChannelDesc(bitDepth, 0, 0, 0, this->channelType);
 	cuer = cudaGetLastError();
-	
+
 	if (cuer != cudaSuccess) {
 		this->lastError = CudaError;
 		std::cout << "CUDA ERR = " << cuer << std::endl;
@@ -212,7 +208,7 @@ ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelTyp
 		std::runtime_error("Failed copy off tile from device");
 	}
 	return Ok;
-}	
+}
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
 ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::initializeDevice()
@@ -224,7 +220,7 @@ ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelTyp
 	this->lastError = this->setGpuDevice();
 	if(this->lastError)
 		return this->lastError;
-	
+
 	if (this->properties.getMajorCompute() < 1)
 	{
 		this->lastError = InitFailNoCUDA;
@@ -247,22 +243,22 @@ ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelTyp
 	size_t bitDepth = 0;
 	cudaChannelFormatDesc inputDescriptor;
 
-	if(inTypeIdentifier == "a" || 
-	   inTypeIdentifier == "s" || 
+	if(inTypeIdentifier == "a" ||
+	   inTypeIdentifier == "s" ||
 	   inTypeIdentifier == "i" ||
 	   inTypeIdentifier == "l")
 	{
 		this->channelType = cudaChannelFormatKindSigned;
 	}
-	else if(inTypeIdentifier == "h" || 
-			inTypeIdentifier == "t" || 
-			inTypeIdentifier == "j" || 
+	else if(inTypeIdentifier == "h" ||
+			inTypeIdentifier == "t" ||
+			inTypeIdentifier == "j" ||
 			inTypeIdentifier == "m")
 	{
 		this->channelType = cudaChannelFormatKindUnsigned;
 	}
-	else if(inTypeIdentifier == "f" || 
-			inTypeIdentifier == "d") 
+	else if(inTypeIdentifier == "f" ||
+			inTypeIdentifier == "d")
 	{
 		this->channelType = cudaChannelFormatKindFloat;
 	}
@@ -276,29 +272,29 @@ ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelTyp
 
 	inputDescriptor = cudaCreateChannelDesc(bitDepth, 0, 0, 0, this->channelType);
 	cuer = cudaGetLastError();
-	
+
 	if (cuer != cudaSuccess) {
 		this->lastError = CudaError;
 		std::cout << "CUDA ERR = " << cuer << std::endl;
 		throw std::runtime_error("GPU WHS INIT FAILED TO CREATE CHANNEL");
-	}	
+	}
 
 
 	if(cuer != cudaSuccess){
 		this->lastError = CudaError;
 		return this->lastError;
-	}	
-	
+	}
+
 	//////////////////////////////////////////////////////////
 	// ALLOCATE MEMORY FOR GPU INPUT AND OUTPUT DATA (TILE) //
 	/////////////////////////////////////////////////////////
-	
+
 	cuer = cudaGetLastError();
 	/*Gpu Input Data*/
 	cudaMallocArray(
-					(cudaArray**)&this->gpuInputDataArray,   
-					 &inputDescriptor, 
-					 this->dataSize.width,  
+					(cudaArray**)&this->gpuInputDataArray,
+					 &inputDescriptor,
+					 this->dataSize.width,
 					 this->dataSize.height
 					);
 	this->gpuInput = this->gpuInputDataArray;
@@ -308,8 +304,8 @@ ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelTyp
 		std::cout << "CUDA ERR = " << cuer << std::endl;
 		throw std::runtime_error("GPU WHS INIT FAILED TO ALLOCATE MEMORY");
 	}
-	this->usingTexture = true;	
-	//Gpu Output Data 
+	this->usingTexture = true;
+	//Gpu Output Data
 	const size_t bytes = this->dataSize.width * this->dataSize.height * OutputBandCount * sizeof(OutputPixelType);
 	this->outputDataSize = bytes;
 	cudaMalloc((void**) &this->gpuOutputData, bytes);
@@ -327,7 +323,7 @@ ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelTyp
 	// CALL FUNCTION TO ALLOCATE ADDITIONAL GPU STORAGE - DOES NOTHING IF NOT OVERRIDEN //
 	/////////////////////////////////////////////////////////////////////////////////////
 	/* Initialize the neighborhood coordinates */
-	/*uses two ints to store width and height coords by the windowRadius_*/	
+	/*uses two ints to store width and height coords by the windowRadius_*/
 	/*
 	 * Allocates the memory needed for the results coming back from the GPU
 	 *
@@ -336,8 +332,11 @@ ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelTyp
 	return this->lastError;
 }
 
+
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
-ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(unsigned bw, unsigned bh) {
+ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(
+	__attribute__((unused)) unsigned bw,
+	__attribute__((unused)) unsigned bh) {
 	return Ok; // NEED TO ADD DEFAULT KERNEL FOR FILTER
 }
 

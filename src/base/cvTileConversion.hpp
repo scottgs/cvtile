@@ -35,6 +35,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 
 #include "cvTile.hpp"
+// TODO: Remove dependence on cgi library, or include the code.
 #include <cgi/tile/Tile.hpp>
 
 namespace cvt {

@@ -37,23 +37,22 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef CVTILE_HPP_
 #define CVTILE_HPP_
 
-#include <vector>
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/bimap.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
 #include <map>
 #include <string>
 #include <set>
 #include <functional>
 #include <algorithm>
-#include <boost/bimap.hpp>
 #include <cmath>
-#include <opencv2/opencv.hpp>
-#include <opencv2/highgui/highgui.hpp>
-
-#define BOOST_UBLAS_NDEBUG
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/lexical_cast.hpp>
-
 #include "cvTileVectorProxy.hpp"
 
+#define BOOST_UBLAS_NDEBUG
+
+// TODO: Remove using std for readability.
 using namespace std;
 
 namespace cvt {
@@ -658,9 +657,9 @@ cvTile<T>::cvTile(T* buffer, const cv::Size2i& size, int bands) :
 	T* buffer_start = buffer;
 	const int band_offset = _size.height * _size.width;
 	//const int row_offset = _size.width;
-	
+
 	for (int b = 0; b < bands; ++b)
-	{	
+	{
 		//Cannot use the constructor's initialization list becuase the vector simply
 		//copies one reference of the Mat class for each band, and does not create a new one
 		//for each band. Weird!
@@ -1070,7 +1069,7 @@ template <typename T>
 const cv::Mat cvTile<T>::getValidMask(valid_mask::Type validity_type) const
 {
 	cv::Mat mask(_size.height, _size.width, cv::DataType<bool>::type);
-	
+
 	if (_has_nodata_value || _has_mask)
 	{
 		std::transform(this->begin(), this->end(),

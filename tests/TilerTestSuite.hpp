@@ -1,22 +1,21 @@
 #ifndef Tiler_TEST_SUITE_H_
 #define Tiler_TEST_SUITE_H_
 
+#include <boost/numeric/ublas/io.hpp>
+#include <boost/filesystem.hpp>
 #include <cxxtest/TestSuite.h>
 #include <algorithm>
 #include <numeric>
-#include <boost/numeric/ublas/io.hpp>
-#include <boost/filesystem.hpp>
+#include "../src/base/Tiler.hpp"
+#include "TilerTestSuiteTestData.hpp"
 
-//THIS HAS TO BE IFDEF CGI then use this, else just include cvTile.hpp
-
+// THIS HAS TO BE IFDEF CGI then use this, else just include cvTile.hpp
 #ifdef HAVE_CGI
 	#include "../src/base/cvTileConversion.hpp"
+#else
+	#include "../src/base/cvTile.hpp"
 #endif
 
-#include "../src/base/Tiler.hpp"
-//#include "cvTile.hpp"
-
-#include "TilerTestSuiteTestData.hpp"
 
 using namespace std;
 using namespace cvt;
@@ -166,7 +165,7 @@ class TilerTestSuite : public CxxTest::TestSuite
 			std::string outFile("test1-1.tif");
 
 			TS_ASSERT(NoError == read_tiler.open(sourceFile));
-			
+
 			//make the size of the tile the size of the image so one tile is the whole image
 			read_tiler.setCvTileSize(read_tiler.getRasterSize());
 
@@ -195,7 +194,7 @@ class TilerTestSuite : public CxxTest::TestSuite
 			std::string outFile("test2-2.tif");
 
 			TS_ASSERT(NoError == read_tiler.open("test2.tif"));
-			
+
 			//make the size of the tile the size of the whole image so one tile is the whole image
 			read_tiler.setCvTileSize(read_tiler.getRasterSize());
 
@@ -305,13 +304,13 @@ class TilerTestSuite : public CxxTest::TestSuite
 				// READ WITH BUFFER
 				// Tile 4, buffer 10
 			cvt::cvTile<unsigned char> iTile = read_tiler.getCvTile<unsigned char>(4, 10);
-			
+
 			TS_ASSERT_EQUALS(iTile.getSize().width, 276);
 			TS_ASSERT_EQUALS(iTile.getSize().width, 276);
 
 			TS_ASSERT_EQUALS(iTile.getROI().x,10);
 			TS_ASSERT_EQUALS(iTile.getROI().y,10);
-			
+
 			TS_ASSERT_EQUALS(iTile.getROI().size().width,256);
 			TS_ASSERT_EQUALS(iTile.getROI().size().height,256);
 

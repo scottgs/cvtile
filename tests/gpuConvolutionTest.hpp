@@ -37,10 +37,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #define H_GPU_CONVOLUTION_TEST_SUITE_H
 
 #include <cxxtest/TestSuite.h>
-
 #include "../src/base/cvTile.hpp"
 #include "../src/base/Tiler.hpp"
-
 #include "../src/gpu/drivers/GpuConvolution.hpp"
 
 class gpuConvolutionTestSuite : public CxxTest::TestSuite
@@ -75,13 +73,13 @@ class gpuConvolutionTestSuite : public CxxTest::TestSuite
 					weightsMat.at<short>(i,j) = 2;
 				}
 			}
-			
-			inTile.setROI(cv::Rect(filterRadius, filterRadius, roi.width, roi.height));	
+
+			inTile.setROI(cv::Rect(filterRadius, filterRadius, roi.width, roi.height));
 			cvt::gpu::GpuConvolution<short,1,short,1,short> conv(0, roi.width, roi.height,
 									    filterRadius, weightsMat);
 
 			TS_ASSERT_EQUALS(cvt::Ok, conv.initializeDevice(cvt::gpu::SQUARE));
-			
+
 			conv(inTile, (const cvt::cvTile<short>**)&outTile);
 			TS_ASSERT_EQUALS(0, (outTile == NULL));
 
@@ -89,10 +87,10 @@ class gpuConvolutionTestSuite : public CxxTest::TestSuite
 			//cv::Mat& a = inTile[0];
 			cv::Mat& b = (*outTile)[0];
 
-			short expected[] = {32, 54, 66, 78, 
-					  90, 102, 72, 90, 
-					  144, 162, 180, 198, 
-					  216, 150, 174, 270, 
+			short expected[] = {32, 54, 66, 78,
+					  90, 102, 72, 90,
+					  144, 162, 180, 198,
+					  216, 150, 174, 270,
 					  288, 306, 324, 342,
 					  234, 258, 396, 414, 432};
 
@@ -105,7 +103,7 @@ class gpuConvolutionTestSuite : public CxxTest::TestSuite
 				}
 			}
 	}
-		
+
 };
 
 #endif
