@@ -17,7 +17,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/gpu/gpu.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include <cvtile/cvtile.hpp> // required for tiles
+#include "../src/cvtile.hpp"
 
 //namespace cvt
 //{
@@ -39,10 +39,10 @@ class WindowHistogramStatistics {
 		WindowHistogramStatistics(ssize_t buffer_radius);
 		~WindowHistogramStatistics();
 		bool operator () (cvt::cvTile<short>& inputTile, cvt::cvTile<float>& outputTile);
-		
-	
+
+
 	protected:
-	
+
 		bool calculateWindowStatsPerPixel(PixelStats *stats, short* data,unsigned int dataSize);
 
 		ssize_t _buffer_radius;
@@ -62,14 +62,14 @@ WindowHistogramStatistics::~WindowHistogramStatistics() {
 
 
 bool WindowHistogramStatistics::operator()(cvt::cvTile<short>& inputTile, cvt::cvTile<float>& outputTile) {
-				
+
 					if (inputTile.getBandCount() != 1) {
 						//throw std::runtime_error("BAND COUNTS FOR INPUTS ARE WRONG");
 						return false;
 					}
 
 					cv::Rect roiDims = inputTile.getROI();
-					
+
 					const int outArea = roiDims.width * roiDims.height;
 					std::vector<PixelStats> pixel_stats;
 					pixel_stats.resize(outArea);
@@ -87,10 +87,10 @@ bool WindowHistogramStatistics::operator()(cvt::cvTile<short>& inputTile, cvt::c
 							}
 
 						}
-						
+
 						calculateWindowStatsPerPixel(&pixel_stats[r], window_data.data(),window_data.size());
 					}
-					// Copy results into correct bands	
+					// Copy results into correct bands
 					for (size_t s = 0; s < pixel_stats.size(); ++s) {
 						const int row = s / roiDims.width;
 						const int col = s % roiDims.height;
@@ -101,11 +101,11 @@ bool WindowHistogramStatistics::operator()(cvt::cvTile<short>& inputTile, cvt::c
 						outputTile[4].at<float>(row,col) = pixel_stats[s].kurtosis;
 					}
 					return true;
-		
+
 }
 
 bool WindowHistogramStatistics::calculateWindowStatsPerPixel(PixelStats *stats, short* data, unsigned int dataSize) {
-			
+
 			size_t total = 0;
 			short min = data[0];
 			short max = data[0];
@@ -122,7 +122,7 @@ bool WindowHistogramStatistics::calculateWindowStatsPerPixel(PixelStats *stats, 
 					min = data[i];
 				}
 			}
-			
+
 
 			short num_bins = 128;
 			//std::cout << "num bins = " << num_bins << std::endl;
@@ -137,7 +137,7 @@ bool WindowHistogramStatistics::calculateWindowStatsPerPixel(PixelStats *stats, 
 			memset(hist,0,sizeof(short) * num_bins);
 
 			float pdf[num_bins];
-			
+
 			short bin_idx = 0;
 			/* Histogram Calculation */
 			for (unsigned int j = 0; j < dataSize; ++j) {
@@ -155,7 +155,7 @@ bool WindowHistogramStatistics::calculateWindowStatsPerPixel(PixelStats *stats, 
 			}
 
 
-			
+
 			/*calculate mean*/
 			double mean  = (double) total/dataSize;
 
@@ -163,11 +163,11 @@ bool WindowHistogramStatistics::calculateWindowStatsPerPixel(PixelStats *stats, 
 			double var = 0;
 			for (unsigned int i = 0; i < dataSize; ++i) {
 				const double res = data[i] - mean;
-				var = var + (res * res); 
+				var = var + (res * res);
 			}
 			var = (double) var/(dataSize);
 			/*calculate std */
-			
+
 			double std = sqrtf(var);
 			double skewness = 0;
 
