@@ -61,6 +61,10 @@ POSSIBILITY OF SUCH DAMAGE.
 	#include <shrUtils.h>
 #endif
 
+// Global cuda device setting. Set to a different value if needing to specify
+// a specific GPU on machines with multiple GPU's.
+#define CUDA_DEVICE 0
+
 
 namespace cvt {
 namespace gpu {

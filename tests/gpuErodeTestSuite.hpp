@@ -54,7 +54,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #define SHOW_OUTPUT 0
-#define CUDA_DEVICE 2
+// Set device # in src/gpu/drivers/GPUProperties.hpp
+// #define CUDA_DEVICE 0
 
 class gpuErodeTestSuite : public CxxTest::TestSuite
 {

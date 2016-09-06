@@ -41,8 +41,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "../src/base/Tiler.hpp"
 #include "../src/gpu/drivers/GpuConvolution.hpp"
 
-
-#define CUDA_DEVICE 2
+// Set device # in src/gpu/drivers/GPUProperties.hpp
+// #define CUDA_DEVICE 0
 
 class gpuConvolutionTestSuite : public CxxTest::TestSuite
 {
