@@ -97,9 +97,13 @@ ErrorCode GpuWHS<InputPixelType, InputBandCount, OutputPixelType, OutputBandCoun
 	 //
 	 //
 	 //std::cout << "width=" << newWidth <<" height=" << newHeight << std::endl;
-	cvt::gpu::launch_window_histogram_statistics<InputPixelType, OutputPixelType>(dimGrid, dimBlock, 0, this->stream,(OutputPixelType *)this->gpuOutputData,this->roiSize_.width,this->roiSize_.height,this->relativeOffsetsGpu_, this->relativeOffsets_.size(),this->bufferWidth_);
+	 //
+	 size_t shm_memory_bytes = this->relativeOffsets_.size() * sizeof(int2);
+    cvt::gpu::launch_window_histogram_statistics<InputPixelType, OutputPixelType>(
+        dimGrid, dimBlock, shm_memory_bytes, this->stream, (OutputPixelType *) this->gpuOutputData, this->roiSize_.width,
+        this->roiSize_.height, this->bufferWidth_);
 
-	// check for kernel launch success
+    // check for kernel launch success
 	cuer = cudaGetLastError();
 	if (cuer != cudaSuccess) {
 		std::cout << "CUDA ERROR = " << cuer << std::endl;
