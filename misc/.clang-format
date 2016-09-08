@@ -10,7 +10,7 @@ Language: Cpp
 BasedOnStyle: LLVM
 
 # The extra indent or outdent of access modifiers, e.g. public:.
-AccessModifierOffset: -2
+AccessModifierOffset: -1
 
 # Possible values: None, Empty, Inline, All
 AllowShortFunctionsOnASingleLine: Empty
@@ -22,17 +22,17 @@ AlwaysBreakTemplateDeclarations: true
 
 # If false, a function call’s arguments will either be all on the same line or
 # will have one line each.
-BinPackArguments: false
+BinPackArguments: true
 
 # If false, a function declaration’s or function definition’s parameters will
 # either all be on the same line or will have one line each.
-BinPackParameters: false
+BinPackParameters: true
 
 # The brace breaking style to use.
 # Linux uses opening braces on their own line for functions and classes only.
 # WebKit only uses opening braces on their own line for functions.
 # Attach never puts opening braces on their own line.
-BreakBeforeBraces: Attach
+BreakBeforeBraces: Linux
 
 # True breaks constructor lists nicely, but some may find leading commas
 # distracting.
@@ -50,10 +50,10 @@ ConstructorInitializerAllOnOneLineOrOnePerLine: true
 
 # The number of characters to use for indentation of constructor initializer
 # lists.
-ConstructorInitializerIndentWidth: 8
+ConstructorInitializerIndentWidth: 4
 
 # Indent width for line continuations.
-ContinuationIndentWidth: 8
+ContinuationIndentWidth: 4
 
 #Indent case labels one level from the switch statement.
 # When false, use the same indentation level as for the switch statement. Switch
@@ -61,7 +61,7 @@ ContinuationIndentWidth: 8
 IndentCaseLabels: true
 
 #The number of columns to use for indentation.
-IndentWidth: 4
+IndentWidth: 2
 
 ...
 
