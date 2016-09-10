@@ -16,7 +16,7 @@ runner_SOURCES	=	runner.cpp \
 
 #libraries that will be linked
 runner_LDADD	=	$(OPENCV_LIBS) $(top_builddir)/src/libcvtile.la \
-					-lboost_regex-mt -lboost_filesystem-mt -lboost_system-mt
+					-lboost_regex-mt -lboost_filesystem-mt -lboost_system-mt -lgdal
 
 #
 # Nothing below this line should need customization on a per-project basis.

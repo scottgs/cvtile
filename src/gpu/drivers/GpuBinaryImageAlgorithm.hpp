@@ -36,7 +36,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef GPU_BINARY_IMAGE_ALGORITHM_
 #define GPU_BINARY_IMAGE_ALGORITHM_
 
-#include "../../Cuda4or5.h"
+#include "../../CudaVersion.hpp"
 #include "GpuAlgorithm.hpp"
 #include "../kernels/GpuAlgorithmKernels.hpp"
 #include <vector>
@@ -129,7 +129,7 @@ ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelTyp
 	}
 
 	if (tileSize != tile2.getSize()) {
-		throw std::runtime_error("Both the incoming tiles must have different sizes");
+		throw std::runtime_error("Both the incoming tiles must have the same size.");
 	}
 
 	/*
@@ -140,49 +140,17 @@ ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelTyp
 	{
 		throw std::runtime_error("Failed to copy tile to device");
 	}
-	std::string inTypeIdentifier(typeid(this->tempForTypeTesting).name());
-	size_t bitDepth = 0;
-	cudaChannelFormatDesc inputDescriptor;
-
-	if(inTypeIdentifier == "a" || 
-	   inTypeIdentifier == "s" || 
-	   inTypeIdentifier == "i" ||
-	   inTypeIdentifier == "l")
-	{
-		this->channelType = cudaChannelFormatKindSigned;
-	}
-	else if(inTypeIdentifier == "h" || 
-			inTypeIdentifier == "t" || 
-			inTypeIdentifier == "j" || 
-			inTypeIdentifier == "m")
-	{
-		this->channelType = cudaChannelFormatKindUnsigned;
-	}
-	else if(inTypeIdentifier == "f" || 
-			inTypeIdentifier == "d") 
-	{
-		this->channelType = cudaChannelFormatKindFloat;
-	}
-	else
-	{
-		this->lastError = InitFailUnsupportedInputType;
-		return this->lastError;
-	}
-
-	bitDepth = sizeof(this->tempForTypeTesting) * 8;
 
 	cudaError cuer;
-	inputDescriptor = cudaCreateChannelDesc(bitDepth, 0, 0, 0, this->channelType);
-	cuer = cudaGetLastError();
+	cudaChannelFormatDesc inputDescriptor;
+	inputDescriptor = this->template setupCudaChannelDescriptor<InputPixelType>();
 	
-	if (cuer != cudaSuccess) {
-		this->lastError = CudaError;
+	if (this->lastError != cudaSuccess) {
 		std::cout << "CUDA ERR = " << cuer << std::endl;
 		throw std::runtime_error("GPU BINARY IMAGE RUN FAILED TO CREATE CHANNEL");
 	}
 
-	cudaChannelFormatDesc input_descriptor = cudaCreateChannelDesc(bitDepth, 0, 0, 0, cudaChannelFormatKindUnsigned);
-	cudaMallocArray((cudaArray**)&gpuInputDataArrayTwo_, &input_descriptor, this->dataSize.width, this->dataSize.height);
+	cudaMallocArray((cudaArray**)&gpuInputDataArrayTwo_, &inputDescriptor, this->dataSize.width, this->dataSize.height);
 	const unsigned int offsetX = 0;
 	const unsigned int offsetY = 0;
 	const unsigned char* tile_data_ptr = &(tile2[0].data[0]);
@@ -217,6 +185,8 @@ ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelTyp
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
 ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::initializeDevice()
 {
+	static_assert(InputBandCount == 1, "Binary Image Algorithms only support 1 band images");
+
 	/*
 	 * Attempts to check the GPU and begin warm up
 	 *
@@ -241,54 +211,15 @@ ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelTyp
 		return this->lastError;
 	}
 
-	//Set descriptor of input data before allocation
-	// Sets is at single channel, 16-bit unsigned integer
-	std::string inTypeIdentifier(typeid(this->tempForTypeTesting).name());
-	size_t bitDepth = 0;
-	cudaChannelFormatDesc inputDescriptor;
-
-	if(inTypeIdentifier == "a" || 
-	   inTypeIdentifier == "s" || 
-	   inTypeIdentifier == "i" ||
-	   inTypeIdentifier == "l")
-	{
-		this->channelType = cudaChannelFormatKindSigned;
-	}
-	else if(inTypeIdentifier == "h" || 
-			inTypeIdentifier == "t" || 
-			inTypeIdentifier == "j" || 
-			inTypeIdentifier == "m")
-	{
-		this->channelType = cudaChannelFormatKindUnsigned;
-	}
-	else if(inTypeIdentifier == "f" || 
-			inTypeIdentifier == "d") 
-	{
-		this->channelType = cudaChannelFormatKindFloat;
-	}
-	else
-	{
-		this->lastError = InitFailUnsupportedInputType;
-		return this->lastError;
-	}
-
-	bitDepth = sizeof(this->tempForTypeTesting) * 8;
-
-	inputDescriptor = cudaCreateChannelDesc(bitDepth, 0, 0, 0, this->channelType);
-	cuer = cudaGetLastError();
 	
-	if (cuer != cudaSuccess) {
-		this->lastError = CudaError;
+	cudaChannelFormatDesc inputDescriptor;
+	inputDescriptor = this->template setupCudaChannelDescriptor<InputPixelType>();
+	
+	if (this->lastError != cudaSuccess) {
 		std::cout << "CUDA ERR = " << cuer << std::endl;
 		throw std::runtime_error("GPU WHS INIT FAILED TO CREATE CHANNEL");
 	}	
 
-
-	if(cuer != cudaSuccess){
-		this->lastError = CudaError;
-		return this->lastError;
-	}	
-	
 	//////////////////////////////////////////////////////////
 	// ALLOCATE MEMORY FOR GPU INPUT AND OUTPUT DATA (TILE) //
 	/////////////////////////////////////////////////////////
@@ -308,7 +239,10 @@ ErrorCode GpuBinaryImageAlgorithm<InputPixelType, InputBandCount, OutputPixelTyp
 		std::cout << "CUDA ERR = " << cuer << std::endl;
 		throw std::runtime_error("GPU WHS INIT FAILED TO ALLOCATE MEMORY");
 	}
+
+	//TO-DO fix hardcoded
 	this->usingTexture = true;	
+
 	//Gpu Output Data 
 	const size_t bytes = this->dataSize.width * this->dataSize.height * OutputBandCount * sizeof(OutputPixelType);
 	this->outputDataSize = bytes;

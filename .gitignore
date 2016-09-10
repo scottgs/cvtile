@@ -58,6 +58,7 @@ config.status
 Makefile
 libtool
 Makefile.in
+ltmain.sh
 
 #Other generated files
 tests/testingWindowHistogramStatisticsOutFile.tif

@@ -36,7 +36,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef _GPU_WINDOW_HISTOGRAM_STATISTICS_ALGORITHM_
 #define _GPU_WINDOW_HISTOGRAM_STATISTICS_ALGORITHM_
 
-#include "../../Cuda4or5.h"
+#include "../../CudaVersion.hpp"
 #include "../kernels/GpuAlgorithmKernels.hpp"
 #include "GpuWindowFilterAlgorithm.hpp"
 #include <vector>

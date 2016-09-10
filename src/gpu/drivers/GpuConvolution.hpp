@@ -36,7 +36,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef H_GPU_CONVOLUTION_H
 #define H_GPU_CONVOLUTION_H
 
-#include "../../Cuda4or5.h"
+#include "../../CudaVersion.hpp"
 #include "../kernels/GpuAlgorithmKernels.hpp"
 #include "GpuWindowFilterAlgorithm.hpp"
 

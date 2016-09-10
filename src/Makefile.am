@@ -18,7 +18,7 @@ libcvtile_la_LIBADD = base/libcvtile_base.la \
 
 cvtiledir = $(includedir)/cvtile
 cvtile_HEADERS = cvtile.hpp \
-				Cuda4or5.h
+				CudaVersion.hpp
 
 basedir = ${includedir}/cvtile/base
 base_HEADERS = base/cvTile.hpp \

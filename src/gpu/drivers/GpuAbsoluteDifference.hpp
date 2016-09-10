@@ -36,7 +36,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef _GPU_ABSOLUTE_DIFFERENCE_ALGORITHM_
 #define _GPU_ABSOLUTE_DIFFERENCE_ALGORITHM_
 
-#include "../../Cuda4or5.h"
+#include "../../CudaVersion.hpp"
 #include "../kernels/GpuAlgorithmKernels.hpp"
 #include "GpuBinaryImageAlgorithm.hpp"
 #include <vector>

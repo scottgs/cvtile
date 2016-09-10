@@ -36,7 +36,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef GPU_WINDOW_FITLER_ALGORITHM_
 #define GPU_WINDOW_FITLER_ALGORITHM_
 
-#include "../../Cuda4or5.h"
+#include "../../CudaVersion.hpp"
 #include "GpuAlgorithm.hpp"
 #include "../kernels/GpuAlgorithmKernels.hpp"
 #include <vector>
@@ -172,137 +172,7 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
 ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::initializeDevice(enum windowRadiusType type)
 {
-	/* Initialize additional argument then allow parent to init card */
-	//this->type = type;
-	//GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::initializeDevice();
-
-	//TO-DO Error Check Template Params for Type/Bounds
-
-	this->lastError = this->setGpuDevice();
-	if(this->lastError)
-		return this->lastError;
-	
-	if (this->properties.getMajorCompute() < 1)
-	{
-		this->lastError = InitFailNoCUDA;
-		return this->lastError;
-	}
-	
-	///////////////////////////////////////////
-	// VERIFY THAT GPU HAS SUFFICIENT MEMORY //
-   	///////////////////////////////////////////
-
-	if(this->properties.getTotalGlobalMemoryBytes() < this->bytesToTransfer)
-	{
-		this->lastError = InitFailInsufficientMemoryForInputData;
-		return this->lastError;
-	}
-
-	//TO-DO Check for sufficient texture memory
-	
-	cudaStreamCreate(&this->stream);
-	cudaError cuer = cudaGetLastError();
-	if(cuer != cudaSuccess){
-		this->lastError = InitFailcuStreamCreateErrorcudaErrorInvalidValue;
-		return this->lastError;
-	}
-
-	/* Texture memory supports only 4 Bands - Use generic global memory if more bands present */
-	std::string inTypeIdentifier(typeid(this->tempForTypeTesting).name());
-	size_t bitDepth = 0;
-	cudaChannelFormatDesc inputDescriptor;
-
-	if(inTypeIdentifier == "a" || 
-	   inTypeIdentifier == "s" || 
-	   inTypeIdentifier == "i" ||
-	   inTypeIdentifier == "l")
-	{
-		this->channelType = cudaChannelFormatKindSigned;
-	}
-	else if(inTypeIdentifier == "h" || 
-			inTypeIdentifier == "t" || 
-			inTypeIdentifier == "j" || 
-			inTypeIdentifier == "m")
-	{
-		this->channelType = cudaChannelFormatKindUnsigned;
-	}
-	else if(inTypeIdentifier == "f" || 
-			inTypeIdentifier == "d") 
-	{
-		this->channelType = cudaChannelFormatKindFloat;
-	}
-	else
-	{
-		this->lastError = InitFailUnsupportedInputType;
-		return this->lastError;
-	}
-
-	bitDepth = sizeof(this->tempForTypeTesting) * 8;
-
-	if(InputBandCount == 1 ){
-		inputDescriptor = cudaCreateChannelDesc(bitDepth, 0, 0, 0, this->channelType);
-	}
-	else if(InputBandCount == 2){
-		inputDescriptor = cudaCreateChannelDesc(bitDepth, bitDepth, 0, 0, this->channelType);
-	}
-	else if(InputBandCount == 3){
-		inputDescriptor = cudaCreateChannelDesc(bitDepth, bitDepth, bitDepth, 0, this->channelType);
-	}
-	else if(InputBandCount == 4){
-		inputDescriptor = cudaCreateChannelDesc(bitDepth, bitDepth, bitDepth, bitDepth, this->channelType);
-	}
-
-	cuer = cudaGetLastError();
-
-	if(cuer != cudaSuccess){
-		this->lastError = CudaError;
-		return this->lastError;
-	}	
-	
-	//////////////////////////////////////////////////////////
-	// ALLOCATE MEMORY FOR GPU INPUT AND OUTPUT DATA (TILE) //
-	/////////////////////////////////////////////////////////
-
-	if(InputBandCount <= 1 && InputBandCount != 0){
-	/* Gpu Input Data */
-		cudaMallocArray(
-						(cudaArray**)&this->gpuInputDataArray,   
-						 &inputDescriptor, 
-						 this->dataSize.width,  
-						 this->dataSize.height
-						);
-		this->gpuInput = this->gpuInputDataArray;
-		this->usingTexture = true;
-	}
-	else if(InputBandCount >= 2){
-		cudaMalloc((void **)&this->gpuInputDataGlobal, this->bytesToTransfer);
-		this->gpuInput = this->gpuInputDataGlobal;
-	}
-
-	if (cuer == cudaErrorMemoryAllocation){
-		this->lastError = InitFailcuInputArrayMemErrorcudaErrorMemoryAllocation;
-		return this->lastError;
-	}
-	else if(cuer != cudaSuccess){
-		this->lastError = CudaError;
-		return this->lastError;
-	}
-
-	/* Gpu Output Data */
-	const size_t bytes = roiSize_.area()* OutputBandCount * sizeof(OutputPixelType);
-	this->outputDataSize = bytes;
-	cudaMalloc((void**) &this->gpuOutputData, bytes);
-	cuer = cudaGetLastError();
-	if (cuer == cudaErrorMemoryAllocation)
-	{
-		this->lastError = InitFailcuOutArrayMemErrorcudaErrorMemoryAllocation;
-		return this->lastError;
-	}
-
-	//////////////////////////////////////////////////////////////////////////////////////
-	// CALL FUNCTION TO ALLOCATE ADDITIONAL GPU STORAGE - DOES NOTHING IF NOT OVERRIDEN //
-	/////////////////////////////////////////////////////////////////////////////////////
-	this->lastError = allocateAdditionalGpuMemory();
+	GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::initializeDevice();
 
 	/* Transfer offsets to card */
 	transferRelativeOffsetsToDevice();	
