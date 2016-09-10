@@ -114,7 +114,6 @@ ErrorType Tiler::open(const std::string& filename, IOType mode)
 		return OpenError;
 	}
 
-	cv::Size2i rasterSize(getRasterSize());
 
 	// if the tile size wasn't set before opening the file, read the
 	// intrinsic block size from the file and use that

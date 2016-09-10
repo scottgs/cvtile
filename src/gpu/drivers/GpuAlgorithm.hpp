@@ -41,7 +41,6 @@ POSSIBILITY OF SUCH DAMAGE.
 // LOCAL INCLUDES  //
 /////////////////////
 
-#include "../../CudaVersion.hpp"
 #include "../../base/cvTile.hpp"
 #include "GPUProperties.hpp"
 //#include "GpuPixelCutter.hpp"
@@ -68,6 +67,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #pragma GCC diagnostic pop
 
 namespace cvt {
+
 /** @brief Return status values
  *
  *   The first position indicates the class of error while
@@ -158,8 +158,8 @@ class GpuAlgorithm {
 		virtual ErrorCode operator()(const cvt::cvTile<InputPixelType>& tile,
 													  const cvt::cvTile<OutputPixelType> ** outTile) = 0;
 
-	 virtual ErrorCode operator()(const cvt::cvTile<InputPixelType>& tile,
-	 													const cvt::cvTile<InputPixelType>& tileTwo,
+		virtual ErrorCode operator()(const cvt::cvTile<InputPixelType>& tile,
+													  const cvt::cvTile<InputPixelType>& tileTwo,
 													  const cvt::cvTile<OutputPixelType> ** outTile);
 
 
@@ -342,6 +342,13 @@ ErrorCode GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBa
 
 	cudaChannelFormatDesc inputDescriptor;
 	inputDescriptor = setupCudaChannelDescriptor< InputPixelType >();
+
+	cuer = cudaGetLastError();
+
+	if(cuer != cudaSuccess){
+		lastError = CudaError;
+		return lastError;
+	}
 
 	//////////////////////////////////////////////////////////
 	// ALLOCATE MEMORY FOR GPU INPUT AND OUTPUT DATA (TILE) //
@@ -604,11 +611,11 @@ cudaChannelFormatKind GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 	return channelType;
 }
 
-// updated for now needs work
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
-ErrorCode GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::operator()(const cvt::cvTile<InputPixelType>& tile,
-	 													const cvt::cvTile<InputPixelType>& tileTwo,
-													  const cvt::cvTile<OutputPixelType> ** outTile)
+ErrorCode GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::operator()(
+														__attribute__((unused)) const cvt::cvTile<InputPixelType>& tile,
+	 													__attribute__((unused)) const cvt::cvTile<InputPixelType>& tileTwo,
+													  __attribute__((unused)) const cvt::cvTile<OutputPixelType> ** outTile)
 {
 	return Ok;
 }

@@ -1,5 +1,9 @@
 #!/usr/bin/python
 # libtoolish hack: compile a .cu file like libtool does
+
+# For python 2.X compatibility.
+from __future__ import print_function
+
 import sys
 import os
 

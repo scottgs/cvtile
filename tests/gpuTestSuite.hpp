@@ -36,17 +36,14 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef  gpu_Test_Suite_h
 #define  gpu_Test_Suite_h
 
-#include <cxxtest/TestSuite.h> 
-#include "gpuTestHelpers.hpp"
-#include "../src/base/cvTile.hpp"
-#include "../src/base/Tiler.hpp"
-
 #include <boost/filesystem.hpp>
+#include <cxxtest/TestSuite.h>
 #include <iostream>
 #include <chrono>
 #include <cstdlib>
-
-/* Gpu Depends */
+#include "gpuTestHelpers.hpp"
+#include "../src/base/cvTile.hpp"
+#include "../src/base/Tiler.hpp"
 //#include "../src/gpu/drivers/GpuTileAlgorithm.hpp"
 #include "../src/gpu/drivers/GPUProperties.hpp"
 //#include "../src/gpu/drivers/GpuErodeDilate.hpp"
@@ -54,6 +51,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "../src/gpu/kernels/GpuAlgorithmKernels.hpp"
 
 #define SHOW_OUTPUT 0
+
 
 using namespace std;
 using namespace cvt;
@@ -66,49 +64,49 @@ template < typename InputPixelType, int InputBandCount, typename OutputPixelType
 		gpuAlgoImpl(unsigned int deviceId, unsigned int dataHeight, unsigned int dataWidth)
 			: cvt::gpu::GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>(deviceId, dataHeight, dataWidth)
 		{
-		
+
 		}
 
 		virtual ErrorCode operator()(const cvt::cvTile<InputPixelType> &tile, const cvt::cvTile<OutputPixelType> ** outTile);
 
 		protected:
 		virtual ErrorCode launchKernel(unsigned bw, unsigned bh);
-	
-	};	
 
-		
+	};
+
+
 template < typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
 		ErrorCode gpuAlgoImpl<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(unsigned bw, unsigned bh)
 		{
 
 			dim3 blockDim(bw, bh);
-			const unsigned int gridWidth = this->dataSize.width * OutputBandCount / blockDim.x + (((this->dataSize.width % blockDim.x) == 0) ? 0 : 1); 
-			const unsigned int gridHeight = this->dataSize.height * OutputBandCount / blockDim.y + (((this->dataSize.height % blockDim.y) == 0) ? 0 : 1); 
+			const unsigned int gridWidth = this->dataSize.width * OutputBandCount / blockDim.x + (((this->dataSize.width % blockDim.x) == 0) ? 0 : 1);
+			const unsigned int gridHeight = this->dataSize.height * OutputBandCount / blockDim.y + (((this->dataSize.height % blockDim.y) == 0) ? 0 : 1);
 			dim3 gridDim(gridWidth, gridHeight);
-		
-			cvt::gpu::launch_simpleDataCopy<InputPixelType, OutputPixelType>(gridDim, blockDim, 0u, this->stream, (InputPixelType  *)this->gpuInput, this->gpuOutputData, this->dataSize.width, this->dataSize.height, (unsigned int)OutputBandCount, this->usingTexture); 
+
+			cvt::gpu::launch_simpleDataCopy<InputPixelType, OutputPixelType>(gridDim, blockDim, 0u, this->stream, (InputPixelType  *)this->gpuInput, this->gpuOutputData, this->dataSize.width, this->dataSize.height, (unsigned int)OutputBandCount, this->usingTexture);
 
 			return Ok;
 	}
-		
+
 template < typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
 		ErrorCode gpuAlgoImpl<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::operator()(const cvt::cvTile<InputPixelType>& tile,
 			const cvt::cvTile<OutputPixelType> ** outTile)
 		{
-	
+
 			this->lastError = this->copyTileToDevice(tile);
 			if(this->lastError != cvt::Ok){
 				return this->lastError;
 			}
-		
+
 			if(this->usingTexture)
-				cvt::gpu::bind_texture<InputPixelType, 0>((cudaArray*)this->gpuInput);	
+				cvt::gpu::bind_texture<InputPixelType, 0>((cudaArray*)this->gpuInput);
 			launchKernel(this->dataSize.width, this->dataSize.height);
-			
+
 			this->lastError = this->copyTileFromDevice(outTile);
 
-			if(this->usingTexture)	
-				cvt::gpu::unbind_texture<InputPixelType, 0>();	
+			if(this->usingTexture)
+				cvt::gpu::unbind_texture<InputPixelType, 0>();
 			return Ok;
 		}
 
@@ -132,7 +130,7 @@ class gpuTestSuite : public CxxTest::TestSuite{
 
 			gpuAlgoImpl<signed char, 1, signed char, 1> gpuAlgo(0, 100, 0);
 			ErrorCode lastError = gpuAlgo.getLastError();
- 
+
 			TS_ASSERT_EQUALS(cvt::GpuAlgoNoConstructBadInputValue, lastError);
 
 		}
@@ -144,7 +142,7 @@ class gpuTestSuite : public CxxTest::TestSuite{
 			cv::Size2i dSize = gpuAlgo.getDataSize();
 			cvt::gpu::GPUProperties prop = gpuAlgo.getProperties();
 			size_t inBytes = gpuAlgo.getInputBytesToTransfer();
-			
+
 			ErrorCode lastError = gpuAlgo.initializeDevice();
 			TS_ASSERT_EQUALS(cvt::Ok, lastError);
 
@@ -169,16 +167,16 @@ class gpuTestSuite : public CxxTest::TestSuite{
 			TS_ASSERT_EQUALS(cvt::InitFailcudaErrorInvalidDevice, lastError);
 
 		}
-	
+
 		//Uint_Max not big enough - may need to update to long - To-do: Decide
 		/*void (){
-	
+
 			gpuAlgoImpl<unsigned char, 1, unsigned char, 1> gpuAlgo(0,UINT_MAX, 1);
 			std::cout << "-----------" << std::endl;
 			ErrorCode lastError = gpuAlgo.initializeDevice();
 			std::cout << "-----------" << std::endl;
 			TS_ASSERT_EQUALS(cvt::InitFailInsufficientMemoryForInputData, lastError);
-		
+
 		}*/
 
 		//TO-DO test for cuda stream create
@@ -262,27 +260,27 @@ class gpuTestSuite : public CxxTest::TestSuite{
 
 		//TO-DO Impl this behavior then test for it
 		void testExceptionThrownForZeroBands(){
-			
+
 		}
 
 		//Eventually - cheat for now and test for only 1
 		void testTextureUsedForUnderFourBands(){
-			
+
 			gpuAlgoImpl<int, 1, int, 1> gpuAlgo1(0,100,100);
 			gpuAlgoImpl<int, 2, int, 2> gpuAlgo2(0,100,100);
 			gpuAlgoImpl<int, 3, int, 3> gpuAlgo3(0,100,100);
-			gpuAlgoImpl<int, 4, int, 4> gpuAlgo4(0,100,100);		
+			gpuAlgoImpl<int, 4, int, 4> gpuAlgo4(0,100,100);
 
 			TS_ASSERT_EQUALS(cvt::Ok, gpuAlgo1.initializeDevice());
 			TS_ASSERT_EQUALS(cvt::Ok, gpuAlgo2.initializeDevice());
 			TS_ASSERT_EQUALS(cvt::Ok, gpuAlgo3.initializeDevice());
 			TS_ASSERT_EQUALS(cvt::Ok, gpuAlgo4.initializeDevice());
 
-			TS_ASSERT(gpuAlgo1.getUsingTexture());	
-			TS_ASSERT(!gpuAlgo2.getUsingTexture());				
+			TS_ASSERT(gpuAlgo1.getUsingTexture());
+			TS_ASSERT(!gpuAlgo2.getUsingTexture());
 		    TS_ASSERT(!gpuAlgo3.getUsingTexture());
 			TS_ASSERT(!gpuAlgo4.getUsingTexture());
-		
+
 		}
 
 		void testGlobalUsedForFivePlusBands(){
@@ -292,7 +290,7 @@ class gpuTestSuite : public CxxTest::TestSuite{
 		}
 
 		void testOutputDataSize(){
-			
+
 			gpuAlgoImpl<int, 5, int, 5> gpuAlgo(0,100,100);
 			TS_ASSERT_EQUALS(cvt::Ok, gpuAlgo.initializeDevice());
 			TS_ASSERT_EQUALS(gpuAlgo.getOutputDataSize(), 100 * 100 * sizeof(int) * 5);
@@ -312,15 +310,15 @@ class gpuTestSuite : public CxxTest::TestSuite{
 				data[i] = i;
 			}
 
-			cvt::cvTile<T> inTile(data.data(), dSize, 1);	
+			cvt::cvTile<T> inTile(data.data(), dSize, 1);
 			cvt::cvTile<T>* outTile;
 
 			gpuAlgo(inTile, (const cvt::cvTile<T> **)(&outTile));
 			TS_ASSERT_EQUALS(0, (outTile == NULL));
-			
+
 			for(int i = 0; i < 3; ++i)
 			{
-				cv::Mat& a = inTile[0]; 
+				cv::Mat& a = inTile[0];
 				cv::Mat& b = (*outTile)[0];
 				for(int j = 0; j < 3; ++j)
 				{
@@ -344,16 +342,16 @@ class gpuTestSuite : public CxxTest::TestSuite{
 			vector<short> data;
 			data.resize(dSize.area() * 3);
 			srand(time(NULL));
-			
+
 			for (unsigned int i = 0; i < 27; ++i) {
 				data[i] = i + 1;
 			}
 
-			cvt::cvTile<short> inTile(data.data(), dSize, 3);	
+			cvt::cvTile<short> inTile(data.data(), dSize, 3);
 			cvt::cvTile<short>*  outTile;
 
 			gpuAlgo(inTile, (const cvt::cvTile<short> **)(&outTile));
-		
+
 			TS_ASSERT_EQUALS(0, (outTile == NULL));
 			//TODO err is not being used. Remove?
 			//auto err = gpuAlgo.getLastError();
@@ -362,14 +360,14 @@ class gpuTestSuite : public CxxTest::TestSuite{
 			{
 				for(int i = 0; i < 3; ++i)
 				{
-					cv::Mat& a = inTile[k]; 
+					cv::Mat& a = inTile[k];
 					cv::Mat& b = (*outTile)[k];
 					cv::Mat C(a);
 					for(int j = 0; j < 3; ++j)
 					{
 #if SHOW_OUTPUT
-						std::cout << "a: " <<  a.at<short>(i,j) << std::endl;	
-						std::cout << "b: " <<  b.at<short>(i,j) << std::endl;	
+						std::cout << "a: " <<  a.at<short>(i,j) << std::endl;
+						std::cout << "b: " <<  b.at<short>(i,j) << std::endl;
 						std::cout << "c: " <<  C.at<short>(i,j) << std::endl;
 #endif
 						TS_ASSERT_EQUALS(a.at<short>(i,j), b.at<short>(i,j));
@@ -457,7 +455,7 @@ class gpuTestSuite : public CxxTest::TestSuite{
 //			write_tiler.close();
 //			read_tiler.close();
 //
-//			
+//
 //		}
 //
 //		void testDilate(){
@@ -538,7 +536,7 @@ class gpuTestSuite : public CxxTest::TestSuite{
 //			write_tiler.close();
 //			read_tiler.close();
 //
-//			
+//
 //		}
 
 		//		void testErode(){
@@ -619,7 +617,7 @@ class gpuTestSuite : public CxxTest::TestSuite{
 //			write_tiler.close();
 //			read_tiler.close();
 //
-//			
+//
 //		}
 //
 //		void testAbsD(){
@@ -700,7 +698,7 @@ class gpuTestSuite : public CxxTest::TestSuite{
 //			write_tiler.close();
 //			read_tiler.close();
 //
-//			
+//
 //		}
 
 };

@@ -33,16 +33,10 @@ POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************
 */
 
-#include <cuda_runtime_api.h>
-#include <cuda.h>
-#include <cuda_runtime.h>
-#include <cuda_device_runtime_api.h>
-
 #ifndef _GPU_Algorithm_Kernels_HPP_
 #define _GPU_Algorithm_Kernels_HPP_
 
 namespace cvt {
-
 namespace gpu {
 
 template <typename TextureType, int TextureIndex>
@@ -51,10 +45,10 @@ cudaError_t bind_texture(cudaArray* gpuInputData);
 template <typename TextureType, int TextureIndex>
 cudaError_t unbind_texture();
 
-//cudaError_t load_relative_offsets(const cudaStream_t stream, int2* host_offsets, size_t num_offsets); 
+//cudaError_t load_relative_offsets(const cudaStream_t stream, int2* host_offsets, size_t num_offsets);
 
 template< typename InputPixelType, typename OutputPixelType >
-void launch_simpleDataCopy(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream, InputPixelType * in_data, 
+void launch_simpleDataCopy(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream, InputPixelType * in_data,
 						OutputPixelType * gpu_output_data, unsigned int outputWidth,  unsigned int outputHeight, unsigned int bandCount,
 						bool usingTexture);
 
@@ -76,22 +70,22 @@ void launch_window_histogram_statistics(const dim3 dimGrid, const dim3 dimBlock,
 		   const unsigned int numElements, unsigned int buffer);*/
 
 template <typename InputPixelType, typename OutputPixelType>
-void launch_dilate(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, 
-		   const cudaStream_t stream,  OutputPixelType * const outputData, 
-		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets, 
+void launch_dilate(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
+		   const cudaStream_t stream,  OutputPixelType * const outputData,
+		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets,
 		   const unsigned int numElements, unsigned int buffer);
 
 template <typename InputPixelType, typename OutputPixelType>
-void launch_erode(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, 
-		   const cudaStream_t stream,  OutputPixelType * const outputData, 
-		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets, 
+void launch_erode(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
+		   const cudaStream_t stream,  OutputPixelType * const outputData,
+		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets,
 		   const unsigned int numElements,unsigned int buffer);
 
 template <typename InputPixelType, typename OutputPixelType, typename ConvolutionType>
 void launchConvolution(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream, InputPixelType* inputData,
 									   OutputPixelType* gpuOutputData, int2* relativeOffsets, ConvolutionType* const filterWeights, const unsigned int filterSize,
 									   unsigned int outputWidth, unsigned int outputHeight, unsigned int bandCount,
-									   bool usingTexture);	
+									   bool usingTexture);
 
 } // end of gpu namespace
 } // end of cvt namespace

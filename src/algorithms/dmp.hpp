@@ -36,10 +36,11 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef CVTILE_ALGORITHM_DMP_H_
 #define CVTILE_ALGORITHM_DMP_H_
 
-#include <vector>
 #include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/gpu/gpu.hpp>
+#include <opencv2/highgui/highgui.hpp>
 #include <boost/filesystem.hpp>
-
 #include <limits>
 #include <map>
 #include <set>
@@ -48,10 +49,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <iostream>
 #include <sstream>
 #include <utility>
-
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/gpu/gpu.hpp>
-#include <opencv2/highgui/highgui.hpp>
 
 
 namespace cvt {
@@ -122,7 +119,7 @@ std::vector<cv::Mat> cvt::algorithms::opencvOpenDmp(const cv::Mat& inputImage, c
 
 	// Build Morphological Operation Stack (open)
 	std::vector<cv::Mat> mos;
-	for (int level = 0;level<structuringElements.size();++level)
+	for (size_t level = 0;level<structuringElements.size();++level)
 	{
 		cv::Mat filteredImage(inputImage.size().height, inputImage.size().width, cv::DataType<OperatingPixelType>::type);
 		cv::morphologyEx(inputImage, filteredImage, cv::MORPH_OPEN, structuringElements.at(level));
@@ -389,7 +386,7 @@ std::vector<cv::Mat> cvt::algorithms::opencvCloseDmp(const cv::Mat& inputImage, 
 {
 	// ++ Close, then erode by reconstruction
 
-	
+
 	// Build Structuring Elements
 	std::vector<cv::Mat> structuringElements;
 	for (std::vector<int>::const_iterator level = ses.begin();level!=ses.end();++level)
@@ -404,7 +401,7 @@ std::vector<cv::Mat> cvt::algorithms::opencvCloseDmp(const cv::Mat& inputImage, 
 
 	// Build Morphological Operation Stack (close)
 	std::vector<cv::Mat> mos;
-	for (int level = 0;level<structuringElements.size();++level)
+	for (size_t level = 0;level<structuringElements.size();++level)
 	{
 		cv::Mat filteredImage(inputImage.size().height, inputImage.size().width, cv::DataType<OperatingPixelType>::type);
 		cv::morphologyEx(inputImage, filteredImage, cv::MORPH_CLOSE, structuringElements.at(level));
@@ -667,6 +664,6 @@ cv::Mat cvt::algorithms::erosionByReconstructionUphill(const cv::Mat& mask, cons
 
 
 
-#endif 
+#endif
 // CVTILE_ALGORITHM_DMP_H_
 

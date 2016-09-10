@@ -36,10 +36,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef _GPU_DILATE_ALGORITHM_
 #define _GPU_DILATE_ALGORITHM_
 
-#include "../../CudaVersion.hpp"
-#include "../kernels/GpuAlgorithmKernels.hpp"
 #include "GpuWindowFilterAlgorithm.hpp"
-#include <vector>
 
 namespace cvt {
 
@@ -64,8 +61,8 @@ protected:
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
 GpuDilate<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::GpuDilate(
-	unsigned int cudaDeviceId, size_t unbufferedDataWidth, 
-	size_t unbufferedDataHeight, ssize_t windowRadius) : 
+	unsigned int cudaDeviceId, size_t unbufferedDataWidth,
+	size_t unbufferedDataHeight, ssize_t windowRadius) :
 	cvt::gpu::GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>(
 	cudaDeviceId, unbufferedDataWidth,unbufferedDataHeight, windowRadius)
 {
@@ -75,8 +72,8 @@ GpuDilate<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::Gpu
 
 
 template< typename inputpixeltype, int inputbandcount, typename outputpixeltype, int outputbandcount >
-GpuDilate<inputpixeltype, inputbandcount, outputpixeltype, outputbandcount>::~GpuDilate() 
-{	
+GpuDilate<inputpixeltype, inputbandcount, outputpixeltype, outputbandcount>::~GpuDilate()
+{
 	;
 }
 
@@ -110,7 +107,7 @@ ErrorCode GpuDilate<InputPixelType, InputBandCount, OutputPixelType, OutputBandC
 	 cvt::gpu::launch_dilate<InputPixelType, OutputPixelType>(dimGrid, dimBlock, 0, this->stream,(OutputPixelType *)this->gpuOutputData,
 	   this->roiSize_.width,this->roiSize_.height, this->relativeOffsetsGpu_,
 	   this->relativeOffsets_.size(),this->bufferWidth_);
-	 
+
 	cuer = cudaGetLastError();
 	if (cuer != cudaSuccess) {
 		std::cout << "CUDA ERROR = " << cuer << std::endl;

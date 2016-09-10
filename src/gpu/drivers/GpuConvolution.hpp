@@ -36,10 +36,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef H_GPU_CONVOLUTION_H
 #define H_GPU_CONVOLUTION_H
 
-#include "../../CudaVersion.hpp"
-#include "../kernels/GpuAlgorithmKernels.hpp"
 #include "GpuWindowFilterAlgorithm.hpp"
-
 
 namespace cvt {
 namespace gpu {
@@ -66,7 +63,7 @@ class GpuConvolution : public GpuWindowFilterAlgorithm<InputPixelType, InputBand
 
 template<typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount, typename ConvolutionType>
 GpuConvolution<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount, ConvolutionType>::GpuConvolution(
-		unsigned int cudaDeviceId, size_t unbufferedDataWidth, size_t unbufferedDataHeight, ssize_t filterRadius, 
+		unsigned int cudaDeviceId, size_t unbufferedDataWidth, size_t unbufferedDataHeight, ssize_t filterRadius,
 		cv::Mat weight) :
 		cvt::gpu::GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>
 		(cudaDeviceId, unbufferedDataWidth, unbufferedDataHeight, filterRadius),
@@ -85,7 +82,7 @@ GpuConvolution<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount,
 	else if(cuer == cudaErrorInitializationError)
 		this->lastError = DestructFailcuOutArraycudaErrorInitializationError;
 	else if(cuer != cudaSuccess)
-		this->lastError = CudaError;	
+		this->lastError = CudaError;
 }
 
 template<typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount, typename ConvolutionType>
@@ -93,7 +90,7 @@ ErrorCode GpuConvolution<InputPixelType, InputBandCount, OutputPixelType, Output
 {
 	GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::allocateAdditionalGpuMemory();
 	cudaMalloc((void**)&this->weightsGpu_, sizeof(ConvolutionType) * this->relativeOffsets_.size());
-	cudaError cuer = cudaGetLastError(); 
+	cudaError cuer = cudaGetLastError();
 	if (cuer != cudaSuccess) {
 		throw std::runtime_error("GPU CONVOLUTION () FAILURE TO ALLOCATE MEMORY FOR WEIGHTS");
 	}
@@ -150,10 +147,10 @@ ErrorCode GpuConvolution<InputPixelType, InputBandCount, OutputPixelType, Output
 	//TODO: Use this line when updating to use shared memory
 	 //const unsigned int shmem_bytes = neighbor_coordinates_.size() * sizeof(double) * blockWidth * blockHeight;
 	 cvt::gpu::launchConvolution<InputPixelType, OutputPixelType, ConvolutionType>(dimGrid, dimBlock, 0,
-	   this->stream, (InputPixelType*)this->gpuInput,  (OutputPixelType*)this->gpuOutputData, this->relativeOffsetsGpu_, 
+	   this->stream, (InputPixelType*)this->gpuInput,  (OutputPixelType*)this->gpuOutputData, this->relativeOffsetsGpu_,
 	   this->weightsGpu_, this->relativeOffsets_.size(), this->dataSize.width, this->dataSize.height, InputBandCount,
 	   this->usingTexture);
-	
+
 	cuer = cudaGetLastError();
 	if (cuer != cudaSuccess) {
 		std::cout << "CUDA ERROR = " << cuer << std::endl;

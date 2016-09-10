@@ -36,30 +36,25 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef _gpu_ERODE_TEST_SUITE_H_
 #define _gpu_ERODE_TEST_SUITE_H_
 
+#include <boost/filesystem.hpp>
 #include <cxxtest/TestSuite.h>
 #include <algorithm>
-#include <cstring>
-#include <cstdio>
-#include <cmath>
 #include <iostream>
 #include <chrono>
 #include <numeric>
-
+#include <cstring>
+#include <cstdio>
+#include "../src/base/cvTile.hpp"
+#include "../src/base/Tiler.hpp"
+#include "../src/gpu/drivers/GpuDilate.hpp"
+#include "../src/gpu/drivers/GpuWindowFilterAlgorithm.hpp"
 
 #ifdef HAVE_CGI
 	#include "../src/base/cvTileConversion.hpp"
 #endif
 
-#include "../src/base/cvTile.hpp"
-#include "../src/base/Tiler.hpp"
-#include <boost/filesystem.hpp>
-
-
-#include "../src/gpu/drivers/GpuDilate.hpp"
-#include "../src/gpu/drivers/GpuWindowFilterAlgorithm.hpp"
-
-
 #define SHOW_OUTPUT 0
+
 
 class gpuDilateTestSuite : public CxxTest::TestSuite
 {
@@ -72,7 +67,7 @@ class gpuDilateTestSuite : public CxxTest::TestSuite
 		{;}
 
 		short dilate_window_data (std::vector<short>& data) {
-			short max = data[0]; 
+			short max = data[0];
 			for (size_t i = 1; i < data.size(); ++i) {
 				if (max < data[i]) {
 					max = data[i];
@@ -94,7 +89,7 @@ class gpuDilateTestSuite : public CxxTest::TestSuite
 			cvt::cvTile<short> inputTile;
 
 			/* Loop through center tile in the image */
-			for (int window = 1; window <= 11; window++) {	
+			for (int window = 1; window <= 11; window++) {
 					inputTile = read_tiler.getCvTile<short>(4, window);
 					cvt::gpu::GpuDilate<short,1,short,1> dilate(cuda_device_id,
 					inputTile.getROI().width,inputTile.getROI().height,window);
@@ -107,12 +102,12 @@ class gpuDilateTestSuite : public CxxTest::TestSuite
 						std::cout << "HERE" <<std::endl;
 						exit(1);
 					}
-					TS_ASSERT_EQUALS(outputTile->getBandCount(),1);	
+					TS_ASSERT_EQUALS(outputTile->getBandCount(),1);
 					/*Calculate Window Histogram Statistics for each pixel*/
 					//TODO remove dims if we aren't using it anymore.
 					//cv::Size2i dims = inputTile.getSize();
 					cv::Rect roiDims = inputTile.getROI();
-					
+
 					//TODO remove this if we aren't going to use it.
 					//const int imageArea = dims.width * dims.height;
 					const int outArea = roiDims.width * roiDims.height;
@@ -135,19 +130,19 @@ class gpuDilateTestSuite : public CxxTest::TestSuite
 						results[r] = dilate_window_data(data);
 
 					}
-					
+
 					for (size_t s = 0; s < results.size(); ++s) {
 						const size_t row = s / roiDims.height;
 						const size_t col = s % roiDims.width;
-	
+
 						TS_ASSERT_EQUALS(results[s],(*outputTile)[0].at<short>(row,col));
 					}
 					delete outputTile;
-					
+
 
 			}
 			read_tiler.close();
-		
+
 		}
 
 };

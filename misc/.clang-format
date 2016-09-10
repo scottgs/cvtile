@@ -1,0 +1,67 @@
+
+# Code formatting settings for entire cvTile project.
+# See http://clang.llvm.org/docs/ClangFormatStyleOptions.html for more options.
+#
+# Once mofified, run format_code.sh from the misc/ folder to reformat code.
+---
+Language: Cpp
+
+# Using defaults for LLVM style for anything not listed below.
+BasedOnStyle: LLVM
+
+# The extra indent or outdent of access modifiers, e.g. public:.
+AccessModifierOffset: -1
+
+# Possible values: None, Empty, Inline, All
+AllowShortFunctionsOnASingleLine: Empty
+
+AlwaysBreakBeforeMultilineStrings: true
+
+# If true, always break after the template<...> of a template declaration.
+AlwaysBreakTemplateDeclarations: true
+
+# If false, a function call’s arguments will either be all on the same line or
+# will have one line each.
+BinPackArguments: true
+
+# If false, a function declaration’s or function definition’s parameters will
+# either all be on the same line or will have one line each.
+BinPackParameters: true
+
+# The brace breaking style to use.
+# Linux uses opening braces on their own line for functions and classes only.
+# WebKit only uses opening braces on their own line for functions.
+# Attach never puts opening braces on their own line.
+BreakBeforeBraces: Linux
+
+# True breaks constructor lists nicely, but some may find leading commas
+# distracting.
+BreakConstructorInitializersBeforeComma: false
+
+# The column limit.
+# A column limit of 0 means that there is no column limit. In this case,
+# clang-format will respect the input’s line breaking decisions within
+# statements unless they contradict other rules.
+ColumnLimit: 80
+
+# If the constructor initializers don’t fit on a line, put each initializer on
+# its own line.
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+
+# The number of characters to use for indentation of constructor initializer
+# lists.
+ConstructorInitializerIndentWidth: 4
+
+# Indent width for line continuations.
+ContinuationIndentWidth: 4
+
+#Indent case labels one level from the switch statement.
+# When false, use the same indentation level as for the switch statement. Switch
+# statement body is always indented one level more than case labels.
+IndentCaseLabels: true
+
+#The number of columns to use for indentation.
+IndentWidth: 2
+
+...
+
