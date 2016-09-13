@@ -36,7 +36,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef CVTILE_TOP_HEADER
 #define CVTILE_TOP_HEADER
 
-#include "base/cvTile.hpp"
 #include "base/Tiler.hpp"
 #include "algorithms/algorithms.hpp"
 #include "gpu/gpu.hpp"

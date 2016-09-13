@@ -1,27 +1,9 @@
 #ifndef WINDOW_HISTOGRAM_STATISTICS_
 #define WINDOW_HISTOGRAM_STATISTICS_
 
-#include <vector>
-#include <opencv2/core/core.hpp>
-#include <boost/filesystem.hpp>
-
-#include <limits>
-#include <map>
-#include <set>
-#include <vector>
-#include <stdexcept>
-#include <iostream>
-#include <sstream>
-#include <utility>
-
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/gpu/gpu.hpp>
-#include <opencv2/highgui/highgui.hpp>
 #include "../src/cvtile.hpp"
 
-//namespace cvt
-//{
-
+//namespace cvt {
 //namespace algorithms {
 
 struct PixelStats{

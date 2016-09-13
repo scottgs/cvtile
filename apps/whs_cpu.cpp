@@ -1,4 +1,3 @@
-#include <iostream>
 #include <boost/program_options.hpp>
 #include <memory>
 #include <exception>
@@ -6,7 +5,6 @@
 #include <mutex>
 #include "../src/cvtile.hpp"
 #include "WindowHistogramStatistics.hpp"
-#include <boost/filesystem.hpp>
 
 
 std::mutex worker_mutex;
