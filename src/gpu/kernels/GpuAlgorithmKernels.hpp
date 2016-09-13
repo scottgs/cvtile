@@ -45,7 +45,7 @@ cudaError_t bind_texture(cudaArray* gpuInputData);
 template <typename TextureType, int TextureIndex>
 cudaError_t unbind_texture();
 
-//cudaError_t load_relative_offsets(const cudaStream_t stream, int2* host_offsets, size_t num_offsets);
+cudaError_t load_relative_offsets(const cudaStream_t stream, const int2* host_offsets, const unsigned int num_offsets);
 
 template< typename InputPixelType, typename OutputPixelType >
 void launch_simpleDataCopy(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream, InputPixelType * in_data,
@@ -60,26 +60,20 @@ void launch_absDifference(const dim3 dimGrid, const dim3 dimBlock, unsigned int 
 template <typename InputPixelType, typename OutputPixelType>
 void launch_window_histogram_statistics(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
 		   const cudaStream_t stream,  OutputPixelType * const outputData,
-		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets,
-		   const unsigned int numElements, unsigned int buffer);
-
-/*template <typename InputPixelType, typename OutputPixelType>
-void launch_window_histogram_statistics(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
-		   const cudaStream_t stream,  OutputPixelType * const outputData,
-		   const unsigned int roiWidth,  const unsigned int roiHeight,
-		   const unsigned int numElements, unsigned int buffer);*/
+		   const unsigned int roiWidth,  const unsigned int roiHeight, const unsigned int buffer);
 
 template <typename InputPixelType, typename OutputPixelType>
+
 void launch_dilate(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
 		   const cudaStream_t stream,  OutputPixelType * const outputData,
 		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets,
-		   const unsigned int numElements, unsigned int buffer);
+		   const unsigned int numElements, const unsigned int buffer);
 
 template <typename InputPixelType, typename OutputPixelType>
 void launch_erode(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
 		   const cudaStream_t stream,  OutputPixelType * const outputData,
 		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets,
-		   const unsigned int numElements,unsigned int buffer);
+		   const unsigned int numElements, const unsigned int buffer);
 
 template <typename InputPixelType, typename OutputPixelType, typename ConvolutionType>
 void launchConvolution(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream, InputPixelType* inputData,

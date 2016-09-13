@@ -8,11 +8,11 @@ runner_SOURCES	=	runner.cpp \
 				CvTileTestSuite.cpp \
 				TilerTestSuite.cpp \
 				gpuTestSuite.cpp \
-				gpuWHSTestSuite.cpp \
 				gpuErodeTestSuite.cpp \
 				gpuDilateTestSuite.cpp \
 				gpuAbsoluteDifferenceTestSuite.cpp \
-				gpuConvolutionTest.cpp
+				gpuConvolutionTest.cpp \
+				gpuWHSTestSuite.cpp
 
 #libraries that will be linked
 runner_LDADD	=	$(OPENCV_LIBS) $(top_builddir)/src/libcvtile.la \

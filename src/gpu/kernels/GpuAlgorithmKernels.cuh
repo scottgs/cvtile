@@ -398,6 +398,13 @@ __device__ __forceinline__ float fetchTexture<float, 1>(int x, int y)
 }
 
 //////////////////////////////////
+// constant memory for linear structuring elements
+/////////////////////////////////
+
+__constant__ int2 relativeOffsets [800];
+__constant__ unsigned int relativeOffsetCount;
+
+//////////////////////////////////
 // Kernels and Launch Functions //
 /////////////////////////////////
 
@@ -534,24 +541,24 @@ void launch_absDifference(const dim3 dimGrid, const dim3 dimBlock, const unsigne
 	absDiffernceTexture<InputPixelType,OutputPixelType><<<dimGrid, dimBlock, shmemSize, stream>>>(outputData, roiWidth, roiHeight);
 }
 
-/*template< typename InputPixelType, typename OutputPixelType>
-__global__ static
-void window_histogram_statistics(OutputPixelType * const  outputData, const unsigned int roiWidth,
-	    const unsigned int roiHeight,
-	    const unsigned int numElements, const unsigned int buffer)*/
-
-
-
 template< typename InputPixelType, typename OutputPixelType>
 __global__ static
 void window_histogram_statistics(OutputPixelType * const  outputData, const unsigned int roiWidth,
-	    const unsigned int roiHeight, const int2 * relativeOffsets,
-	    const unsigned int numElements, const unsigned int buffer)
+	    const unsigned int roiHeight, const unsigned int buffer)
 {
+	extern __shared__ int2 shm_relativeOffsets[];
+	size_t global_thread_id = blockDim.x * threadIdx.y + threadIdx.x;
+	if (global_thread_id < 32) {
+		
+		for (unsigned int i = global_thread_id; i < relativeOffsetCount; i += 32) {
+			shm_relativeOffsets[i].x = relativeOffsets[i].x;
+			shm_relativeOffsets[i].y = relativeOffsets[i].y;
+		}
 
-   // Data index now buffered
-   const int width = roiWidth + buffer + buffer;
-   const int height = roiHeight + buffer + buffer;
+	}
+
+	__syncthreads();
+
 
    const unsigned int roiXidx = blockIdx.x * blockDim.x + threadIdx.x;
    const unsigned int roiYidx = blockIdx.y * blockDim.y + threadIdx.y;
@@ -560,163 +567,148 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
    const unsigned int xIndex = roiXidx + buffer;
    const unsigned int yIndex = roiYidx + buffer;
 	
-   if(roiYidx < roiHeight && roiXidx < roiWidth && xIndex < width && yIndex < height)
+   if(roiYidx < roiHeight && roiXidx < roiWidth && xIndex < (roiWidth + 2*buffer) && yIndex < (roiHeight + 2*buffer))
    {
 		// Output size is the ROI size
 		const unsigned int pixel_one_d = roiXidx + roiYidx * roiWidth; // xIndex + yIndex
 		const unsigned int outputBandSize = roiHeight * roiWidth;
-		//init texture support; work in progress
 
-		int cur_y_index;
-		int cur_x_index;
-		InputPixelType min = fetchTexture<InputPixelType, 0>(xIndex, yIndex);
-		InputPixelType max = fetchTexture<InputPixelType, 0>(xIndex, yIndex);
+		InputPixelType pixel_temp = fetchTexture<InputPixelType, 0>(xIndex, yIndex);
+		InputPixelType min = pixel_temp;
+		InputPixelType max = pixel_temp;
+
+		double sum = 0.0;
+		double mean = 0.0;
+		double variance = 0.0;
+		double std = 0.0;
+		double pixel_difference = 0.0;
 		
-		double values[1024];
-
-		for(unsigned int i = 0; i < numElements; ++i)
+		for(unsigned int i = 0; i < relativeOffsetCount; ++i)
 		{
-			cur_x_index = xIndex + relativeOffsets[i].x;
-			cur_y_index = yIndex + relativeOffsets[i].y;	
-			//if( cur_y_index < roiHeight && cur_y_index >= 0 && cur_x_index < roiWidth && cur_x_index >= 0){
-			values[i] = fetchTexture<InputPixelType, 0>(cur_x_index, cur_y_index);
+			pixel_temp = fetchTexture<InputPixelType, 0>(xIndex + shm_relativeOffsets[i].x, yIndex + shm_relativeOffsets[i].y);
 
-			if (values[i] > max) {
-				max = values[i];
-			}
-			if (values[i] < min) {
-				min = values[i];
-			}
-		}
-	
-		/* 
-		 * Find the sum
-		 */
-		double sum = 0;
-		double mean = 0;
+			// Roll sum calculation into min/max search for obvious reasons
+			sum += pixel_temp;
 
-		for (unsigned int i = 0; i < numElements; ++i) {
-			sum = sum + values[i];
+			max = pixel_temp > max ? pixel_temp : max;
+			min = pixel_temp < min ? pixel_temp : min;
 		}
 
-		mean = (double) sum/ numElements;
+		mean = sum / relativeOffsetCount;
 
-		short num_bins = 128;
-		short histogram[128];
-		float pdf[128];
+		// Create histogram
+		const short num_bins = 128;
+		short histogram[num_bins];
+		float pdf[num_bins];
 
+		// This loop is the worst and hurts my soul
 		for (unsigned int i = 0; i < num_bins; ++i) {
 			histogram[i] = 0;
 		}
 
-		/*
-		* Create histogram
-		*/
+		// This would go crazy if min and max were negative
+		// Simple fix here is to change the detection to bin_width being zero
+		// BUT, should it be corrected to -1 or 1?
+		// 90% sure if the max is negative, then so is the min, which means we should be -1
+		// Gotta think about it more. if min and max are both neg, then width should be neg.
+		// But what if it's only one that's negative?
+
+		// Either way, bin_width should probably be a float.
+		// Then round the result for bin_idx
 		short bin_width = (max - min) / num_bins;
 		if (bin_width < 1) {
 			bin_width = 1;
 		}
 		
-		short bin_idx = 0;
-		for (unsigned int i  = 0; i < numElements; ++i) {
+		for (unsigned int i  = 0; i < relativeOffsetCount; ++i) {
 		
-			bin_idx = (short) ((values[i] - min) / bin_width);
-		
+			pixel_temp = fetchTexture<InputPixelType, 0>(xIndex + shm_relativeOffsets[i].x, yIndex + shm_relativeOffsets[i].y);
+			// folding in variance calculation since we're already iterating through the data
+			// and there's no other data requirements
+			pixel_difference = pixel_temp - mean;
+			variance += pixel_difference * pixel_difference;
+			
+			short bin_idx =  (pixel_temp - min) / bin_width;
+
+			// I'm thinking these checks are not needed since we've already calibrated min/max/width properly
+			// But once we look into negatives more, we may need something. IDK.
 			if (bin_idx >= 0 && bin_idx < num_bins) {
 				histogram[bin_idx]++;
 			}
-			else
+			else{
 				histogram[127]++;
-		
-		}
-
-		/*
-		 * Calculate the PDF array
-		 */
-		for (unsigned int i = 0; i < num_bins; ++i) {
-			pdf[i] = ((float) histogram[i]) / numElements;
-		}
-
-		 /* 
-		  * Find Entropy
-		  */
-		 double entropy = 0;
-		 for (short i = 0; i < num_bins; ++i) {
-			if (pdf[i] != 0) {
-				entropy += (pdf[i] * log2(pdf[i]));
 			}
-		 }
-			
-		// Normalize data with the mean
-		for (unsigned int i = 0; i < numElements; ++i) {
-			values[i] = values[i] - mean;
-		}
-
-		/*
-		 * Find the variance
-		 */
-		double variance = 0;
-		double std = 0;
-		for (unsigned int i = 0; i < numElements; ++i) {
-				 variance = variance + (values[i] * values[i]);
-
 		}
 		
-		variance = (double) variance / (numElements);
-		std = sqrtf(variance);
-		
-		
+		variance /= relativeOffsetCount;
 
-		if (std == 0 || variance == 0) {
+		// No point in continuting if variance is zero
+		if (variance == 0.0) {
 			//band 0 = entropy
-			outputData[pixel_one_d] = 0;	
-				
-			outputData[pixel_one_d + outputBandSize] = (float )mean;
-			//printf("mean %d\n", mean);
-			
+			outputData[pixel_one_d] = 0;
+
+			//band 1 = mean
+			outputData[pixel_one_d + outputBandSize] = (OutputPixelType) mean;
+
 			//band 2 = variance
 			outputData[pixel_one_d + (outputBandSize * 2)] = 0;
-				
+
 			//band 3 = skewness
-			outputData[pixel_one_d + (outputBandSize * 3)] = 0;	
+			outputData[pixel_one_d + (outputBandSize * 3)] = 0;
 
 			//band 4 = kurtosis
 			outputData[pixel_one_d + (outputBandSize * 4)] = 0;
 
 			return;
+		}
+		
+		std = sqrt(variance);
 
-	}
-	// ELSE
+		// Calculate the PDF array
+		for (unsigned int i = 0; i < num_bins; ++i) {
+			pdf[i] = ((float) histogram[i]) / relativeOffsetCount;
+		}
+		// PDF isn't used outside entropy, calculating it when needed.
+		 
+		// Find Entropy
+		double entropy = 0.0;
+		for (short i = 0; i < num_bins; ++i) {
+			// double?
+			//float pdf = ((float) histogram[i]) / relativeOffsetCount;
+			//entropy += pdf == 0.0f ? 0.0 : (pdf * log2(pdf));
+            if (pdf[i] != 0.0f) {
+                entropy += pdf[i] * log2(pdf[i]);
+            }
+        }
 	
-	/*
-	 * Find Skewness
-	 **/
-	double skewness = 0;
-	double kurtosis = 0;
+		// Find Skewness & Kurtosis
+		
+		double skewness = 0;
+		double kurtosis = 0;
 
-	for (int i = 0; i < numElements; ++i) {
-		skewness = skewness + (values[i] * values[i] * values[i]);
-		kurtosis = kurtosis + (values[i] * values[i] * values[i] * values[i]); 
-	}
-	skewness = (double)skewness/(numElements * variance * std);
-	kurtosis = (double) kurtosis/(numElements * variance * variance);
+		for (int i = 0; i < relativeOffsetCount; ++i) {
+			pixel_difference = fetchTexture<InputPixelType, 0>(xIndex + shm_relativeOffsets[i].x, yIndex + shm_relativeOffsets[i].y) - mean;
+			double diff_cubed = pixel_difference * pixel_difference * pixel_difference;
+			skewness += diff_cubed;
+			kurtosis += diff_cubed * pixel_difference;
+		}
+		skewness /= relativeOffsetCount * variance * std;
+		kurtosis /= relativeOffsetCount * variance * variance;
 
 		//band 0 = entropy
-	outputData[pixel_one_d] = (OutputPixelType) (entropy * -1);	
-		//outputData[pixel_one_d] = 1;
-		//band 1 = mean
-	outputData[pixel_one_d + outputBandSize] = mean;
-			
-	outputData[pixel_one_d + outputBandSize] = ( OutputPixelType)mean;
-		//printf("mean %d\n", mean);
+		outputData[pixel_one_d] = (OutputPixelType) (entropy * -1);	
+
+		//band 1 = mean		
+		outputData[pixel_one_d + outputBandSize] = (OutputPixelType) mean;
+
 		//band 2 = variance
-	outputData[pixel_one_d + (outputBandSize * 2)] = (OutputPixelType) variance;
-		
+		outputData[pixel_one_d + (outputBandSize * 2)] = (OutputPixelType) variance;
+			
 		//band 3 = skewness
-	outputData[pixel_one_d + (outputBandSize * 3)] = (OutputPixelType) skewness;
-	
+		outputData[pixel_one_d + (outputBandSize * 3)] = (OutputPixelType) skewness;
+		
 		//band 4 = kurtosis
-	outputData[pixel_one_d + (outputBandSize * 4)] = (OutputPixelType) kurtosis;
+		outputData[pixel_one_d + (outputBandSize * 4)] = (OutputPixelType) kurtosis;
 	
 	
 	} // END OF A VALID PIXEL POSITION
@@ -726,24 +718,18 @@ void window_histogram_statistics(OutputPixelType * const  outputData, const unsi
 template< typename InputPixelType, typename OutputPixelType >
 void launch_window_histogram_statistics (const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
 		   const cudaStream_t stream,  OutputPixelType * const outputData,
-		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets,
-		   const unsigned int numElements, const unsigned int buffer) {
-	window_histogram_statistics<InputPixelType, OutputPixelType><<<dimGrid, dimBlock, shmemSize,stream>>>(outputData, roiHeight, roiWidth, relativeOffsets, numElements, buffer);
+		   const unsigned int roiWidth,  const unsigned int roiHeight, const unsigned int buffer) {
+    window_histogram_statistics<InputPixelType, OutputPixelType><<<dimGrid, dimBlock, shmemSize, stream>>>(
+        outputData, roiHeight, roiWidth, buffer);
 }
 
-/*template< typename InputPixelType, typename OutputPixelType >
-void launch_window_histogram_statistics (const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
-		   const cudaStream_t stream,  OutputPixelType * const outputData,
-		   const unsigned int roiWidth,  const unsigned int roiHeight, 
-		   const unsigned int numElements, const unsigned int buffer) {
-	window_histogram_statistics<InputPixelType, OutputPixelType><<<dimGrid, dimBlock, shmemSize,stream>>>(outputData, roiHeight, roiWidth, numElements, buffer);
-}*/
 
-
-/*cudaError_t load_relative_offsets(const cudaStream_t stream, int2* host_offsets, size_t num_offsets) {
+cudaError_t load_relative_offsets(const cudaStream_t stream, const int2* host_offsets, const unsigned int num_offsets) {
 	int2* cpnt;
+	unsigned int *deviceOffsetCount;
 	cudaError_t cuer;
 	cudaGetSymbolAddress((void **)&cpnt,relativeOffsets);
+	cudaGetSymbolAddress((void **)&deviceOffsetCount,relativeOffsetCount);
 	
 	cudaMemcpyAsync(
 		cpnt,
@@ -752,9 +738,16 @@ void launch_window_histogram_statistics (const dim3 dimGrid, const dim3 dimBlock
 		cudaMemcpyHostToDevice,
 		stream
 	);
+	cudaMemcpyAsync(
+		deviceOffsetCount,
+		&num_offsets,
+		sizeof(unsigned int),
+		cudaMemcpyHostToDevice,
+		stream
+	);
 	cuer = cudaGetLastError();
 	return cuer;
-}*/
+}
 
 
 /* Assumes 2-D Grid, 2-D Block Config, 1 to 1 Mapping */

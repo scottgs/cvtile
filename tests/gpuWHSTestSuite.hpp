@@ -200,10 +200,10 @@ class gpuWHSTestSuite : public CxxTest::TestSuite
 
 		void testWindowHistogramSingleBandImage () {
 			std::cout << std::endl << "GPU WHS VERIFICATION TEST" << std::endl;
-			int cuda_device_id = 0;
-			//unsigned int window_size = 1;
 
-
+            // DEPRECATED: Set device # in src/gpu/drivers/GPUProperties.hpp
+            // then use CUDA_DEVICE macro.
+            // -- const int cuda_device_id = 2;
 
 			cvt::Tiler read_tiler;
 
@@ -219,7 +219,7 @@ class gpuWHSTestSuite : public CxxTest::TestSuite
 			/* Loop through all the tiles in the image */
 			for (int window = 1; window <= 11; window++) {
 					inputTile = read_tiler.getCvTile<short>(4, window);
-					cvt::gpu::GpuWHS<short,1,float,5> whs(cuda_device_id,
+					cvt::gpu::GpuWHS<short,1,float,5> whs(CUDA_DEVICE,
 					inputTile.getROI().width,inputTile.getROI().height,window);
 					whs.initializeDevice(cvt::gpu::SQUARE);
 

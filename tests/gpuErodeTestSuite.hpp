@@ -54,7 +54,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #define SHOW_OUTPUT 0
-
+// Set device # in src/gpu/drivers/GPUProperties.hpp
+// #define CUDA_DEVICE 0
 
 class gpuErodeTestSuite : public CxxTest::TestSuite
 {
@@ -88,7 +89,7 @@ class gpuErodeTestSuite : public CxxTest::TestSuite
 
 		void testErodeFullPixelVerification () {
 			std::cout << std::endl << "GPU ERODE VERIFICATION TEST" << std::endl;
-			int cuda_device_id = 0;
+			int cuda_device_id = CUDA_DEVICE;
 			cvt::Tiler read_tiler;
 
 			cv::Size2i tSize(256,256);
@@ -156,7 +157,7 @@ class gpuErodeTestSuite : public CxxTest::TestSuite
 
 		void testUnsignedErodeFullPixelVerification () {
 			std::cout << std::endl << "GPU ERODE UNSIGNED VERIFICATION TEST" << std::endl;
-			int cuda_device_id = 0;
+			int cuda_device_id = CUDA_DEVICE;
 			cvt::Tiler read_tiler;
 
 			cv::Size2i tSize(256,256);

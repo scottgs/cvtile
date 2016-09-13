@@ -18,6 +18,8 @@
 #endif
 
 #define SHOW_OUTPUT 0
+// Set device # in src/gpu/drivers/GPUProperties.hpp
+// #define CUDA_DEVICE 0
 
 
 class gpuAbsoluteDifferenceTestSuite : public CxxTest::TestSuite
@@ -32,7 +34,7 @@ class gpuAbsoluteDifferenceTestSuite : public CxxTest::TestSuite
 
 		void testAbsSimplePixelVerification() {
 			std::cout << std::endl << "GPU ABS DIFF VERIFICATION TEST" << std::endl;
-			int cuda_device_id = 0;
+			int cuda_device_id = CUDA_DEVICE;
 			cvt::Tiler read_tiler;
 
 			cv::Size2i tSize(256,256);
@@ -66,7 +68,7 @@ class gpuAbsoluteDifferenceTestSuite : public CxxTest::TestSuite
 
 		void testAbsDiffFullPixelVerification () {
 			std::cout << std::endl << "GPU ABS DIFF VERIFICATION TEST" << std::endl;
-			int cuda_device_id = 0;
+			int cuda_device_id = CUDA_DEVICE;
 			cvt::Tiler read_tiler;
 			cvt::Tiler read_tiler2;
 			cv::Size2i tSize(256,256);

@@ -41,6 +41,9 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "../src/base/Tiler.hpp"
 #include "../src/gpu/drivers/GpuConvolution.hpp"
 
+// Set device # in src/gpu/drivers/GPUProperties.hpp
+// #define CUDA_DEVICE 0
+
 class gpuConvolutionTestSuite : public CxxTest::TestSuite
 {
 	public:
@@ -75,8 +78,7 @@ class gpuConvolutionTestSuite : public CxxTest::TestSuite
 			}
 
 			inTile.setROI(cv::Rect(filterRadius, filterRadius, roi.width, roi.height));
-			cvt::gpu::GpuConvolution<short,1,short,1,short> conv(0, roi.width, roi.height,
-									    filterRadius, weightsMat);
+			cvt::gpu::GpuConvolution<short,1,short,1,short> conv(CUDA_DEVICE, roi.width, roi.height, filterRadius, weightsMat);
 
 			TS_ASSERT_EQUALS(cvt::Ok, conv.initializeDevice(cvt::gpu::SQUARE));
 

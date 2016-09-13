@@ -264,27 +264,13 @@ void GpuWindowFilterAlgorithm<InputPixelType,InputBandCount, OutputPixelType, Ou
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
 ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::transferRelativeOffsetsToDevice()
 {
-	cudaMemcpyAsync(
-		relativeOffsetsGpu_,
-		relativeOffsets_.data(),
-		relativeOffsets_.size() * sizeof(int2),
-		cudaMemcpyHostToDevice,
-		this->stream
-	);
-
-	cudaError cuer = cudaGetLastError();
+	cudaError cuer = cvt::gpu::load_relative_offsets(this->stream,this->relativeOffsets_.data(), this->relativeOffsets_.size());
 	if (cuer != cudaSuccess) {
 		std::cout << "CUDA ERR = " << cuer << std::endl;
-		throw std::runtime_error("GPU WHS () FAILED TO MEMCPY RELATIVE COORDS ON TO DEVICE");
+		throw std::runtime_error("GPU WHS TO CONSTANT MEMORY");
 	}
 
-	//cuer = cvt::gpu::load_relative_offsets(this->stream,this->relativeOffsets_.data(), this->relativeOffsets_.size());
-	//if (cuer != cudaSuccess) {
-	//	std::cout << "CUDA ERR = " << cuer << std::endl;
-	//	throw std::runtime_error("GPU WHS TO CONSTANT MEMORY");
-	//}
-
-	return this->lastError;
+    return this->lastError;
 }
 
 } // END of cvt namespace
