@@ -219,14 +219,14 @@ void run_binary_task(CvTileAlgorithmFactory<short,1,float,5>& factory,
 							ssize_t buffer_radius,
 							size_t start_tile,
 							size_t num_workers,
-							size_t cuda_device_id )
+							__attribute__((unused)) size_t cuda_device_id )
 
 {
 	/*
 	 * Create instance of GPU algorithm based on requested algorithm
 	 * */
 	worker_mutex.lock();
-	std::shared_ptr<cvt::gpu::GpuAlgorithm<short,1,float,5> > gpu_algorithm = factory.makeCvTileAlgorithm(ac,cuda_device_id);
+	std::shared_ptr<cvt::gpu::GpuAlgorithm<short,1,float,5> > gpu_algorithm = factory.makeCvTileAlgorithm(ac,CUDA_DEVICE);
 	worker_mutex.unlock();
 
 	cvt::cvTile<short> inputTile;

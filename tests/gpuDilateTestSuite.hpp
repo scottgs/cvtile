@@ -79,7 +79,6 @@ class gpuDilateTestSuite : public CxxTest::TestSuite
 
 		void testDilateFullPixelVerification () {
 			std::cout << std::endl << "GPU DILATE VERIFICATION TEST" << std::endl;
-			int cuda_device_id = CUDA_DEVICE;
 			cvt::Tiler read_tiler;
 
 			cv::Size2i tSize(256,256);
@@ -92,7 +91,7 @@ class gpuDilateTestSuite : public CxxTest::TestSuite
 			/* Loop through center tile in the image */
 			for (int window = 1; window <= 11; window++) {
 					inputTile = read_tiler.getCvTile<short>(4, window);
-					cvt::gpu::GpuDilate<short,1,short,1> dilate(cuda_device_id,
+					cvt::gpu::GpuDilate<short,1,short,1> dilate(CUDA_DEVICE,
 					inputTile.getROI().width,inputTile.getROI().height,window);
 					dilate.initializeDevice(cvt::gpu::SQUARE);
 

@@ -34,7 +34,6 @@ class gpuAbsoluteDifferenceTestSuite : public CxxTest::TestSuite
 
 		void testAbsSimplePixelVerification() {
 			std::cout << std::endl << "GPU ABS DIFF VERIFICATION TEST" << std::endl;
-			int cuda_device_id = CUDA_DEVICE;
 			cvt::Tiler read_tiler;
 
 			cv::Size2i tSize(256,256);
@@ -46,7 +45,7 @@ class gpuAbsoluteDifferenceTestSuite : public CxxTest::TestSuite
 			std::vector<unsigned short> data(tSize.area(),0);
 			cvt::cvTile<unsigned short> zeroedTile(data.data(),tSize,1);
 
-			cvt::gpu::GpuAbsoluteDifference<unsigned short,1,unsigned short,1> absDiff(cuda_device_id,
+			cvt::gpu::GpuAbsoluteDifference<unsigned short,1,unsigned short,1> absDiff(CUDA_DEVICE,
 				tSize.width,tSize.height);
 			absDiff.initializeDevice();
 
@@ -68,7 +67,6 @@ class gpuAbsoluteDifferenceTestSuite : public CxxTest::TestSuite
 
 		void testAbsDiffFullPixelVerification () {
 			std::cout << std::endl << "GPU ABS DIFF VERIFICATION TEST" << std::endl;
-			int cuda_device_id = CUDA_DEVICE;
 			cvt::Tiler read_tiler;
 			cvt::Tiler read_tiler2;
 			cv::Size2i tSize(256,256);
@@ -83,7 +81,7 @@ class gpuAbsoluteDifferenceTestSuite : public CxxTest::TestSuite
 			inputTile = read_tiler.getCvTile<unsigned short>(4);
 			inputTile2 = read_tiler2.getCvTile<unsigned short>(4);
 
-			cvt::gpu::GpuAbsoluteDifference<unsigned short,1,unsigned short,1> absDiff(cuda_device_id,
+			cvt::gpu::GpuAbsoluteDifference<unsigned short,1,unsigned short,1> absDiff(CUDA_DEVICE,
 				tSize.width,tSize.height);
 			absDiff.initializeDevice();
 

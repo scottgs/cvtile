@@ -11,17 +11,17 @@ MIN = compute_35
 
 # Kepler:   3.5
 #           3.7
-KEPLER = sm_35, sm_37
+KEPLER = sm_35,sm_37
 
 # Maxwell:  5.0
 #           5.2
 #           5.3
-MAXWELL = sm_50, sm_52, sm_53
+MAXWELL = sm_50,sm_52,sm_53
 
 # Pascal:   6.0
 #           6.1
 #          *6.2
-PASCAL = sm_60, sm_61 #, sm_62
+PASCAL = sm_60,sm_61
 
 # Volta:    *7.0
 #           *7.1
@@ -37,14 +37,11 @@ PASCAL = sm_60, sm_61 #, sm_62
 # EXAMPLE: For a Maxwell GPU, remove the PASCAL variable so it looks like      #
 # this: --gpu-code=$(MIN), $(KEPLER), $(MAXWELL)                               #
 ################################################################################
-GPU_FLAGS = --gpu-architecture\=$(MIN) \
-            --gpu-code=$(MIN), $(KEPLER), $(MAXWELL), $(PASCAL)
+GPU_FLAGS = --gpu-architecture=$(MIN) --gpu-code=$(MIN),$(KEPLER),$(MAXWELL),$(PASCAL)
 
 .cu.o:
 	$(NVCC) $(GPU_FLAGS) -o $@ -c $<
 
 .cu.lo:
-	$(top_srcdir)/cudalt.py $@ $(NVCC) $(GPU_FLAGS) --compiler-options=\" \
-    $(CFLAGS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-    $(CPPFLAGS) \" -c $<
+	$(top_srcdir)/cudalt.py $@ $(NVCC) $(GPU_FLAGS) --compiler-options="$(CFLAGS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS)" -c $<
 

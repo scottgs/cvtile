@@ -201,10 +201,6 @@ class gpuWHSTestSuite : public CxxTest::TestSuite
 		void testWindowHistogramSingleBandImage () {
 			std::cout << std::endl << "GPU WHS VERIFICATION TEST" << std::endl;
 
-            // DEPRECATED: Set device # in src/gpu/drivers/GPUProperties.hpp
-            // then use CUDA_DEVICE macro.
-            // -- const int cuda_device_id = 2;
-
 			cvt::Tiler read_tiler;
 
 			cv::Size2i tSize(256,256);

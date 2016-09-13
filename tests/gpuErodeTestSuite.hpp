@@ -89,7 +89,6 @@ class gpuErodeTestSuite : public CxxTest::TestSuite
 
 		void testErodeFullPixelVerification () {
 			std::cout << std::endl << "GPU ERODE VERIFICATION TEST" << std::endl;
-			int cuda_device_id = CUDA_DEVICE;
 			cvt::Tiler read_tiler;
 
 			cv::Size2i tSize(256,256);
@@ -102,7 +101,7 @@ class gpuErodeTestSuite : public CxxTest::TestSuite
 			/* Loop through all the tiles in the image */
 			for (int window = 1; window <= 11; window++) {
 					inputTile = read_tiler.getCvTile<short>(4, window);
-					cvt::gpu::GpuErode<short,1,short,1> erode(cuda_device_id,
+					cvt::gpu::GpuErode<short,1,short,1> erode(CUDA_DEVICE,
 					inputTile.getROI().width,inputTile.getROI().height,window);
 					erode.initializeDevice(cvt::gpu::SQUARE);
 
@@ -157,7 +156,6 @@ class gpuErodeTestSuite : public CxxTest::TestSuite
 
 		void testUnsignedErodeFullPixelVerification () {
 			std::cout << std::endl << "GPU ERODE UNSIGNED VERIFICATION TEST" << std::endl;
-			int cuda_device_id = CUDA_DEVICE;
 			cvt::Tiler read_tiler;
 
 			cv::Size2i tSize(256,256);
@@ -170,7 +168,7 @@ class gpuErodeTestSuite : public CxxTest::TestSuite
 			/* Loop through all the tiles in the image */
 			for (int window = 0; window <= 11; window++) {
 					inputTile = read_tiler.getCvTile<unsigned char>(4, window);
-					cvt::gpu::GpuErode<unsigned char,1,unsigned char,1> erode(cuda_device_id,
+					cvt::gpu::GpuErode<unsigned char,1,unsigned char,1> erode(CUDA_DEVICE,
 					inputTile.getROI().width,inputTile.getROI().height,window);
 					erode.initializeDevice(cvt::gpu::SQUARE);
 
