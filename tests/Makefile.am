@@ -1,18 +1,19 @@
 #the name that the program will called once compiled
 check_PROGRAMS	=	runner
 
-AM_CPPFLAGS	=	$(OPENCV_CFLAGS) -std=c++0x
+AM_CPPFLAGS	= -g -std=c++11 -Werror -Wall -Wextra -pedantic -O3 -ffast-math -msse3 -march=native -mtune=native $(OPENCV_CFLAGS)
+
 
 #the source files used to build the runner target
 runner_SOURCES	=	runner.cpp \
 				CvTileTestSuite.cpp \
 				TilerTestSuite.cpp \
 				gpuTestSuite.cpp \
-				gpuWHSTestSuite.cpp \
 				gpuErodeTestSuite.cpp \
 				gpuDilateTestSuite.cpp \
 				gpuAbsoluteDifferenceTestSuite.cpp \
-				gpuConvolutionTest.cpp
+				gpuConvolutionTest.cpp \
+				gpuWHSTestSuite.cpp
 
 #libraries that will be linked
 runner_LDADD	=	$(OPENCV_LIBS) $(top_builddir)/src/libcvtile.la \
@@ -31,7 +32,7 @@ check: $(check_PROGRAMS)
 
 # compile all of the generated source code files
 .cpp.o:
-	g++ -g -std=c++0x -Wall $(CUDA_CFLAGS) \
+	$(CXX) $(AM_CPPFLAGS) $(CUDA_CFLAGS) \
 	-I/usr/local/cxxtest/include/ -I../src/ -c -o $@ $<
 
 # How to generate the test runner (this is the scaffolding that makes things go)

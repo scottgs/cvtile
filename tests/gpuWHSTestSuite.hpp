@@ -76,7 +76,7 @@ class gpuWHSTestSuite : public CxxTest::TestSuite
 		{;}
 
 
-		void calcStatisitics(Stats *stats, double* data,unsigned int histSize, unsigned int dataSize) {
+		void calcStatisitics(Stats *stats, double* data,__attribute__((unused)) unsigned int histSize, unsigned int dataSize) {
 			//std::cout << "TEST VALUES ARE: " << std::endl;
 			/*for (int i = 0; i < dataSize; ++i) {
 				std::cout << data[i] << " ";
@@ -101,7 +101,7 @@ class gpuWHSTestSuite : public CxxTest::TestSuite
 			}
 
 
-			short num_bins = 128;
+			const short num_bins = 128;
 			//std::cout << "num bins = " << num_bins << std::endl;
 			//std::cout << "min = " << min << " max = " << max << std::endl;
 			short bin_width = (max - min) / num_bins;

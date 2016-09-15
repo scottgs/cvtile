@@ -6,11 +6,12 @@ AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIRS([m4])
 AM_INIT_AUTOMAKE
 
+
 # Checks for programs.
-AC_PROG_CC
+AC_PROG_CC([clang gcc])
 AM_PROG_CC_C_O
-AC_PROG_CPP
-AC_PROG_CXX
+AC_PROG_CPP([clang++ g++])
+AC_PROG_CXX([clang++ g++])
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
 AC_PROG_LN_S
@@ -62,7 +63,7 @@ AC_SUBST(CUDA_LDFLAGS)
 AC_SUBST(NVCC)
 
 # Global CPP Flags
-AM_CPPFLAGS="-Werror -Wall -Wextra -O3 -ffast-math -msse3 -march=native -mtune=native"
+AM_CPPFLAGS="-std=c++11 -Werror -Wall -Wextra -O3 -ffast-math -msse3 -march=native -mtune=native"
 AC_SUBST([AM_CPPFLAGS])
 CFLAGS=" "
 AC_SUBST([CFLAGS])
