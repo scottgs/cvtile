@@ -44,7 +44,8 @@ namespace gpu {
 
 enum windowRadiusType{
 	SQUARE,
-	CIRCLE
+	CIRCLE,
+	SPARSE_RING
 };
 
 
@@ -56,14 +57,14 @@ class GpuWindowFilterAlgorithm : public GpuAlgorithm<InputPixelType, InputBandCo
 
 	public:
 
-	 explicit GpuWindowFilterAlgorithm(unsigned int cudaDeviceId, size_t roiDataWidth,
-							 size_t roiDataHeight, ssize_t windowRadius);
+	explicit GpuWindowFilterAlgorithm(unsigned int cudaDeviceId, size_t roiDataWidth,
+							 		  size_t roiDataHeight, ssize_t windowRadius);
 
-	 virtual ~GpuWindowFilterAlgorithm();
-	 virtual ErrorCode initializeDevice(enum windowRadiusType type);
+	virtual ~GpuWindowFilterAlgorithm();
+	virtual ErrorCode initializeDevice(enum windowRadiusType type);
 
-	 virtual ErrorCode operator()(const cvt::cvTile<InputPixelType>& tile,
-													  const cvt::cvTile<OutputPixelType> ** outTile);
+	virtual ErrorCode operator()(const cvt::cvTile<InputPixelType>& tile,
+								 const cvt::cvTile<OutputPixelType> ** outTile);
 
 	protected:
 
@@ -80,7 +81,7 @@ class GpuWindowFilterAlgorithm : public GpuAlgorithm<InputPixelType, InputBandCo
 	ssize_t windowRadius_;
 	std::vector<int2> relativeOffsets_;
 	int2 *relativeOffsetsGpu_;
-	enum windowRadiusType type;
+	enum windowRadiusType type_;
 	/***************************
 	 *  NOTE: Any class that extends the window filter class can not have an roi that
 	 *  is equal to the whole image. You will need a buffer.
@@ -166,7 +167,7 @@ template< typename InputPixelType, int InputBandCount, typename OutputPixelType,
 ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::initializeDevice(enum windowRadiusType type)
 {
 	/* Initialize additional argument then allow parent to init card */
-	this->type = type;
+	type_ = type;
 	GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::initializeDevice();
 
 	/* Transfer offsets to card */
@@ -229,7 +230,7 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 	cudaMalloc((void**)&relativeOffsetsGpu_, sizeof(int2) * relativeOffsets_.size());
 	cudaError cuer = cudaGetLastError();
 	if (cuer != cudaSuccess) {
-		throw std::runtime_error("GPU WHS () FAILURE TO ALLOCATE MEMORY FOR RELATIVE COORDS");
+		throw std::runtime_error("GPU WINDOW FILTER ALGORITHM () FAILURE TO ALLOCATE MEMORY FOR RELATIVE COORDS");
 	}
 	if (cuer == cudaErrorMemoryAllocation)
 	{
@@ -241,7 +242,7 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
 void GpuWindowFilterAlgorithm<InputPixelType,InputBandCount, OutputPixelType, OutputBandCount>::computeRelativeOffsets()
 {
-	if (type == CIRCLE) {
+	if (type_ == CIRCLE) {
 		const size_t radius_squared = windowRadius_ * windowRadius_;
 		for(ssize_t i = 0 - windowRadius_; i <= windowRadius_; ++i){
 			size_t i_squared = i * i;
@@ -250,6 +251,29 @@ void GpuWindowFilterAlgorithm<InputPixelType,InputBandCount, OutputPixelType, Ou
 					relativeOffsets_.push_back(make_int2(i,j));
 			}
 		}
+	}
+	else if (type_ == SPARSE_RING) {
+		//TODO(TYLER): These limits seem suspect...
+	    const size_t numOffsets = sizeof(OutputPixelType) * 8;
+	    //TODO(Tyler): Remove this debug comment before merging.
+	    //std::cout << "computeRelative::numOffsets = " << numOffsets << std::endl;
+	    const size_t maxOffsets = (windowRadius_ * 2 + 1) * (windowRadius_ * 2 + 1);
+
+	    if (numOffsets > maxOffsets)
+	    {
+			throw std::invalid_argument("computeRelativeOffets: output size was larger than maximum neighbors.");
+	    }
+
+	    const double angleStep = 2 * M_PI / numOffsets;
+	    double currAngle = 0;
+	    ssize_t xOffset , yOffset;
+
+	    for (size_t i = 0; i<numOffsets; i++) {
+			xOffset = (ssize_t) (round (windowRadius_ * sin (currAngle)));
+			yOffset = (ssize_t) (round (windowRadius_ * cos (currAngle)));
+			currAngle += angleStep;
+			relativeOffsets_.push_back(make_int2(xOffset,yOffset));
+	    }
 	}
 	else {
 		for (ssize_t i = 0 - windowRadius_; i <= windowRadius_; ++i) {
