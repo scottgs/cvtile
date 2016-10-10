@@ -87,6 +87,11 @@ void launchConvolution(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, cuda
 									   unsigned int outputWidth, unsigned int outputHeight, unsigned int bandCount,
 									   bool usingTexture);
 
+template<typename InputPixelType, typename OutputPixelType>
+void launch_local_binary_pattern(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream,
+                        OutputPixelType* gpuOutputData, int2* relativeOffsets, unsigned int relativeOffsetsSize,
+                        const unsigned int roiWidth, const unsigned int roiHeight, const unsigned int buffer);
+
 } // end of gpu namespace
 } // end of cvt namespace
 

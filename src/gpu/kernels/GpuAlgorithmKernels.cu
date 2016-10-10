@@ -35,43 +35,43 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "GpuAlgorithmKernels.cuh"
 
-namespace cvt { 
+namespace cvt {
 namespace gpu {
 
 
 /*Explicit instantiations for data copy kernels */
 
-template void launch_simpleDataCopy<signed char, signed char>(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream, signed char * in_data, 
+template void launch_simpleDataCopy<signed char, signed char>(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream, signed char * in_data,
 						signed char * gpu_output_data, unsigned int outputWidth,  unsigned int outputHeight, unsigned int bandCount,
 						bool useTexture);
 
-template void launch_simpleDataCopy<unsigned char, unsigned char>(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream, unsigned char * in_data, 
+template void launch_simpleDataCopy<unsigned char, unsigned char>(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream, unsigned char * in_data,
 						unsigned char * gpu_output_data, unsigned int outputWidth,  unsigned int outputHeight, unsigned int bandCount,
 						bool useTexture);
 
-template void launch_simpleDataCopy<short, short>(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream, short * in_data, 
+template void launch_simpleDataCopy<short, short>(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream, short * in_data,
 						short * gpu_output_data, unsigned int outputWidth,  unsigned int outputHeight, unsigned int bandCount,
 						bool useTexture);
 
-template void launch_simpleDataCopy<unsigned short, unsigned short>(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream, unsigned short * in_data, 
+template void launch_simpleDataCopy<unsigned short, unsigned short>(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream, unsigned short * in_data,
 						unsigned short * gpu_output_data, unsigned int outputWidth,  unsigned int outputHeight, unsigned int bandCount,
 						bool useTexture);
 
-template void launch_simpleDataCopy<int, int>(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream, int * in_data, 
+template void launch_simpleDataCopy<int, int>(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream, int * in_data,
 						int * gpu_output_data, unsigned int outputWidth,  unsigned int outputHeight, unsigned int bandCount,
 						bool useTexture);
 /*
 * Float instaniations of functions
 *
 **/
-template void launch_simpleDataCopy<float, float>(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream, float * in_data, 
+template void launch_simpleDataCopy<float, float>(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream, float * in_data,
 						float * gpu_output_data, unsigned int outputWidth,  unsigned int outputHeight, unsigned int bandCount,
 						bool useTexture);
 
 template void launchConvolution<short,short,short>(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream, short* inputData,
 						short* gpuOutputData, int2* relativeOffsets, short* const filterWeights, const unsigned int filterSize,
 						unsigned int outputWidth, unsigned int outputHeight, unsigned int bandCount,
-						bool usingTexture);	
+						bool usingTexture);
 
 template void launch_window_histogram_statistics<unsigned short, float>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
 		   const cudaStream_t stream,  float * const outputData,
@@ -95,92 +95,100 @@ template void launch_window_histogram_statistics<float, float>(const dim3 dimGri
 
 template void launch_window_histogram_statistics<short, float>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
 		   const cudaStream_t stream,  float * const outputData,
-		   const unsigned int roiWidth,  const unsigned int roiHeight, 		   
+		   const unsigned int roiWidth,  const unsigned int roiHeight,
 			 const unsigned int numElements, const unsigned int buffer);
 
 template void launch_window_histogram_statistics<short, short>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
 		   const cudaStream_t stream,  short * const outputData,
-		   const unsigned int roiWidth,  const unsigned int roiHeight, 		   
+		   const unsigned int roiWidth,  const unsigned int roiHeight,
 			 const unsigned int numElements, const unsigned int buffer);
 
 template void launch_window_histogram_statistics<float, float>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
 		   const cudaStream_t stream,  float * const outputData,
-		   const unsigned int roiWidth,  const unsigned int roiHeight, 		   
+		   const unsigned int roiWidth,  const unsigned int roiHeight,
 			 const unsigned int numElements, const unsigned int buffer);*/
 
 
 
-template void launch_dilate<unsigned char,unsigned char>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, 
-		   const cudaStream_t stream,  unsigned char * const outputData, 
-		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets, 
+template void launch_dilate<unsigned char,unsigned char>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
+		   const cudaStream_t stream,  unsigned char * const outputData,
+		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets,
 		   const unsigned int numElements, const unsigned int buffer);
 
 
-template void launch_dilate<short,short>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, 
-		   const cudaStream_t stream,  short * const outputData, 
-		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets, 
+template void launch_dilate<short,short>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
+		   const cudaStream_t stream,  short * const outputData,
+		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets,
 		   const unsigned int numElements, const unsigned int buffer);
 
-template void launch_dilate<unsigned short,unsigned short>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, 
-		   const cudaStream_t stream,  unsigned short * const outputData, 
-		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets, 
+template void launch_dilate<unsigned short,unsigned short>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
+		   const cudaStream_t stream,  unsigned short * const outputData,
+		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets,
 		   const unsigned int numElements, const unsigned int buffer);
 
-template void launch_dilate<float,float>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, 
-		   const cudaStream_t stream,  float * const outputData, 
-		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets, 
+template void launch_dilate<float,float>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
+		   const cudaStream_t stream,  float * const outputData,
+		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets,
 		   const unsigned int numElements, const unsigned int buffer);
 
-template void launch_dilate<short,float>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, 
-		   const cudaStream_t stream,  float * const outputData, 
-		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets, 
+template void launch_dilate<short,float>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
+		   const cudaStream_t stream,  float * const outputData,
+		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets,
 		   const unsigned int numElements, const unsigned int buffer);
 
-template void launch_erode<unsigned char,unsigned char>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, 
-		   const cudaStream_t stream,  unsigned char * const outputData, 
-		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets, 
+template void launch_erode<unsigned char,unsigned char>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
+		   const cudaStream_t stream,  unsigned char * const outputData,
+		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets,
 		   const unsigned int numElements, const unsigned int buffer);
 
-template void launch_erode<short,short>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, 
-		   const cudaStream_t stream,  short * const outputData, 
-		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets, 
+template void launch_erode<short,short>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
+		   const cudaStream_t stream,  short * const outputData,
+		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets,
 		   const unsigned int numElements, const unsigned int buffer);
 
-template void launch_erode<unsigned short,unsigned short>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, 
-		   const cudaStream_t stream,  unsigned short * const outputData, 
-		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets, 
+template void launch_erode<unsigned short,unsigned short>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
+		   const cudaStream_t stream,  unsigned short * const outputData,
+		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets,
 		   const unsigned int numElements, const unsigned int buffer);
 
-template void launch_erode<float,float>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, 
-		   const cudaStream_t stream,  float * const outputData, 
-		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets, 
+template void launch_erode<float,float>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
+		   const cudaStream_t stream,  float * const outputData,
+		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets,
 		   const unsigned int numElements, const unsigned int buffer);
 
-template void launch_erode<short,float>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, 
-		   const cudaStream_t stream,  float * const outputData, 
-		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets, 
+template void launch_erode<short,float>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
+		   const cudaStream_t stream,  float * const outputData,
+		   const unsigned int roiWidth,  const unsigned int roiHeight, int2 * const relativeOffsets,
 		   const unsigned int numElements, const unsigned int buffer);
 
 
-template void launch_absDifference<unsigned char,unsigned char>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, 
+template void launch_absDifference<unsigned char,unsigned char>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
 							const cudaStream_t stream, unsigned char * const outputData, const unsigned int roiWidth,
 						  const unsigned int roiHeight);
 
-template void launch_absDifference<short,short>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, 
+template void launch_absDifference<short,short>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
 							const cudaStream_t stream, short * const outputData, const unsigned int roiWidth,
 						  const unsigned int roiHeight);
 
-template void launch_absDifference<unsigned short,unsigned short>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, 
+template void launch_absDifference<unsigned short,unsigned short>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
 							const cudaStream_t stream, unsigned short * const outputData, const unsigned int roiWidth,
 						  const unsigned int roiHeight);
 
-template void launch_absDifference<float,float>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, 
+template void launch_absDifference<float,float>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
 							const cudaStream_t stream, float * const outputData, const unsigned int roiWidth,
 						  const unsigned int roiHeight);
 
-template void launch_absDifference<short,float>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize, 
+template void launch_absDifference<short,float>(const dim3 dimGrid, const dim3 dimBlock, const unsigned int shmemSize,
 							const cudaStream_t stream, float * const outputData, const unsigned int roiWidth,
 						  const unsigned int roiHeight);
+
+template void launch_local_binary_pattern<unsigned char, unsigned char>(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream,
+						unsigned char* gpuOutputData, int2* relativeOffsets, unsigned int relativeOffsetsSize,
+						const unsigned int roiWidth, const unsigned int roiHeight, const unsigned int buffer);
+
+template void launch_local_binary_pattern<short, short>(dim3 dimGrid, dim3 dimBlock, unsigned int shmemSize, cudaStream_t stream,
+						short* gpuOutputData, int2* relativeOffsets, unsigned int relativeOffsetsSize,
+						const unsigned int roiWidth, const unsigned int roiHeight, const unsigned int buffer);
 
 }; //end gpu namespace
 }; //end cvt namespace
