@@ -137,8 +137,7 @@ template< typename InputPixelType, int InputBandCount, typename OutputPixelType,
 ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::operator()(const cvt::cvTile<InputPixelType>& tile,
 													  const cvt::cvTile<OutputPixelType> ** outTile)
 {
-		//TO-DO Error Check Template Params for Type/Bounds
-
+	//TO-DO Error Check Template Params for Type/Bounds
 	const cv::Size2i tileSize = tile.getSize();
 
 	if (tileSize != this->dataSize)
@@ -163,7 +162,7 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 
 
 	if ((unsigned int) tile.getROI().x != bufferWidth_) {
-		throw std::runtime_error("Buffer size of incoming tile is not equal to the window radius");
+		throw std::runtime_error("Buffer width of incoming tile is not equal to the window radius");
 	}
 
 	launchKernel(bW, bH);
@@ -214,11 +213,6 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 	else if(cuer != cudaSuccess)
 		this->lastError = CudaError;
 
-	/*for(const auto& ele: data)
-	{
-		std::cout << "data: " << ele << std::endl;
-
-	}*/
 	if(cuer == cudaSuccess) {
 		(*tilePtr) = new cvTile<OutputPixelType>(&(data[0]), roiSize_, OutputBandCount);
 	}
@@ -232,7 +226,7 @@ template< typename InputPixelType, int InputBandCount, typename OutputPixelType,
 ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::launchKernel(
 	__attribute__((unused)) unsigned bw,
 	__attribute__((unused)) unsigned bh) {
-	return Ok; // NEED TO ADD DEFAULT KERNEL FOR FILTER
+	return Ok; // TODO(Anyone): NEED TO ADD DEFAULT KERNEL FOR FILTER
 }
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
@@ -311,7 +305,7 @@ ErrorCode GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelTy
 	cudaError cuer = cudaGetLastError();
 	if (cuer != cudaSuccess) {
 		std::cout << "CUDA ERR = " << cuer << std::endl;
-		throw std::runtime_error("GPU WHS () FAILED TO MEMCPY RELATIVE COORDS ON TO DEVICE");
+		throw std::runtime_error("GPU WINDOW FILTER ALGO() FAILED TO MEMCPY RELATIVE COORDS ON TO DEVICE");
 	}
 
 	//cuer = cvt::gpu::load_relative_offsets(this->stream,this->relativeOffsets_.data(), this->relativeOffsets_.size());
