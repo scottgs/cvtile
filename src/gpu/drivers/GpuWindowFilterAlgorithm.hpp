@@ -56,19 +56,15 @@ class GpuWindowFilterAlgorithm : public GpuAlgorithm<InputPixelType, InputBandCo
 	using GpuAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::initializeDevice;
 
 	public:
-
 	explicit GpuWindowFilterAlgorithm(unsigned int cudaDeviceId, size_t roiDataWidth,
 							 		  size_t roiDataHeight, ssize_t windowRadius);
-
 	virtual ~GpuWindowFilterAlgorithm();
 	virtual ErrorCode initializeDevice(enum windowRadiusType type);
-
 	virtual ErrorCode operator()(const cvt::cvTile<InputPixelType>& tile,
 								 const cvt::cvTile<OutputPixelType> ** outTile);
+	std::string getRelativeOffsetString();
 
 	protected:
-
-
 	ErrorCode allocateAdditionalGpuMemory();
 	virtual ErrorCode launchKernel(unsigned bw, unsigned bh);
 	void computeRelativeOffsets();
@@ -119,6 +115,22 @@ GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, Output
 		this->lastError = DestructFailcuOutArraycudaErrorInitializationError;
 	else if(cuer3 != cudaSuccess)
 		this->lastError = CudaError;
+}
+
+template<typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount>
+std::string GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::getRelativeOffsetString() {
+
+    std::stringstream ss;
+    ss << "Relative Offsets: Size: " << relativeOffsets_.size() << " Data: [";
+    for(auto &currOffset : relativeOffsets_) {
+		ss << "(" << currOffset.x << "," << currOffset.y << "),";
+    }
+
+    std::string returnString(ss.str());
+    returnString.back() = ']';
+    returnString.push_back('\n');
+
+    return returnString;
 }
 
 template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
