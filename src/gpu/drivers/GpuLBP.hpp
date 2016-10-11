@@ -49,6 +49,9 @@ class GpuLBP : public GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, O
     public:
     explicit GpuLBP(unsigned int cudaDeviceId, size_t unbufferedDataWidth,
                              size_t unbufferedDataHeight, ssize_t windowRadius);
+    ErrorCode operator()(const cvt::cvTile<InputPixelType>& tile,
+                         const cvt::cvTile<OutputPixelType> ** outTile,
+                         unsigned short blockWidth, unsigned short blockHeight);
     ~GpuLBP();
 
     protected:
@@ -71,6 +74,48 @@ template< typename inputpixeltype, int inputbandcount, typename outputpixeltype,
 GpuLBP<inputpixeltype, inputbandcount, outputpixeltype, outputbandcount>::~GpuLBP()
 {
     ;
+}
+
+template< typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount >
+ErrorCode GpuLBP<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::operator()(const cvt::cvTile<InputPixelType>& tile,
+                                                      const cvt::cvTile<OutputPixelType> ** outTile, unsigned short blockWidth, unsigned short blockHeight)
+{
+    //TODO: TEST BOTH DEFAULT IMPL AND THIS.
+    //TO-DO Error Check Template Params for Type/Bounds
+    const cv::Size2i tileSize = tile.getSize();
+
+    if (tileSize != this->dataSize)
+    {
+        std::stringstream ss;
+        ss << tileSize << " expected of " << this->dataSize << std::endl;
+        throw std::runtime_error(ss.str());
+    }
+
+    /*
+     *  Copy data down for tile using the parents implementation
+     */
+    this->lastError = this->copyTileToDevice(tile);
+    if (this->lastError != cvt::Ok)
+    {
+        throw std::runtime_error("Failed to copy tile to device");
+    }
+
+    // Invoke kernel with empirically chosen block size
+    //unsigned short bW = 16; // 16
+    //unsigned short bH = 16; // 16
+
+
+    if ((unsigned int) tile.getROI().x != this->bufferWidth_) {
+        throw std::runtime_error("Buffer width of incoming tile is not equal to the window radius");
+    }
+
+    launchKernel(blockWidth, blockHeight);
+
+    this->lastError = this->copyTileFromDevice(outTile);
+    if(this->lastError != cvt::Ok) {
+        std::runtime_error("Failed copy off tile from device");
+    }
+    return Ok;
 }
 
 template<typename InputPixelType, int InputBandCount, typename OutputPixelType, int OutputBandCount>
