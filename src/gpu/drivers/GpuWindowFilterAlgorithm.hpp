@@ -128,7 +128,6 @@ std::string GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixel
 
     std::string returnString(ss.str());
     returnString.back() = ']';
-    returnString.push_back('\n');
 
     return returnString;
 }

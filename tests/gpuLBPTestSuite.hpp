@@ -73,7 +73,6 @@ class gpuLBPTestSuite : public CxxTest::TestSuite
 
         void testIncreasingSignal () {
             ;
-            std::cout << "\nThis test is skipped.\n";
             /*unsigned int windowRadius = 2;
             cv::Size2i roi(5,5);
             cv::Size2i tileSize(roi.width + windowRadius * 2, roi.height + windowRadius * 2);
@@ -134,6 +133,7 @@ class gpuLBPTestSuite : public CxxTest::TestSuite
         }
 
         void testRelativeOffsetsUnsignedChar () {
+            std::cout << "GPU LBP VERIFICATION TESTS SUITE" << std::endl;
             constexpr unsigned int cudaDeviceId = 0;
             unsigned int windowRadius = 1;
             cv::Size2i roi(1,1);
@@ -147,9 +147,14 @@ class gpuLBPTestSuite : public CxxTest::TestSuite
             {
                 std::cout << "Could not init device" << std::endl;
             }
-            std::cout << std::endl << lbp.getRelativeOffsetString();
 
-            std::cout << "SUCCESS!\n";
+            std::string expected {"Relative Offsets: "
+                         "Size: 8 Data: [(0,1),(1,1),(1,0),(1,-1)"
+                         ",(0,-1),(-1,-1),(-1,0),(-1,1)]"};
+
+            TS_ASSERT(not lbp.getRelativeOffsetString().compare(expected));
+            //std::cout << std::endl << lbp.getRelativeOffsetString();
+
 
         }
 
@@ -167,7 +172,43 @@ class gpuLBPTestSuite : public CxxTest::TestSuite
             {
                 std::cout << "Could not init device" << std::endl;
             }
-            std::cout << std::endl << lbp.getRelativeOffsetString();
+
+            std::string expected {"Relative Offsets: "
+                                  "Size: 16 "
+                                  "Data: [(0,2),(1,2),(1,1),(2,1),(2,0)"
+                                  ",(2,-1),(1,-1),(1,-2),(0,-2),(-1,-2)"
+                                  ",(-1,-1),(-2,-1),(-2,0),(-2,1),(-1,1)"
+                                  ",(-1,2)]"};
+
+            TS_ASSERT(not lbp.getRelativeOffsetString().compare(expected));
+
+            //std::cout << std::endl << lbp.getRelativeOffsetString();
+
+        }
+
+        void testRelativeOffsetsUCharRad2 () {
+            constexpr unsigned int cudaDeviceId = 0;
+            unsigned int windowRadius = 2;
+            cv::Size2i roi(1,1);
+            cv::Size2i tileSize(roi.width + windowRadius * 2, roi.height + windowRadius * 2);
+
+            cvt::gpu::GpuLBP<unsigned char, 1, unsigned char, 1> lbp(cudaDeviceId, roi.width, roi.height, windowRadius);
+
+            //init device
+            cvt::ErrorCode last = lbp.initializeDevice(cvt::gpu::SPARSE_RING);
+            if (last != 0)
+            {
+                std::cout << "Could not init device" << std::endl;
+            }
+
+            //This is not the cleanest, but exposing the attr. publicly is worse.
+            std::string expected {"Relative Offsets: "
+                                  "Size: 8 Data: [(0,2),(1,1),(2,0),(1,-1)"
+                                  ",(0,-2),(-1,-1),(-2,0),(-1,1)]"};
+
+            TS_ASSERT(not lbp.getRelativeOffsetString().compare(expected));
+
+            //std::cout << std::endl << lbp.getRelativeOffsetString();
 
         }
 
