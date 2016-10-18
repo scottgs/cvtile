@@ -71,10 +71,75 @@ class gpuLBPTestSuite : public CxxTest::TestSuite
         void tearDown()
         {;}
 
-        void testFlatSignal () {
+        void testFlatSignalChar () {
             std::cout << "\nGPU LBP VERIFICATION TESTS SUITE\n" << std::endl;
             constexpr unsigned short cudaDeviceId = 0;
+            constexpr unsigned short windowRadius = 1;
+            //Not a magic number, worked out by hand.
+            //Result of LBP on a flat signal.
+            constexpr unsigned char expectedResult = 255;
+
+            cv::Size2i roi(2,2);
+            cv::Size2i tileSize(roi.width + windowRadius * 2, roi.height + windowRadius * 2);
+            vector<unsigned char> data;
+            data.resize(tileSize.area());
+
+            for (auto i = 0; i<tileSize.area(); ++i) {
+                data[i] = 1;
+            }
+
+            cvt::cvTile<unsigned char> inTile(data.data(), tileSize, 1);
+            cvt::cvTile<unsigned char>* outTile;
+
+            //set ROI of input tile.
+            inTile.setROI(cv::Rect(windowRadius, windowRadius, roi.width, roi.height));
+
+            cvt::gpu::GpuLBP<unsigned char, 1, unsigned char, 1> lbp(cudaDeviceId, roi.width, roi.height, windowRadius);
+
+            //init device
+            cvt::ErrorCode last = lbp.initializeDevice(cvt::gpu::SPARSE_RING);
+            if (last != 0)
+            {
+                std::cout << "Could not init device" << std::endl;
+            }
+            //std::cout << std::endl << lbp.getRelativeOffsetString();
+
+            cudaError cuer = cudaGetLastError();
+            if (cuer != cudaSuccess) {
+                std::cerr << "dead!" << std::endl;
+            }
+
+            lbp(inTile, (const cvt::cvTile<unsigned char>**)&outTile);
+            //lbp(inTile, (const cvt::cvTile<short>**)&outTile, 16, 16);
+
+            //Make sure out tile is not null
+            TS_ASSERT_EQUALS(0, (outTile == NULL));
+
+            unsigned char result = (*outTile)[0].at<unsigned char>(1,1);
+            TS_ASSERT_EQUALS(expectedResult, result);
+            /*unsigned char test = 1;
+            //print the bits...
+            for (unsigned long i=0; i<sizeof(unsigned char) * 8; ++i)
+            {
+                if (test & result)
+                {
+                    printf("%d ", 1);
+                } else {
+                    printf("%d ", 0);
+                }
+                test <<= 1;
+                //printf(" - test %d -", test);
+            }
+            printf("\n");
+            */
+
+        }
+
+        void testFlatSignalShort () {
+            constexpr unsigned short cudaDeviceId = 0;
             constexpr unsigned short windowRadius = 2;
+            //Not a magic number, worked out by hand.
+            //Result of LBP on a flat signal.
             constexpr short expectedResult = -1;
 
             cv::Size2i roi(5,5);
@@ -112,8 +177,6 @@ class gpuLBPTestSuite : public CxxTest::TestSuite
 
             //Make sure out tile is not null
             TS_ASSERT_EQUALS(0, (outTile == NULL));
-            //cv::Mat& b (*outTile)[0];
-            //std::cout << "\nsize of short: " << sizeof(short) << std::endl;
 
             //std::cout << "output of [2,2] (middle): " << (*outTile)[0].at<short>(2,2) << std::endl;
 
@@ -137,9 +200,11 @@ class gpuLBPTestSuite : public CxxTest::TestSuite
             */
         }
 
-        void testIncreasingSignal () {
+        void testIncreasingSignalShort () {
             constexpr unsigned short cudaDeviceId = 0;
             constexpr unsigned short windowRadius = 2;
+            //Not a magic number, worked out by hand.
+            //Result of LBP on an increasing signal.
             constexpr short expectedResult = -8161;
 
             cv::Size2i roi(5,5);
@@ -177,14 +242,10 @@ class gpuLBPTestSuite : public CxxTest::TestSuite
 
             //Make sure out tile is not null
             TS_ASSERT_EQUALS(0, (outTile == NULL));
-            //cv::Mat& b (*outTile)[0];
-            //std::cout << "\nsize of short: " << sizeof(short) << std::endl;
 
             //std::cout << "output of [2,2] (middle): " << (*outTile)[0].at<short>(2,2) << std::endl;
 
             short result = (*outTile)[0].at<short>(2,2);
-            //Not a magic number, worked out by hand.
-            //Result of LBP on an increasing signal.
             TS_ASSERT_EQUALS(expectedResult, result);
 
             /*short test = 1;
