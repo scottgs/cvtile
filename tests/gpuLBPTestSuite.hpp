@@ -71,12 +71,79 @@ class gpuLBPTestSuite : public CxxTest::TestSuite
         void tearDown()
         {;}
 
-        void testIncreasingSignal () {
-            ;
-            /*unsigned int windowRadius = 2;
+        void testFlatSignal () {
+            std::cout << "\nGPU LBP VERIFICATION TESTS SUITE\n" << std::endl;
+            constexpr unsigned short cudaDeviceId = 0;
+            constexpr unsigned short windowRadius = 2;
+            constexpr short expectedResult = -1;
+
             cv::Size2i roi(5,5);
             cv::Size2i tileSize(roi.width + windowRadius * 2, roi.height + windowRadius * 2);
-            const int cudaDeviceId = 2;
+            vector<short> data;
+            data.resize(tileSize.area());
+
+            for (auto i = 0; i<tileSize.area(); ++i) {
+                data[i] = 1;
+            }
+
+            cvt::cvTile<short> inTile(data.data(), tileSize, 1);
+            cvt::cvTile<short>* outTile;
+
+            //set ROI of input tile.
+            inTile.setROI(cv::Rect(windowRadius, windowRadius, roi.width, roi.height));
+
+            cvt::gpu::GpuLBP<short, 1, short, 1> lbp(cudaDeviceId, roi.width, roi.height, windowRadius);
+
+            //init device
+            cvt::ErrorCode last = lbp.initializeDevice(cvt::gpu::SPARSE_RING);
+            if (last != 0)
+            {
+            std::cout << "Could not init device" << std::endl;
+            }
+            //std::cout << std::endl << lbp.getRelativeOffsetString();
+
+            cudaError cuer = cudaGetLastError();
+            if (cuer != cudaSuccess) {
+                std::cerr << "dead!" << std::endl;
+            }
+
+            lbp(inTile, (const cvt::cvTile<short>**)&outTile);
+            //lbp(inTile, (const cvt::cvTile<short>**)&outTile, 16, 16);
+
+            //Make sure out tile is not null
+            TS_ASSERT_EQUALS(0, (outTile == NULL));
+            //cv::Mat& b (*outTile)[0];
+            //std::cout << "\nsize of short: " << sizeof(short) << std::endl;
+
+            //std::cout << "output of [2,2] (middle): " << (*outTile)[0].at<short>(2,2) << std::endl;
+
+            short result = (*outTile)[0].at<short>(2,2);
+            TS_ASSERT_EQUALS(expectedResult, result);
+            //short test = 1;
+            //printf(result);
+            //print the bits...
+            /*for (unsigned long i=0; i<sizeof(short) * 8; ++i)
+            {
+                if (test & result)
+                {
+                    printf("%d ", 1);
+                } else {
+                    printf("%d ", 0);
+                }
+                test <<= 1;
+                //printf(" - test %d -", test);
+            }
+            printf("\n");
+            */
+        }
+
+        void testIncreasingSignal () {
+            constexpr unsigned short cudaDeviceId = 0;
+            constexpr unsigned short windowRadius = 2;
+            constexpr short expectedResult = -8161;
+
+            cv::Size2i roi(5,5);
+            cv::Size2i tileSize(roi.width + windowRadius * 2, roi.height + windowRadius * 2);
             vector<short> data;
             data.resize(tileSize.area());
 
@@ -98,7 +165,7 @@ class gpuLBPTestSuite : public CxxTest::TestSuite
             {
             std::cout << "Could not init device" << std::endl;
             }
-            std::cout << std::endl << lbp.getRelativeOffsetString();
+            //std::cout << std::endl << lbp.getRelativeOffsetString();
 
             cudaError cuer = cudaGetLastError();
             if (cuer != cudaSuccess) {
@@ -106,16 +173,21 @@ class gpuLBPTestSuite : public CxxTest::TestSuite
             }
 
             lbp(inTile, (const cvt::cvTile<short>**)&outTile);
+            //lbp(inTile, (const cvt::cvTile<short>**)&outTile, 16, 16);
 
             //Make sure out tile is not null
             TS_ASSERT_EQUALS(0, (outTile == NULL));
             //cv::Mat& b (*outTile)[0];
             //std::cout << "\nsize of short: " << sizeof(short) << std::endl;
 
-            std::cout << "output of [2,2] (middle): " << (*outTile)[0].at<short>(2,2) << std::endl;
+            //std::cout << "output of [2,2] (middle): " << (*outTile)[0].at<short>(2,2) << std::endl;
 
             short result = (*outTile)[0].at<short>(2,2);
-            short test = 1;
+            //Not a magic number, worked out by hand.
+            //Result of LBP on an increasing signal.
+            TS_ASSERT_EQUALS(expectedResult, result);
+
+            /*short test = 1;
             //printf(result);
             //print the bits...
             for (unsigned long i=0; i<sizeof(short) * 8; ++i)
@@ -129,11 +201,11 @@ class gpuLBPTestSuite : public CxxTest::TestSuite
                 test <<= 1;
                 //printf(" - test %d -", test);
             }
-            printf("\n");*/
+            printf("\n");
+            */
         }
 
         void testRelativeOffsetsUnsignedChar () {
-            std::cout << "GPU LBP VERIFICATION TESTS SUITE" << std::endl;
             constexpr unsigned int cudaDeviceId = 0;
             unsigned int windowRadius = 1;
             cv::Size2i roi(1,1);
