@@ -47,15 +47,17 @@ class GpuLBP : public GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, O
 {
 
     public:
-    explicit GpuLBP(unsigned int cudaDeviceId, size_t unbufferedDataWidth,
-                             size_t unbufferedDataHeight, ssize_t windowRadius);
-    ErrorCode operator()(const cvt::cvTile<InputPixelType>& tile,
-                         const cvt::cvTile<OutputPixelType> ** outTile,
-                         unsigned short blockWidth, unsigned short blockHeight);
-    ~GpuLBP();
+        using GpuWindowFilterAlgorithm<InputPixelType, InputBandCount, OutputPixelType, OutputBandCount>::operator();
+
+        explicit GpuLBP(unsigned int cudaDeviceId, size_t unbufferedDataWidth,
+                                 size_t unbufferedDataHeight, ssize_t windowRadius);
+        ErrorCode operator()(const cvt::cvTile<InputPixelType>& tile,
+                             const cvt::cvTile<OutputPixelType> ** outTile,
+                             unsigned short blockWidth, unsigned short blockHeight);
+        ~GpuLBP();
 
     protected:
-    ErrorCode launchKernel(unsigned blockWidth, unsigned blockHeight);
+        ErrorCode launchKernel(unsigned blockWidth, unsigned blockHeight);
 
 };
 
