@@ -58,7 +58,11 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "../src/gpu/drivers/GpuLBP.hpp"
 #include "../src/gpu/drivers/GpuWindowFilterAlgorithm.hpp"
 
-
+using std::chrono::steady_clock;
+using std::chrono::duration_cast;
+using std::chrono::seconds;
+using std::chrono::milliseconds;
+using std::chrono::microseconds;
 #define SHOW_OUTPUT 0
 
 class gpuLBPTestSuite : public CxxTest::TestSuite
@@ -216,6 +220,8 @@ class gpuLBPTestSuite : public CxxTest::TestSuite
                 data[i] = i;
             }
 
+            //std::cout << std::boolalpha << "steady_clock::is_steady = " << steady_clock::is_steady << std::endl;
+
             cvt::cvTile<short> inTile(data.data(), tileSize, 1);
             cvt::cvTile<short>* outTile;
 
@@ -237,8 +243,126 @@ class gpuLBPTestSuite : public CxxTest::TestSuite
                 std::cerr << "dead!" << std::endl;
             }
 
-            lbp(inTile, (const cvt::cvTile<short>**)&outTile);
-            //lbp(inTile, (const cvt::cvTile<short>**)&outTile, 16, 16);
+            //use empirically chosen 16X16
+            //lbp(inTile, (const cvt::cvTile<short>**)&outTile);
+            constexpr int num_runs = 50;
+
+            auto start = steady_clock::now();
+            //lbp warmup.
+            lbp(inTile, (const cvt::cvTile<short>**)&outTile, 16, 16);
+            auto end = steady_clock::now();
+            auto diff = end - start;
+
+            diff -= diff;
+            for (auto i=0; i<num_runs; i++) {
+                start = steady_clock::now();
+                lbp(inTile, (const cvt::cvTile<short>**)&outTile, 16, 16);
+                end = steady_clock::now();
+                diff += end - start;
+            }
+
+            std::cout << "\n16X16 average: " << duration_cast<microseconds>(diff).count() / num_runs;
+            std::cout << " microseconds\n";
+
+            start = steady_clock::now();
+            //lbp(inTile, (const cvt::cvTile<short>**)&outTile);
+            lbp(inTile, (const cvt::cvTile<short>**)&outTile, 32, 1);
+            end = steady_clock::now();
+            diff = end - start;
+
+            diff -= diff;
+            for (auto i=0; i<num_runs; i++) {
+                start = steady_clock::now();
+                lbp(inTile, (const cvt::cvTile<short>**)&outTile, 32, 1);
+                end = steady_clock::now();
+                diff += end - start;
+            }
+
+            std::cout << "32X1 average: " << duration_cast<microseconds>(diff).count() / num_runs;
+            std::cout << " microseconds\n";
+
+            start = steady_clock::now();
+            lbp(inTile, (const cvt::cvTile<short>**)&outTile, 32, 32);
+            end = steady_clock::now();
+            diff = end - start;
+
+            diff -= diff;
+            for (auto i=0; i<num_runs; i++) {
+                start = steady_clock::now();
+                lbp(inTile, (const cvt::cvTile<short>**)&outTile, 32, 32);
+                end = steady_clock::now();
+                diff += end - start;
+            }
+
+            std::cout << "32X32 took: " << duration_cast<microseconds>(diff).count() / num_runs;
+            std::cout << " microseconds\n";
+
+            start = steady_clock::now();
+            lbp(inTile, (const cvt::cvTile<short>**)&outTile, 32, 16);
+            end = steady_clock::now();
+            diff = end - start;
+
+            diff -= diff;
+            for (auto i=0; i<num_runs; i++) {
+                start = steady_clock::now();
+                lbp(inTile, (const cvt::cvTile<short>**)&outTile, 32, 16);
+                end = steady_clock::now();
+                diff += end - start;
+            }
+
+            std::cout << "32X16 took: " << duration_cast<microseconds>(diff).count() / num_runs;
+            std::cout << " microseconds\n";
+
+            start = steady_clock::now();
+            lbp(inTile, (const cvt::cvTile<short>**)&outTile, 32, 4);
+            end = steady_clock::now();
+            diff = end - start;
+
+            diff -= diff;
+            for (auto i=0; i<num_runs; i++) {
+                start = steady_clock::now();
+                lbp(inTile, (const cvt::cvTile<short>**)&outTile, 32, 4);
+                end = steady_clock::now();
+                diff += end - start;
+            }
+
+            std::cout << "32X4 took: " << duration_cast<microseconds>(diff).count() / num_runs;
+            std::cout << " microseconds\n";
+
+            start = steady_clock::now();
+            lbp(inTile, (const cvt::cvTile<short>**)&outTile, 32, 8);
+            end = steady_clock::now();
+            diff = end - start;
+
+            diff -= diff;
+            for (auto i=0; i<num_runs; i++) {
+                start = steady_clock::now();
+                lbp(inTile, (const cvt::cvTile<short>**)&outTile, 32, 8);
+                end = steady_clock::now();
+                diff += end - start;
+            }
+
+            std::cout << "32X8 took: " << duration_cast<microseconds>(diff).count() / num_runs;
+            std::cout << " microseconds\n";
+
+            start = steady_clock::now();
+            lbp(inTile, (const cvt::cvTile<short>**)&outTile, 8, 4);
+            end = steady_clock::now();
+            diff = end - start;
+
+            diff -= diff;
+            for (auto i=0; i<num_runs; i++) {
+                start = steady_clock::now();
+                lbp(inTile, (const cvt::cvTile<short>**)&outTile, 8, 4);
+                end = steady_clock::now();
+                diff += end - start;
+            }
+
+            std::cout << "8X4 took: " << duration_cast<microseconds>(diff).count() / num_runs;
+            std::cout << " microseconds\n";
+
+
+
 
             //Make sure out tile is not null
             TS_ASSERT_EQUALS(0, (outTile == NULL));

@@ -126,8 +126,8 @@ ErrorCode GpuLBP<InputPixelType, InputBandCount, OutputPixelType, OutputBandCoun
 
     dim3 dimBlock(blockWidth,blockHeight);
 
-    size_t gridWidth = this->dataSize.width / dimBlock.x + (((this->dataSize.width % dimBlock.x)==0) ? 0 :1 );
-    size_t gridHeight = this->dataSize.height / dimBlock.y + (((this->dataSize.height % dimBlock.y)==0) ? 0 :1 );
+    size_t gridWidth = this->dataSize.width / dimBlock.x + (((this->dataSize.width % dimBlock.x)==0) ? 0 : 1 );
+    size_t gridHeight = this->dataSize.height / dimBlock.y + (((this->dataSize.height % dimBlock.y)==0) ? 0 : 1 );
     dim3 dimGrid(gridWidth, gridHeight);
 
     // Look into the texture stuff soon...
