@@ -21,11 +21,7 @@ AC_CONFIG_FILES([Makefile
 		src/Makefile
 		src/base/Makefile
 		src/algorithms/Makefile
-		src/gpu/Makefile
-		src/gpu/drivers/Makefile
-		src/gpu/kernels/Makefile
-		tests/Makefile
-		apps/Makefile
+    tests/Makefile
 		])
 
 #find out what version we are running
@@ -36,31 +32,6 @@ then
 else
   SUFFIX=""
 fi
-
-# -- These are capture as CUDA_CFLAGS,
-# AM_CPPFLAGS="-I/opt/cuda/sdk/shared/inc/ -I/opt/cuda/sdk/C/common/inc/"
-#   CUDART 5 = /opt/cuda/sdk/common/inc/
-# Setup CUDA paths
-# ------------------------------------------------------------------------------
-AC_ARG_WITH([cuda],
-   [  --with-cuda=PATH    prefix where cuda is installed [default=/opt/cuda/]])
-
-if test -n "$with_cuda"
-then
-   CUDA_CFLAGS="-I$with_cuda/include -I$with_cuda/sdk/C/common/inc/ -I$with_cuda/sdk/shared/inc/ -I$with_cuda/sdk/common/inc/"
-   CUDA_LIBS="-lcudart"
-   CUDA_LDFLAGS="-L$with_cuda/lib$SUFFIX"
-   NVCC="$with_cuda/bin/nvcc"
-else
-   CUDA_CFLAGS="-I/opt/cuda/include -I/opt/cuda/sdk/C/common/inc/ -I/opt/cuda/sdk/shared/inc/ -I/opt/cuda/sdk/common/inc/"
-   CUDA_LIBS="-lcudart"
-   CUDA_LDFLAGS="-L/opt/cuda/lib$SUFFIX"
-   NVCC="nvcc"
-fi
-AC_SUBST(CUDA_CFLAGS)
-AC_SUBST(CUDA_LIBS)
-AC_SUBST(CUDA_LDFLAGS)
-AC_SUBST(NVCC)
 
 # Global CPP Flags
 AM_CPPFLAGS="-std=c++11 -Werror -Wall -Wextra -O3 -ffast-math -msse3 -march=native -mtune=native"
@@ -74,7 +45,7 @@ PKG_CHECK_MODULES([OPENCV], opencv >= 2.3)
 AC_SUBST(OPENCV_CFLAGS)
 AC_SUBST(OPENCV_LIBS)
 
-AC_PATH_PROG(CXXTEST, [cxxtestgen.pl])
+AC_PATH_PROG(CXXTEST, [cxxtestgen])
 if test -z "$CXXTEST"; then AC_MSG_ERROR([cxxtest not found]); fi
 
 AC_LANG([C++])
@@ -89,8 +60,8 @@ AC_CHECK_HEADER([cxxtest/TestSuite.h], [], AC_MSG_ERROR([cxxtest/TestSuite.h not
 AC_CHECK_HEADER([gdal_priv.h], [], AC_MSG_ERROR([gdal_priv.h not found]))
 AC_CHECK_HEADER([ogr_spatialref.h], [], AC_MSG_ERROR([ogr_spatialref.h not found]))
 
-AC_CHECK_LIB([boost_filesystem-mt], [main], [], AC_MSG_ERROR([libboost_filesystem-mt not found]))
-AC_CHECK_LIB([boost_thread-mt], [main], [], AC_MSG_ERROR([libboost_thread-mt not found]))
+AC_CHECK_LIB([boost_filesystem], [main], [], AC_MSG_ERROR([libboost_filesystem not found]))
+AC_CHECK_LIB([boost_thread], [main], [], AC_MSG_ERROR([libboost_thread not found]))
 
 AC_CHECK_LIB([gdal], [main], [], AC_MSG_ERROR([libgdal not found]))
 
