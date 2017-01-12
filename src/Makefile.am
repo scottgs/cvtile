@@ -1,6 +1,6 @@
 SUBDIRS = base algorithms
 
-LINK = $(LIBTOOL) --mode=link $(CXX) -o $@ -use-fast-math  -lgdal $(OPENCV_LIBS)
+LINK = $(LIBTOOL) --mode=link $(CXX) -o $@ -use-fast-math $(OPENCV_LIBS)
 
 AM_CPPFLAGS = -I.. -std=c++11
 

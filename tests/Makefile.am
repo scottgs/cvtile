@@ -1,5 +1,5 @@
 #the name that the program will called once compiled
-check_PROGRAMS	=	runner
+check_PROGRAMS = runner
 
 AM_CPPFLAGS	= -g -std=c++11 -Werror -Wall -Wextra -O3 -ffast-math -msse3 -march=native -mtune=native $(OPENCV_CFLAGS)
 
@@ -26,8 +26,7 @@ check: $(check_PROGRAMS)
 
 # compile all of the generated source code files
 .cpp.o:
-	$(CXX) $(AM_CPPFLAGS) \
-	-I/usr/local/cxxtest/include/ -I../src/ -c -o $@ $<
+	$(CXX) -c -o $@ $< $(AM_CPPFLAGS) -I/usr/local/cxxtest/include/ -I../src/
 
 # How to generate the test runner (this is the scaffolding that makes things go)
 runner.cpp:
