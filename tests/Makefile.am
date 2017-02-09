@@ -1,7 +1,7 @@
 #the name that the program will called once compiled
 check_PROGRAMS = runner
 
-AM_CPPFLAGS	= -g -std=c++11 -Werror -Wall -Wextra -O3 -ffast-math -msse3 -march=native -mtune=native $(OPENCV_CFLAGS)
+AM_CPPFLAGS	= -g -std=c++11 -Werror -Wall -Wextra $(OPENCV_CFLAGS)
 
 
 #the source files used to build the runner target

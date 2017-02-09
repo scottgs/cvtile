@@ -34,7 +34,7 @@ else
 fi
 
 # Global CPP Flags
-AM_CPPFLAGS="-std=c++11 -Werror -Wall -Wextra -O3 -ffast-math -msse3 -march=native -mtune=native"
+AM_CPPFLAGS="-std=c++11 -Werror -Wall -Wextra"
 AC_SUBST([AM_CPPFLAGS])
 CFLAGS=" "
 AC_SUBST([CFLAGS])

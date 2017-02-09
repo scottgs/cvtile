@@ -58,7 +58,9 @@ Tiler::Tiler() : dataset(NULL),cvTileSize(0, 0)
 
 Tiler::~Tiler()
 {
-	close();
+	// This seems to cause a seg fault if relying on deconstructor. Instead, manually call close() for each Tiler 
+	// object to properly free resources.
+	// close();
 }
 
 void Tiler::close()

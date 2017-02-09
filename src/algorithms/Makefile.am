@@ -1,4 +1,4 @@
-LINK = $(LIBTOOL) --mode=link $(CXX) -o  $@ -use-fast-math $(OPENCV_LIBS)
+LINK = $(LIBTOOL) --mode=link $(CXX) -o  $@ $(OPENCV_LIBS)
 
 EXAMPLE_LIBRARY_VERSION=0:0:0
 

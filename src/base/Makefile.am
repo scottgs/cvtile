@@ -1,6 +1,6 @@
 AM_CPPFLAGS = $(OPENCV_CFLAGS) -rdynamic -I..
 
-LINK = $(LIBTOOL) --mode=link $(CXX) -o $@ -std=c++11  -use-fast-math $(OPENCV_LIBS)
+LINK = $(LIBTOOL) --mode=link $(CXX) -o $@ -std=c++11 $(OPENCV_LIBS)
 
 noinst_LTLIBRARIES = libcvtile_base.la
 
