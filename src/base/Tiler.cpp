@@ -58,7 +58,9 @@ Tiler::Tiler() : dataset(NULL),cvTileSize(0, 0)
 
 Tiler::~Tiler()
 {
-	close();
+	// Relying on deconstructor to automatically close Tilers results in seg fault. For now, Tiler objects must be 
+	// closed manually.
+	//close();
 }
 
 void Tiler::close()
