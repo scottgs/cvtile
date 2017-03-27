@@ -1,4 +1,4 @@
-LINK = $(LIBTOOL) --mode=link $(CXX) -o  $@ $(CUDA_LDFLAGS) -use-fast-math $(CUDA_LIBS) $(OPENCV_LIBS)
+LINK = $(LIBTOOL) --mode=link $(CXX) -o  $@ $(OPENCV_LIBS)
 
 EXAMPLE_LIBRARY_VERSION=0:0:0
 
