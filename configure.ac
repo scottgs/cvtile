@@ -57,8 +57,8 @@ AC_CHECK_HEADER([boost/lexical_cast.hpp], [], AC_MSG_ERROR([boost/lexical_cast.h
 AC_CHECK_HEADER([boost/mpl/and.hpp], [], AC_MSG_ERROR([boost/mpl/and.hpp not found]))
 AC_CHECK_HEADER([boost/numeric/ublas/matrix.hpp], [], AC_MSG_ERROR([boost/numeric/ublas/matrix.hpp not found]))
 AC_CHECK_HEADER([cxxtest/TestSuite.h], [], AC_MSG_ERROR([cxxtest/TestSuite.h not found]))
-AC_CHECK_HEADER([gdal_priv.h], [], AC_MSG_ERROR([gdal_priv.h not found]))
-AC_CHECK_HEADER([ogr_spatialref.h], [], AC_MSG_ERROR([ogr_spatialref.h not found]))
+AC_CHECK_HEADER([gdal/gdal_priv.h], [], AC_MSG_ERROR([gdal/gdal_priv.h not found]))
+AC_CHECK_HEADER([gdal/ogr_spatialref.h], [], AC_MSG_ERROR([gdal/ogr_spatialref.h not found]))
 
 AC_CHECK_LIB([boost_filesystem], [main], [], AC_MSG_ERROR([libboost_filesystem not found]))
 AC_CHECK_LIB([boost_thread], [main], [], AC_MSG_ERROR([libboost_thread not found]))

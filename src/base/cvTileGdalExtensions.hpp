@@ -1,7 +1,7 @@
 #ifndef GDALEXT_TRAITS_GDAL_TRAITS_HPP_
 #define GDALEXT_TRAITS_GDAL_TRAITS_HPP_
 
-#include <gdal_priv.h>
+#include <gdal/gdal_priv.h>
 #include <complex>
 #include <cstdint>
 
