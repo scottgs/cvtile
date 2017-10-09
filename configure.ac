@@ -74,7 +74,7 @@ PKG_CHECK_MODULES([OPENCV], opencv >= 2.3)
 AC_SUBST(OPENCV_CFLAGS)
 AC_SUBST(OPENCV_LIBS)
 
-AC_PATH_PROG(CXXTEST, [cxxtestgen.pl])
+AC_PATH_PROG(CXXTEST, [cxxtestgen])
 if test -z "$CXXTEST"; then AC_MSG_ERROR([cxxtest not found]); fi
 
 AC_LANG([C++])
