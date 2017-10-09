@@ -42,9 +42,9 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <boost/numeric/conversion/bounds.hpp>
 #include <boost/regex.hpp>
 #include <boost/thread/mutex.hpp>
-#include <gdal_priv.h>
-#include <ogr_spatialref.h>
-#include <vrtdataset.h>
+#include <gdal/gdal_priv.h>
+#include <gdal/ogr_spatialref.h>
+#include <gdal/vrtdataset.h>
 
 namespace cvt
 {

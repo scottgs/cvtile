@@ -39,8 +39,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <boost/lexical_cast.hpp>
 #include <boost/thread/mutex.hpp>
-#include <vrtdataset.h>
-#include <ogr_spatialref.h>
+#include <gdal/vrtdataset.h>
+#include <gdal/ogr_spatialref.h>
 #include <sstream>
 #include "cvTile.hpp"
 #include "cvTileGdalExtensions.hpp"
