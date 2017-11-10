@@ -42,6 +42,9 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <boost/lexical_cast.hpp>
 #include <boost/bimap.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
+#include <gdal/vrtdataset.h>
+#include <gdal/ogr_spatialref.h>
+#include <gdal/gdal_priv.h>
 #include <map>
 #include <string>
 #include <set>

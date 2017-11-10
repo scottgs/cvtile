@@ -64,3 +64,4 @@ tests/testingWindowHistogramStatisticsOutFile.tif
 #apps
 scene_processor
 process_task
+.vscode/

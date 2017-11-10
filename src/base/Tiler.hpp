@@ -41,6 +41,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <boost/thread/mutex.hpp>
 #include <gdal/vrtdataset.h>
 #include <gdal/ogr_spatialref.h>
+#include <gdal/gdal_priv.h>
 #include <sstream>
 #include "cvTile.hpp"
 #include "cvTileGdalExtensions.hpp"

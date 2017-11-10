@@ -21,11 +21,7 @@ AC_CONFIG_FILES([Makefile
 		src/Makefile
 		src/base/Makefile
 		src/algorithms/Makefile
-		src/gpu/Makefile
-		src/gpu/drivers/Makefile
-		src/gpu/kernels/Makefile
-		tests/Makefile
-		apps/Makefile
+    tests/Makefile
 		])
 
 #find out what version we are running
@@ -37,33 +33,8 @@ else
   SUFFIX=""
 fi
 
-# -- These are capture as CUDA_CFLAGS,
-# AM_CPPFLAGS="-I/opt/cuda/sdk/shared/inc/ -I/opt/cuda/sdk/C/common/inc/"
-#   CUDART 5 = /opt/cuda/sdk/common/inc/
-# Setup CUDA paths
-# ------------------------------------------------------------------------------
-AC_ARG_WITH([cuda],
-   [  --with-cuda=PATH    prefix where cuda is installed [default=/opt/cuda/]])
-
-if test -n "$with_cuda"
-then
-   CUDA_CFLAGS="-I$with_cuda/include -I$with_cuda/sdk/C/common/inc/ -I$with_cuda/sdk/shared/inc/ -I$with_cuda/sdk/common/inc/"
-   CUDA_LIBS="-lcudart"
-   CUDA_LDFLAGS="-L$with_cuda/lib$SUFFIX"
-   NVCC="$with_cuda/bin/nvcc"
-else
-   CUDA_CFLAGS="-I/opt/cuda/include -I/opt/cuda/sdk/C/common/inc/ -I/opt/cuda/sdk/shared/inc/ -I/opt/cuda/sdk/common/inc/"
-   CUDA_LIBS="-lcudart"
-   CUDA_LDFLAGS="-L/opt/cuda/lib$SUFFIX"
-   NVCC="nvcc"
-fi
-AC_SUBST(CUDA_CFLAGS)
-AC_SUBST(CUDA_LIBS)
-AC_SUBST(CUDA_LDFLAGS)
-AC_SUBST(NVCC)
-
 # Global CPP Flags
-AM_CPPFLAGS="-std=c++11 -Werror -Wall -Wextra -O3 -ffast-math -msse3 -march=native -mtune=native"
+AM_CPPFLAGS="-std=c++11 -Werror -Wall -Wextra"
 AC_SUBST([AM_CPPFLAGS])
 CFLAGS=" "
 AC_SUBST([CFLAGS])

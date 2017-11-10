@@ -35,10 +35,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 
 #include "Tiler.hpp"
-
 #include <string>
 #include <boost/filesystem.hpp>
-#include <boost/lexical_cast.hpp>
 #include <boost/numeric/conversion/bounds.hpp>
 #include <boost/regex.hpp>
 #include <boost/thread/mutex.hpp>
